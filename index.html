@@ -1,429 +1,158 @@
-<!doctype html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecargasPaCuba</title>
-  <meta name="theme-color" content="#87CEEB"/>
-  <link rel="manifest" href="/manifest.json">
   <style>
-    :root{
-      --bg:#f6fbff; --card:#ffffff; --muted:#556; --primary:#87CEEB; --accent:#0b84ff; --price:#032e63;
-      --price-light:#ffffff;
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0d1117;
+      color: #fff;
     }
-    @media (prefers-color-scheme: dark) {
-      :root{
-        --bg:#071019; --card:#071722; --muted:#9aa3b2; --primary:#0ea5e9; --accent:#0b84ff; --price:#ffffff;
-        --price-light:#ffffff;
-      }
-      body{color:#e6eef6}
+    header {
+      background: linear-gradient(90deg, #27c0ff, #1597ff);
+      padding: 25px 0 35px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      color: #fff;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,'Segoe UI',Roboto,Arial;background:var(--bg);color:#072135}
-    .appbar{background:linear-gradient(90deg,var(--primary),#4fc3f7);color:#fff;padding:16px 14px;border-bottom-left-radius:12px;border-bottom-right-radius:12px;position:relative}
-    .appbar h1{margin:0;font-size:20px;text-align:center}
-    .wrap{max-width:920px;margin:14px auto;padding:0 14px 90px}
-    .segmented{display:flex;gap:10px;margin:14px 0;justify-content:center}
-    .seg-btn{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(11,20,30,0.06);background:var(--card);cursor:pointer;text-align:center;font-weight:700}
-    .seg-btn.active{background:linear-gradient(90deg,var(--primary),#4fc3f7);color:#fff;border:none;box-shadow:0 8px 20px rgba(11,20,30,0.06)}
-    .card{background:var(--card);border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 6px 18px rgba(11,20,30,0.04)}
-    .title{font-weight:700;font-size:16px;margin-bottom:6px}
-    .muted{color:var(--muted);font-size:13px}
-    .price{font-size:20px;font-weight:800;color:var(--price);background:linear-gradient(90deg,var(--accent),#4fc3f7);-webkit-background-clip:text;background-clip:text}
-    .price-dark{font-size:20px;font-weight:800;color:var(--price-light)}
-    .desc{font-size:14px;color:var(--muted);margin-top:6px}
-    .logo{width:44px;height:44px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;background:#fff;border:1px solid rgba(11,20,30,0.04)}
-    .row{display:flex;gap:12px;align-items:center}
-    .right{margin-left:auto;text-align:right}
-    .btn-use{padding:8px 12px;border-radius:10px;border:none;background:var(--accent);color:#fff;cursor:pointer}
-    .small{font-size:12px;color:var(--muted)}
-    .history-item{padding:10px;border-radius:10px;border:1px solid rgba(11,20,30,0.04);margin-bottom:8px;background:var(--card)}
-    nav.bottom{position:fixed;left:0;right:0;bottom:10px;padding:10px 12px;background:transparent;display:flex;justify-content:center;pointer-events:none}
-    .bottom-inner{max-width:920px;width:100%;display:flex;gap:8px;pointer-events:auto}
-    .tab{flex:1;padding:12px;border-radius:12px;background:var(--card);text-align:center;border:1px solid rgba(11,20,30,0.04);cursor:pointer}
-    .active-tab{border:2px solid var(--accent)}
-    footer.info{padding:20px 12px;text-align:center;color:var(--muted);font-size:13px;margin-top:12px}
-    @media(min-width:800px){.wrap{padding:0 24px}}
+    .subtext {
+      color: #e4f3ff;
+      text-align: center;
+      font-size: 14px;
+      margin-top: -20px;
+      margin-bottom: 25px;
+    }
+    .container {
+      padding: 15px;
+    }
+    .selector {
+      display: flex;
+      gap: 10px;
+    }
+    .selector button {
+      flex: 1;
+      background: #1a73e8;
+      color: #fff;
+      border: none;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .selector button.nautaBtn {
+      background: #ff9800;
+    }
+    .card {
+      background: #111827;
+      margin-top: 15px;
+      padding: 15px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .card img {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+    }
+    .card-title {
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .card-desc {
+      font-size: 14px;
+      color: #c9d1d9;
+    }
+    .useBtn {
+      margin-left: auto;
+      background: #2196f3;
+      color: #fff;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: bold;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #0f172a;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      border-top: 1px solid #1e293b;
+    }
+    .bottom-nav button {
+      background: none;
+      border: none;
+      color: #cbd5e1;
+      font-size: 14px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
-  <header class="appbar">
-    <h1>RecargasPaCuba</h1>
-  </header>
+  <header>RecargasPaCuba</header>
+  <div class="subtext">Enviar recargas a Cuba — rápido y seguro</div>  <div class="container">
+    <div class="selector">
+      <button id="btnCubacel">🇨🇺 Cubacel</button>
+      <button class="nautaBtn" id="btnNauta">📶 Nauta</button>
+    </div><div id="productos"></div>
 
-  <div class="wrap">
-    <div class="card">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="flex:1">
-          <div class="title">Envía recargas a Cuba</div>
-          <div class="muted">Selecciona Cubacel o Nauta y el producto. Si estás offline, se guarda localmente.</div>
-        </div>
-        <div style="text-align:right">
-          <div class="small">Demo PWA</div>
-        </div>
-      </div>
-    </div>
+  </div>  <div class="bottom-nav">
+    <button>Inicio</button>
+    <button>Recargar</button>
+    <button>Historial</button>
+    <button>Cuenta</button>
+  </div>  <script>
+    const cubacel = [
+      {precio: "10,42€", icono: "📱", desc: "CUP 250 – CUP 1247", tipo: "Recarga"},
+      {precio: "20,84€", icono: "🎁", desc: "500 CUP + internet 10h", tipo: "Paquete – 330 días"},
+      {precio: "20,84€", icono: "📦", desc: "5GB + 4GB + 75 MIN + 80 SMS", tipo: "Paquete – 35 días"},
+      {precio: "25,01€", icono: "🌙", desc: "600 CUP + internet nocturno", tipo: "Paquete – 330 días"},
+      {precio: "29,18€", icono: "⚡", desc: "700 CUP + internet 24h", tipo: "Paquete – 330 días"},
+      {precio: "31,26€", icono: "📶", desc: "10GB + 4GB + 115 MIN + 120 SMS", tipo: "Paquete – 30 días"},
+      {precio: "41,68€", icono: "🔥", desc: "16GB + 4GB + 165 MIN + 160 SMS", tipo: "Paquete – 30 días"},
+      {precio: "21,98€", icono: "📡", desc: "10GB CPE", tipo: "Datos CPE"},
+      {precio: "65,93€", icono: "📡", desc: "50GB CPE", tipo: "Datos CPE"},
+      {precio: "109,88€", icono: "📡", desc: "100GB CPE", tipo: "Datos CPE"}
+    ];
 
-    <!-- Segmented buttons -->
-    <div class="segmented">
-      <div id="btnCubacel" class="seg-btn active">🇨🇺 Cubacel</div>
-      <div id="btnNauta" class="seg-btn">📶 Nauta</div>
-    </div>
+    const nauta = [
+      {precio: "8,12€", icono: "💻", desc: "360 CUP — Recarga 15 días", tipo: "Recarga"},
+      {precio: "8,12€", icono: "🌐", desc: "Internet ilimitado 15 días", tipo: "Datos"},
+      {precio: "13,53€", icono: "💻", desc: "600 CUP — Recarga 30 días", tipo: "Recarga"},
+      {precio: "13,53€", icono: "🌐", desc: "Internet ilimitado 30 días", tipo: "Datos"},
+      {precio: "10,46€ - 52,20€", icono: "📧", desc: "CUP 250 – CUP 1247", tipo: "Recarga"}
+    ];
 
-    <!-- Cubacel list -->
-    <div id="cubacelList">
-      <!-- Each product card -->
-      <div class="card">
-        <div class="row">
-          <div class="logo">📱</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 10,42</div>
-            <div class="desc">Recibe: CUP 250 – CUP 1247</div>
-            <div class="small">Tipo: Recarga</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="10.42" data-label="Recibe: CUP 250 – CUP 1247">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">🎁</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 20,84</div>
-            <div class="desc">Recibe: Recharge 500 CUP + get 500 CUP + unlimited INTERNET for 10…</div>
-            <div class="small">Tipo: Paquete — Validez 330 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="20.84" data-label="Recharge 500 CUP + get 500 CUP + unlimited INTERNET for 10">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">📦</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 20,84</div>
-            <div class="desc">5GB Solo 4G + 4GB 2G/3G/4G + 75 MIN + 80 SMS – 30 días</div>
-            <div class="small">Tipo: Paquete — Validez 35 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="20.84" data-label="5GB Solo 4G + 4GB 2G/3G/4G + 75 MIN + 80 SMS">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">🌙</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 25,01</div>
-            <div class="desc">Recharge 600 CUP + get 3000 CUP + night INTERNET 12am-7am…</div>
-            <div class="small">Tipo: Paquete — Validez 330 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="25.01" data-label="Recharge 600 CUP + get 3000 CUP + night INTERNET">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">⚡</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 29,18</div>
-            <div class="desc">Recharge 700 CUP + get 700 CUP + unlimited data for 24 h…</div>
-            <div class="small">Tipo: Paquete — Validez 330 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="29.18" data-label="Recharge 700 CUP + get 700 CUP">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">📶</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 31,26</div>
-            <div class="desc">10GB (solo 4GB), 4GB (2G/3G/4G) + 115 min + 120 SMS – 30 días</div>
-            <div class="small">Tipo: Paquete — Validez 30 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="31.26" data-label="10GB + 4GB + 115 min + 120 SMS">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">🌐</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 41,68</div>
-            <div class="desc">16GB Solo 4G + 4GB 2G/3G/4G + 165 MIN + 160 SMS – 30 días</div>
-            <div class="small">Tipo: Paquete — Validez 30 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="cubacel" data-price="41.68" data-label="16GB + 4GB + 165 MIN + 160 SMS">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Modem Data -->
-      <div class="card" style="margin-top:6px">
-        <div class="title">Modem Data</div>
-        <div style="height:6px"></div>
-
-        <div class="card">
-          <div class="row">
-            <div class="logo">💾</div>
-            <div style="margin-left:10px">
-              <div class="price">€ 21,98</div>
-              <div class="desc">10GB — Datos para módem</div>
+    function render(data) {
+      const box = document.getElementById("productos");
+      box.innerHTML = "";
+      data.forEach(p => {
+        box.innerHTML += `
+          <div class="card">
+            <div style="font-size:35px">${p.icono}</div>
+            <div>
+              <div class="card-title">€ ${p.precio}</div>
+              <div class="card-desc">${p.desc}</div>
+              <div class="card-desc">${p.tipo}</div>
             </div>
-            <div class="right">
-              <button class="btn-use" data-op="cubacel" data-price="21.98" data-label="10GB modem">Usar</button>
-            </div>
+            <button class="useBtn">Usar</button>
           </div>
-        </div>
-
-        <div class="card">
-          <div class="row">
-            <div class="logo">💾</div>
-            <div style="margin-left:10px">
-              <div class="price">€ 65,93</div>
-              <div class="desc">50GB — Datos para módem</div>
-            </div>
-            <div class="right">
-              <button class="btn-use" data-op="cubacel" data-price="65.93" data-label="50GB modem">Usar</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="row">
-            <div class="logo">💾</div>
-            <div style="margin-left:10px">
-              <div class="price">€ 109,88</div>
-              <div class="desc">100GB — Datos para módem</div>
-            </div>
-            <div class="right">
-              <button class="btn-use" data-op="cubacel" data-price="109.88" data-label="100GB modem">Usar</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Nauta list (hidden by default) -->
-    <div id="nautaList" style="display:none">
-      <div class="card">
-        <div class="row">
-          <div class="logo">🌐</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 8,12</div>
-            <div class="desc">Recarga 360 CUP — Validez 15 días</div>
-            <div class="small">Tipo: Recarga</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="nauta" data-price="8.12" data-label="Recarga 360 CUP">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">📶</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 8,12</div>
-            <div class="desc">Unlimited Internet — 15 days (50% off)</div>
-            <div class="small">Tipo: Datos — Validez 15 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="nauta" data-price="8.12" data-label="Unlimited Internet 15 days">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">🌐</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 13,53</div>
-            <div class="desc">Recarga 600 CUP — Validez 30 días</div>
-            <div class="small">Tipo: Recarga</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="nauta" data-price="13.53" data-label="Recarga 600 CUP">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">📶</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 13,53</div>
-            <div class="desc">Unlimited Internet — 30 days (50% off)</div>
-            <div class="small">Tipo: Datos — Validez 30 días</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="nauta" data-price="13.53" data-label="Unlimited Internet 30 days">Usar</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="row">
-          <div class="logo">💶</div>
-          <div style="margin-left:10px">
-            <div class="price">€ 10,46 – € 52,20</div>
-            <div class="desc">Recarga Nauta — CUP 250 – 1247</div>
-            <div class="small">Tipo: Recarga</div>
-          </div>
-          <div class="right">
-            <button class="btn-use" data-op="nauta" data-price="10.46" data-label="Recarga Nauta 250-1247">Usar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <footer class="info">RecargasPaCuba — Demo · Hecho con ❤️</footer>
-  </div>
-
-  <!-- bottom nav -->
-  <nav class="bottom" aria-hidden="true">
-    <div class="bottom-inner">
-      <div id="tabHome" class="tab active-tab">Inicio</div>
-      <div id="tabRecarga" class="tab">Recargar</div>
-      <div id="tabHist" class="tab">Historial</div>
-      <div id="tabCuenta" class="tab">Cuenta</div>
-    </div>
-  </nav>
-
-<script>
-/* Minimal app logic */
-const $ = id => document.getElementById(id);
-
-/* UI: segment buttons */
-const btnC = $('btnCubacel'), btnN = $('btnNauta');
-const cubList = $('cubacelList'), nautaList = $('nautaList');
-
-btnC.addEventListener('click', ()=> {
-  btnC.classList.add('active');
-  btnN.classList.remove('active');
-  cubList.style.display = 'block';
-  nautaList.style.display = 'none';
-});
-btnN.addEventListener('click', ()=> {
-  btnN.classList.add('active');
-  btnC.classList.remove('active');
-  nautaList.style.display = 'block';
-  cubList.style.display = 'none';
-});
-
-/* history state */
-let history = JSON.parse(localStorage.getItem('rp_history')||'[]');
-
-function saveHistory(){ localStorage.setItem('rp_history', JSON.stringify(history)); }
-
-/* Handle "Usar" clicks */
-document.querySelectorAll('.btn-use').forEach(b=>{
-  b.addEventListener('click', async (e) => {
-    const op = b.getAttribute('data-op');
-    const price = b.getAttribute('data-price');
-    const label = b.getAttribute('data-label');
-
-    // Open a quick modal-like prompt to collect number (simple)
-    const phone = prompt(`Enviar ${op.toUpperCase()} - ${label}\nPrecio: € ${price}\n\nIntroduce número (ej. 53XXXXXXXXX):`);
-    if(!phone) return alert('Cancelado');
-    if(phone.length < 8) return alert('Número inválido');
-
-    // Create record
-    const rec = {
-      id: Math.random().toString(36).slice(2,9),
-      operator: op,
-      price: price,
-      label: label,
-      phone: phone,
-      date: new Date().toISOString(),
-      sent: false
-    };
-
-    // Try to send to backend
-    try {
-      const res = await fetch('/api/recharge', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({phone: rec.phone, operator: rec.operator, amount: rec.price, product: rec.label})
+        `;
       });
-      if(res.ok){
-        const j = await res.json();
-        rec.sent = true;
-        rec.remoteId = j.id || null;
-        alert('Recarga enviada. ID: '+(j.id||'--'));
-      } else {
-        throw new Error('HTTP '+res.status);
-      }
-    } catch(err){
-      // Save locally to retry later
-      history.unshift(rec);
-      saveHistory();
-      alert('No fue posible contactar al servidor. Recarga guardada localmente.');
     }
-  });
-});
 
-/* Simple bottom nav (opens sections) */
-$('tabHome').addEventListener('click', ()=> { window.scrollTo({top:0,behavior:'smooth'}); });
-$('tabRecarga').addEventListener('click', ()=> { btnC.click(); window.scrollTo({top:200,behavior:'smooth'}); });
-$('tabHist').addEventListener('click', ()=> {
-  // show history modal simple
-  const list = history.map(h=>`${h.operator.toUpperCase()} ${h.phone} €${h.price} - ${h.label} - ${new Date(h.date).toLocaleString()}`).join('\n\n');
-  if(!list) alert('No hay recargas guardadas');
-  else {
-    const id = prompt('Historial:\n\n'+list+'\n\nEscribe el ID de la recarga para reintentar o deja vacío.');
-    if(!id) return;
-    const item = history.find(x=>x.id===id);
-    if(!item) return alert('ID no encontrado');
-    // retry
-    (async ()=>{
-      try {
-        const res = await fetch('/api/recharge', {
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({phone: item.phone, operator: item.operator, amount: item.price, product: item.label})
-        });
-        if(res.ok){
-          alert('Reintento enviado correctamente');
-          history = history.filter(x=>x.id!==item.id);
-          saveHistory();
-        } else throw new Error('HTTP '+res.status);
-      } catch(e){
-        alert('Sigue sin poder contactar al servidor');
-      }
-    })();
-  }
-});
-$('tabCuenta').addEventListener('click', ()=> { alert('Cuenta: demo. En el futuro añadiremos login real.'); });
+    document.getElementById("btnCubacel").onclick = () => render(cubacel);
+    document.getElementById("btnNauta").onclick = () => render(nauta);
 
-/* Register service worker if present */
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/sw.js').catch(()=>{/* ignore */});
-}
-
-/* Init */
-(function(){
-  // ensure prices visible in dark: adjust price color if dark
-  const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if(isDark){
-    document.querySelectorAll('.price').forEach(el=> el.classList.add('price-dark'));
-  }
-})();
-</script>
-
-</body>
+    render(cubacel);
+  </script></body>
 </html>
