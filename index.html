@@ -1,33 +1,121 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>RecargasPaCuba</title>
-
-<!-- Manifest embebido -->
-<link rel="manifest" href='data:application/json,{"name":"RecargasPaCuba","short_name":"RecargasPaCuba","start_url":"./","display":"standalone","background_color":"#87CEEB","theme_color":"#87CEEB"}'>
-
-<meta name="theme-color" content="#87CEEB" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RecargasPaCuba</title>
+  <meta name="theme-color" content="#87CEEB"/>
+  <style>
+    :root{--bg:#ffffff;--primary:#87CEEB;--muted:#666;--accent:#0b84ff}
+    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;margin:0;background:var(--bg);color:#111}
+    header{background:linear-gradient(90deg,var(--primary),#4fc3f7);color:#fff;padding:22px 16px;text-align:center}
+    h1{margin:0;font-size:28px;letter-spacing:0.5px}
+    .container{padding:18px;max-width:760px;margin:0 auto}
+    .card{background:#fff;border-radius:12px;box-shadow:0 6px 20px rgba(11,20,30,0.06);padding:16px;margin:12px 0}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+    input,select,button,textarea{width:100%;padding:12px;border-radius:8px;border:1px solid #e6eef6;font-size:15px;box-sizing:border-box}
+    .row{display:flex;gap:12px}
+    .row > *{flex:1}
+    button{background:var(--accent);color:#fff;border:none;cursor:pointer}
+    .muted{color:var(--muted);font-size:14px}
+    nav{display:flex;gap:8px;justify-content:center;margin-top:12px}
+    nav button{background:transparent;color:#000;border:1px solid #ddd;padding:8px 12px;border-radius:8px}
+    footer{padding:20px;text-align:center;color:var(--muted);font-size:13px}
+    .small{font-size:13px;color:var(--muted)}
+    .success{background:#e6fffa;border-left:4px solid #06b6a4;padding:10px;border-radius:6px;margin-top:12px}
+    .error{background:#ffe6e6;border-left:4px solid #ff4d4f;padding:10px;border-radius:6px;margin-top:12px}
+  </style>
 </head>
-<body style="font-family:Arial;text-align:center;padding:20px;">
+<body>
+  <header>
+    <h1>RecargasPaCuba</h1>
+    <div class="small">Enviar recargas a Cuba — rápido y seguro</div>
+  </header>
 
-<h1>RecargasPaCuba</h1>
-<p>Versión de prueba lista para instalar como app.</p>
-<p>Funciona sin internet.</p>
+  <div class="container" id="app">
+    <div class="card" id="homeView">
+      <h2>Enviar recarga</h2>
+      <div class="muted">Si no hay internet, se guarda en historial.</div>
+      <label for="phone">Número</label>
+      <input id="phone" placeholder="53XXXXXXXXX"/>
 
-<script>
-const swCode = `
-self.addEventListener("install", e => {
-  e.waitUntil(caches.open("recargaspacuba").then(c => c.addAll(["./"])));
+      <label for="operator">Operadora</label>
+      <select id="operator">
+        <option value="cubacel">Cubacel</option>
+      </select>
+
+      <label for="amount">Cantidad (USD)</label>
+      <input id="amount" type="number" min="1" placeholder="Ej. 10"/>
+
+      <button id="sendBtn">Enviar recarga</button>
+      <div id="msg"></div>
+
+      <h3>Historial</h3>
+      <div id="history"></div>
+    </div>
+
+    <nav>
+      <button data-view="homeView">Enviar</button>
+    </nav>
+
+  </div>
+
+  <footer>RecargasPaCuba · PWA</footer>
+  <script>
+const $ = id => document.getElementById(id);
+
+function uid(){return Math.random().toString(36).slice(2,9);}
+
+function loadHistory(){
+  const h = JSON.parse(localStorage.getItem('recargas_history')||'[]');
+  const el = $('history');
+  if(h.length===0){
+    el.innerHTML = '<div class="small muted">Sin recargas</div>';
+    return;
+  }
+  el.innerHTML = h.map(r=>`
+    <div class="card small">
+      <strong>${r.phone}</strong> — $${r.amount}
+      <div>${new Date(r.date).toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+function saveLocal(recarga){
+  const h = JSON.parse(localStorage.getItem('recargas_history')||'[]');
+  h.unshift(recarga);
+  localStorage.setItem('recargas_history', JSON.stringify(h));
+  loadHistory();
+}
+
+$('sendBtn').addEventListener('click', ()=>{
+  const phone = $('phone').value.trim();
+  const amount = Number($('amount').value);
+
+  if(!phone || phone.length < 8){
+    $('msg').innerHTML = '<div class="error">Número inválido</div>';
+    return;
+  }
+
+  if(!amount || amount <= 0){
+    $('msg').innerHTML = '<div class="error">Cantidad inválida</div>';
+    return;
+  }
+
+  const recarga = {
+    id: uid(),
+    phone,
+    operator: "cubacel",
+    amount,
+    date: new Date().toISOString()
+  };
+
+  $('msg').innerHTML = '<div class="success">Recarga guardada localmente. (Demo sin servidor)</div>';
+
+  saveLocal(recarga);
 });
-self.addEventListener("fetch", e => {
-  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-});
-`;
-const blob = new Blob([swCode], {type:"text/javascript"});
-const swUrl = URL.createObjectURL(blob);
-if ("serviceWorker" in navigator) navigator.serviceWorker.register(swUrl);
+
+loadHistory();
 </script>
 
 </body>
