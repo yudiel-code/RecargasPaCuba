@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>RecargasPaCuba</title>
+
+<!-- Manifest embebido -->
+<link rel="manifest" href='data:application/json,{"name":"RecargasPaCuba","short_name":"RecargasPaCuba","start_url":"./","display":"standalone","background_color":"#87CEEB","theme_color":"#87CEEB"}'>
+
+<meta name="theme-color" content="#87CEEB" />
+</head>
+<body style="font-family:Arial;text-align:center;padding:20px;">
+
+<h1>RecargasPaCuba</h1>
+<p>Versión de prueba lista para instalar como app.</p>
+<p>Funciona sin internet.</p>
+
+<script>
+const swCode = `
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open("recargaspacuba").then(c => c.addAll(["./"])));
+});
+self.addEventListener("fetch", e => {
+  e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+});
+`;
+const blob = new Blob([swCode], {type:"text/javascript"});
+const swUrl = URL.createObjectURL(blob);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register(swUrl);
+</script>
+
+</body>
+</html>
