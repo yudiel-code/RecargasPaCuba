@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RecargasPaCuba</title>
   <meta name="theme-color" content="#87CEEB"/>
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/RecargasPaCuba/manifest.json">
+
   <style>
     :root{
       --bg:#f6fbff; --card:#fff; --muted:#6b7280; --primary:#87CEEB; --accent:#0b84ff; --danger:#ff4d4f;
@@ -47,13 +48,15 @@
     @media(min-width:700px){.wrap{padding:0 40px}.card{padding:20px}}
   </style>
 </head>
+
 <body>
   <header class="appbar">
     <h1>RecargasPaCuba</h1>
   </header>
 
   <div class="wrap">
-    <!-- PROMO -->
+
+    <!-- HOME -->
     <div class="card" id="homeCard">
       <div class="flex" style="justify-content:space-between;align-items:flex-start">
         <div>
@@ -99,12 +102,9 @@
       <div style="height:10px"></div>
 
       <div class="muted">Precios rápidos</div>
-      <div id="prices" style="margin-top:8px">
-        <!-- price cards injected -->
-      </div>
+      <div id="prices" style="margin-top:8px"></div>
 
       <div style="height:12px"></div>
-
       <button id="sendBtn" class="btn">Enviar recarga</button>
       <div id="msg" style="margin-top:10px"></div>
     </div>
@@ -119,9 +119,8 @@
     <!-- CUENTA -->
     <div class="card" id="accountCard" style="display:none">
       <div class="title">Cuenta</div>
-      <div id="accountArea">
-        <!-- login or profile -->
-      </div>
+      <div id="accountArea"></div>
+
       <div style="height:12px"></div>
       <div class="muted">Ajustes</div>
       <div style="height:6px"></div>
@@ -134,7 +133,7 @@
     <footer class="info">RecargasPaCuba — Demo · Hecho con ❤️</footer>
   </div>
 
-  <!-- BOTTOM NAV -->
+  <!-- NAV -->
   <nav class="bottom" aria-hidden="false">
     <div class="bottom-inner">
       <div id="tab-home" class="tab active">Inicio</div>
@@ -145,8 +144,9 @@
   </nav>
 
 <script>
-/* --- App state & helpers --- */
+/* --- Helpers --- */
 const $ = id => document.getElementById(id);
+
 const state = {
   user: localStorage.getItem('rp_user') ? JSON.parse(localStorage.getItem('rp_user')) : null,
   history: JSON.parse(localStorage.getItem('rp_history')||'[]'),
@@ -160,11 +160,13 @@ const state = {
 function saveState(){
   localStorage.setItem('rp_history', JSON.stringify(state.history));
 }
+
 function uid(){ return Math.random().toString(36).slice(2,9); }
+
 function showMsg(text,type='ok'){
   const el = $('msg');
   if(!text){ el.innerHTML=''; return; }
-  el.innerHTML = `<div class="${type==='error'?'error':'success'}" style="padding:10px;border-radius:8px">${text}</div>`;
+  el.innerHTML = `<div style="padding:10px;border-radius:8px;background:${type==='error'?'#ffcccc':'#d4ffe0'}">${text}</div>`;
   setTimeout(()=> el.innerHTML='',4000);
 }
 
@@ -188,6 +190,7 @@ function renderPrices(){
       <div><button class="priceBtn" data-price="${p}">Usar</button></div>
     </div>
   `).join('');
+
   document.querySelectorAll('.priceBtn').forEach(b=>{
     b.addEventListener('click', ()=> $('amount').value = b.getAttribute('data-price'));
   });
@@ -199,20 +202,22 @@ function renderHistory(){
     list.innerHTML = '<div class="small muted">No hay recargas</div>';
     return;
   }
-  list.innerHTML = state.history.map(r=>{
-    return `
-      <div class="history-item">
-        <div style="display:flex;justify-content:space-between">
-          <div><strong>${r.operator.toUpperCase()}</strong><div class="small muted">${r.phone}</div></div>
-          <div><strong>$${r.amount}</strong><div class="small">${new Date(r.date).toLocaleString()}</div></div>
-        </div>
-        <div style="margin-top:8px;display:flex;gap:8px">
-          ${r.sent ? '<div class="small">Enviado ✓</div>' : `<button class="btn retryBtn" data-id="${r.id}" style="background:#fff;color:#0b84ff;border:1px solid rgba(11,20,30,0.06)">Reintentar</button>`}
-          <button class="btn" style="background:#fff;color:#111;border:1px solid rgba(11,20,30,0.06)" data-id="${r.id}" onclick="removeItem('${r.id}')">Eliminar</button>
-        </div>
+
+  list.innerHTML = state.history.map(r=>`
+    <div class="history-item">
+      <div style="display:flex;justify-content:space-between">
+        <div><strong>${r.operator.toUpperCase()}</strong><div class="small muted">${r.phone}</div></div>
+        <div><strong>$${r.amount}</strong><div class="small">${new Date(r.date).toLocaleString()}</div></div>
       </div>
-    `;
-  }).join('');
+      <div style="margin-top:8px;display:flex;gap:8px">
+        ${r.sent ? '<div class="small">Enviado ✓</div>' :
+          `<button class="btn retryBtn" data-id="${r.id}" style="background:#fff;color:#0b84ff;border:1px solid #ccc">Reintentar</button>`
+        }
+        <button class="btn" style="background:#fff;color:#111;border:1px solid #ccc" onclick="removeItem('${r.id}')">Eliminar</button>
+      </div>
+    </div>
+  `).join('');
+
   document.querySelectorAll('.retryBtn').forEach(b=>{
     b.addEventListener('click', ()=> retrySend(b.getAttribute('data-id')));
   });
@@ -220,26 +225,29 @@ function renderHistory(){
 
 /* --- Tabs --- */
 const tabs = ['home','recharge','history','account'];
-tabs.forEach(t=>{
-  $('tab-'+t).addEventListener('click', ()=> openTab(t));
-});
+tabs.forEach(t=> $('tab-'+t).addEventListener('click', ()=> openTab(t)));
+
 function openTab(t){
   tabs.forEach(x=>{
     $('tab-'+x).classList.remove('active');
     const card = (x==='home')? 'homeCard' : (x==='recharge' ? 'rechargeCard' : (x==='history' ? 'historyCard' : 'accountCard'));
-    if(card) $(card).style.display = 'none';
+    $(card).style.display = 'none';
   });
+
   $('tab-'+t).classList.add('active');
+
   const showCard = (t==='home')? 'homeCard' : (t==='recharge' ? 'rechargeCard' : (t==='history' ? 'historyCard' : 'accountCard'));
-  if(showCard) $(showCard).style.display = 'block';
+  $(showCard).style.display = 'block';
+
   if(t==='recharge') renderPrices();
   if(t==='history') renderHistory();
   if(t==='account') renderAccountArea();
 }
 
-/* --- Account area / login --- */
+/* --- Account --- */
 function renderAccountArea(){
   const area = $('accountArea');
+
   if(state.user){
     area.innerHTML = `
       <div class="muted">Conectado como <strong>${state.user.name}</strong></div>
@@ -250,6 +258,7 @@ function renderAccountArea(){
       <div style="height:12px"></div>
       <button id="logoutBtn" class="btn" style="background:#ff6b6b">Cerrar sesión</button>
     `;
+
     $('logoutBtn').addEventListener('click', ()=>{
       state.user = null;
       localStorage.removeItem('rp_user');
@@ -257,6 +266,7 @@ function renderAccountArea(){
       renderAccountArea();
       showMsg('Sesión cerrada');
     });
+
   } else {
     area.innerHTML = `
       <div class="muted">Inicia sesión (demo)</div>
@@ -268,10 +278,12 @@ function renderAccountArea(){
       <div style="height:8px"></div>
       <button id="loginDo" class="btn">Iniciar sesión</button>
     `;
+
     $('loginDo').addEventListener('click', ()=>{
       const n = $('loginName').value.trim();
       const e = $('loginEmail').value.trim();
       if(!n||!e){ showMsg('Nombre y email son requeridos','error'); return; }
+
       state.user = {name:n,email:e};
       localStorage.setItem('rp_user', JSON.stringify(state.user));
       renderUserBox();
@@ -283,16 +295,17 @@ function renderAccountArea(){
 
 /* --- Send logic --- */
 async function postToServer(payload){
-  // try backend; returns {ok:true,id} or throws
   try{
     const res = await fetch('/api/recharge', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify(payload)
     });
+
     if(!res.ok) throw new Error('HTTP '+res.status);
     const data = await res.json();
     return {ok:true, id: data.id || null};
+
   } catch(e){
     return {ok:false, error: e.message};
   }
@@ -302,29 +315,36 @@ $('sendBtn').addEventListener('click', async ()=>{
   const phone = $('phone').value.trim();
   const operator = $('operator').value;
   const amount = Number($('amount').value);
+
   if(!phone || phone.length < 8){ showMsg('Número inválido','error'); return; }
   if(!amount || amount <= 0){ showMsg('Cantidad inválida','error'); return; }
 
   const rec = { id: uid(), phone, operator, amount, date: new Date().toISOString(), sent: false };
+
   showMsg('Procesando...');
   const result = await postToServer({phone,operator,amount});
+
   if(result.ok){
     rec.sent = true;
     showMsg('Recarga enviada. ID: '+(result.id||'--'));
   } else {
     showMsg('No fue posible contactar al servidor. Guardada localmente.','error');
   }
+
   state.history.unshift(rec);
   saveState();
   renderHistory();
 });
 
-/* --- Retry send from history --- */
+/* --- Retry --- */
 async function retrySend(id){
   const item = state.history.find(h=>h.id===id);
   if(!item) return;
+
   showMsg('Reintentando...');
+
   const res = await postToServer({phone:item.phone,operator:item.operator,amount:item.amount});
+
   if(res.ok){
     item.sent = true;
     saveState();
@@ -334,6 +354,7 @@ async function retrySend(id){
     showMsg('Sigue sin poder contactar al servidor.','error');
   }
 }
+
 function removeItem(id){
   state.history = state.history.filter(h=>h.id!==id);
   saveState();
@@ -355,17 +376,21 @@ $('saveSettingsBtn').addEventListener('click', ()=>{
     $('primaryColor').value = c;
     document.querySelector('.appbar').style.background = `linear-gradient(90deg, ${c}, #4fc3f7)`;
   }
+
   renderUserBox();
   renderPrices();
   renderHistory();
   renderAccountArea();
-  // register service worker (if present)
+
+  /* --- SERVICE WORKER CORRECTO --- */
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('/sw.js').catch(()=>{ /* ignore */});
+    navigator.serviceWorker.register('/RecargasPaCuba/service-worker.js')
+    .catch(()=>{});
   }
-  // start on Recharge tab to show the form
+
   openTab('recharge');
 })();
 </script>
+
 </body>
 </html>
