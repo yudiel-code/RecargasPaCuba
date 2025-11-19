@@ -2,7 +2,7 @@
   "name": "RecargasPaCuba",
   "short_name": "PaCuba",
   "description": "Enviar recargas Cubacel y Nauta a Cuba de forma rápida.",
-  "start_url": "/RecargasPaCuba/"
+  "start_url": "/RecargasPaCuba/",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#0d63c9",
