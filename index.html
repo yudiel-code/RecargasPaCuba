@@ -132,13 +132,16 @@
       font-weight:700;
     }
 
-    /* BARRA inferior: gris más oscuro solicitado */
+    /* BARRA inferior actualizada */
     nav.bottom{
       position:sticky;bottom:0;
       display:flex;
       justify-content:space-around;
       padding:10px;
-      background:#4a4a4a; /* gris más oscuro */
+      background:rgba(255,255,255,0.08); /* color nuevo */
+      border-top-left-radius:16px;        /* bordes nuevos */
+      border-top-right-radius:16px;       /* bordes nuevos */
+      backdrop-filter:blur(8px);
     }
     .nav-btn{
       color:white;
@@ -282,7 +285,6 @@
 
   <!-- RECARGAR -->
   <section id="screen-recargar" style="display:none;">
-    <!-- Banner promo (se muestra solo si hay promo activo) -->
     <div id="promo-container" style="display:none;">
       <div class="promo-banner" id="promo-banner"></div>
     </div>
@@ -311,12 +313,11 @@
 
 </main>
 
-<!-- NAV -->
 <nav class="bottom" role="navigation" aria-label="Navegación">
-  <div class="nav-btn" id="nav-home" role="button" tabindex="0">Inicio</div>
-  <div class="nav-btn active" id="nav-recargar" role="button" tabindex="0">Recargar</div>
-  <div class="nav-btn" id="nav-historial" role="button" tabindex="0">Historial</div>
-  <div class="nav-btn" id="nav-cuenta" role="button" tabindex="0">Cuenta</div>
+  <div class="nav-btn" id="nav-home">Inicio</div>
+  <div class="nav-btn active" id="nav-recargar">Recargar</div>
+  <div class="nav-btn" id="nav-historial">Historial</div>
+  <div class="nav-btn" id="nav-cuenta">Cuenta</div>
 </nav>
 
 <!-- MODAL -->
@@ -331,23 +332,13 @@
 </div>
 
 <script>
-  /* Service Worker (sin cambios) */
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
-  /* -------------------------
-     PROMO (modo demo — controla si aparece banner)
-     Pon aquí el texto o activa/desactiva
-     ------------------------- */
   const PROMO = {
     active: true,
     text: "🎁 Promo Cubacel: +1GB adicional en recargas hoy"
   };
 
-  /* -------------------------
-     Login demo (localStorage)
-     - Guarda nombre bajo key 'rpc_user_name'
-     - Muestra saludo en Home y header
-     ------------------------- */
   const STORAGE_KEY = 'rpc_user_name';
 
   const headerGreeting = document.getElementById('header-greeting');
@@ -387,7 +378,6 @@
     }
   }
 
-  // Inicializar desde storage
   const savedName = localStorage.getItem(STORAGE_KEY);
   if(savedName) updateUIForUser(savedName);
 
@@ -398,7 +388,6 @@
       return;
     }
     setUserName(name);
-    // Ir a Inicio con saludo visible
     show('home');
   });
 
@@ -409,9 +398,6 @@
     }
   });
 
-  /* -------------------------
-     SALDO (modo demo)
-  ------------------------- */
   let saldo = 0;
   const saldoMonto = document.getElementById("saldo-monto");
   const btnAgregarSaldo = document.getElementById("btn-agregar-saldo");
@@ -431,14 +417,9 @@
       saldo += 10;
       saldoMonto.textContent = saldo.toFixed(2) + " EUR";
       modalBG.style.display="none";
-      modalBG.setAttribute('aria-hidden','true');
-      alert("Saldo agregado (demo)");
     });
   });
 
-  /* -------------------------
-     OFERTAS (con logos temporales)
-  ------------------------- */
   const CUBACEL = [
     { title: "EUR 10,42 — Recarga mínima", details:"Recarga mínima válida" },
     { title: "EUR 20,84 — Recarga 500 CUP + bonus", details:"Promo con bonus y datos" },
@@ -468,8 +449,8 @@
         <div class="offer-card" role="article">
           <div style="display:flex;align-items:center;gap:12px">
             ${type === "CUBACEL" 
-              ? `<div class="logo-cubacel" aria-hidden="true">CU</div>` 
-              : `<div class="logo-nauta" aria-hidden="true">NA</div>`}
+              ? `<div class="logo-cubacel">CU</div>` 
+              : `<div class="logo-nauta">NA</div>`}
             <div class="offer-info">
               <div class="offer-title">${o.title}</div>
               <div class="offer-sub">${o.details}</div>
@@ -477,19 +458,18 @@
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
             <div class="price">${(o.title.match(/EUR\\s?[0-9.,]+/i)||[o.title])[0]}</div>
-            <button class="btn-buy" data-offer="${i}" data-type="${type}" aria-label="Comprar">Comprar</button>
+            <button class="btn-buy" data-offer="${i}" data-type="${type}">Comprar</button>
           </div>
         </div>
       `;
     });
 
-    // listeners compra
     offersList.querySelectorAll('.btn-buy').forEach(btn=>{
       btn.addEventListener('click', e=>{
         const idx = e.currentTarget.dataset.offer;
         const t = e.currentTarget.dataset.type;
-        const selected = (t === 'CUBACEL' ? CUBACEL[parseInt(idx,10)] : NAUTA[parseInt(idx,10)]);
-        alert('Seleccionaste la oferta: ' + (selected ? selected.title : 'Oferta'));
+        const selected = (t === 'CUBACEL' ? CUBACEL[idx] : NAUTA[idx]);
+        alert('Seleccionaste la oferta: ' + selected.title);
       });
     });
   }
@@ -506,24 +486,28 @@
     document.getElementById("tab-cubacel").classList.remove("active");
   });
 
-  /* -------------------------
-     NAV y pantallas
-  ------------------------- */
+  function updatePromoUI(){
+    const promoContainer = document.getElementById('promo-container');
+    const promoBanner = document.getElementById('promo-banner');
+    if(PROMO.active){
+      promoBanner.textContent = PROMO.text;
+      promoContainer.style.display = '';
+    } else {
+      promoContainer.style.display = 'none';
+    }
+  }
+
   function show(screen){
     document.querySelectorAll("main section").forEach(s=>s.style.display="none");
     document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
 
-    const el = document.getElementById("screen-"+screen);
-    if(el) el.style.display="block";
-    const nav = document.getElementById("nav-"+screen);
-    if(nav) nav.classList.add("active");
+    document.getElementById("screen-"+screen).style.display="block";
+    document.getElementById("nav-"+screen).classList.add("active");
 
-    // Si entramos a recargar, actualizar promo y ofertas
-    if(screen === 'recargar') {
+    if(screen === 'recargar'){
       updatePromoUI();
-      // render offers (mantener la pestaña activa)
       const activeTab = document.querySelector('.tab-btn.active');
-      const type = activeTab && activeTab.id === 'tab-nauta' ? 'NAUTA' : 'CUBACEL';
+      const type = activeTab.id === 'tab-nauta' ? 'NAUTA' : 'CUBACEL';
       renderOffers(type);
     }
   }
@@ -533,31 +517,11 @@
   document.getElementById("nav-historial").onclick = ()=> show("historial");
   document.getElementById("nav-cuenta").onclick = ()=> show("cuenta");
 
-  /* -------------------------
-     Promo UI
-  ------------------------- */
-  const promoContainer = document.getElementById('promo-container');
-  const promoBanner = document.getElementById('promo-banner');
-
-  function updatePromoUI(){
-    if(PROMO && PROMO.active){
-      promoBanner.textContent = PROMO.text;
-      promoContainer.style.display = '';
-    } else {
-      promoContainer.style.display = 'none';
-    }
-  }
-
-  /* -------------------------
-     Inicialización
-  ------------------------- */
-  // Si hay usuario guardado, mostrar en UI
   const existing = localStorage.getItem(STORAGE_KEY);
   if(existing) updateUIForUser(existing);
 
-  // Mostrar recargar por defecto
   renderOffers('CUBACEL');
-  show('recargar');
+  show('home');   /* 🔥 AHORA ABRE EN INICIO */
 </script>
 
 </body>
