@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RecargasPaCuba</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png" sizes="192x192">
+  <meta name="theme-color" content="#0d63c9">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family: Inter, system-ui, Arial, sans-serif;
+      background:#0b0f13;
+      color:white;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+    }
+
+    .app{max-width:820px;margin:auto;width:100%;padding:16px;flex:1 0 auto}
+
+    /* HEADER con bandera de Cuba en degradado */
+    header.appbar{
+      background: linear-gradient(
+        to bottom right,
+        rgba(0,91,187,0.85),
+        rgba(255,255,255,0.18),
+        rgba(206,17,38,0.85)
+      );
+      color:white;
+      padding:18px 22px;
+      text-align:center;
+      border-bottom-left-radius:12px;
+      border-bottom-right-radius:12px;
+    }
+    header.appbar h1{
+      margin:0;
+      font-size:20px;
+      font-weight:800;
+      letter-spacing:0.4px;
+    }
+    header.appbar .greeting{
+      margin-top:6px;
+      font-size:13px;
+      color:rgba(255,255,255,0.92);
+      font-weight:600;
+    }
+
+    .tabs{display:flex;gap:8px;justify-content:center;margin-bottom:10px;margin-top:14px}
+    .tab-btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(255,255,255,0.05);
+      color:white;
+      cursor:pointer;
+      min-width:110px;
+      text-align:center;
+      font-weight:600;
+    }
+    .tab-btn.active{
+      background:linear-gradient(90deg,#2ea3ff,#0080ff);
+    }
+
+    /* Promo banner */
+    .promo-banner{
+      background: linear-gradient(90deg,#ffefc2,#ffd27a);
+      color:#2b2b2b;
+      padding:10px 12px;
+      border-radius:10px;
+      margin:12px 0;
+      font-weight:700;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .offers{margin:auto;max-width:820px}
+    .offer-card{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:rgba(255,255,255,0.04);
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:12px;
+      box-shadow: 0 6px 16px rgba(2,8,18,0.45);
+    }
+
+    /* Logos temporales */
+    .logo-cubacel{
+      background:#005bbb;
+      padding:10px;
+      border-radius:8px;
+      color:white;
+      font-weight:800;
+      width:60px;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .logo-nauta{
+      background:#bb001b;
+      padding:10px;
+      border-radius:8px;
+      color:white;
+      font-weight:800;
+      width:60px;
+      text-align:center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .offer-info{margin-left:12px}
+    .offer-title{font-weight:700;color:white}
+    .offer-sub{font-size:13px;color:#c8d4e0;margin-top:4px}
+    .price{font-size:16px;font-weight:700;color:white}
+
+    .btn-buy{
+      background:#0d63c9;
+      color:white;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    /* BARRA inferior actualizada */
+    nav.bottom{
+      position:sticky;bottom:0;
+      display:flex;
+      justify-content:space-around;
+      padding:10px;
+      background:rgba(255,255,255,0.08); /* color nuevo */
+      border-top-left-radius:16px;        /* bordes nuevos */
+      border-top-right-radius:16px;       /* bordes nuevos */
+      backdrop-filter:blur(8px);
+    }
+    .nav-btn{
+      color:white;
+      cursor:pointer;
+      text-align:center;
+      font-size:12px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+    }
+    .nav-btn.active{
+      font-weight:800;
+    }
+
+    /* HOME + Login */
+    .home-screen {
+      padding:20px;
+      text-align:center;
+    }
+    .login-box{
+      margin-top:20px;
+      background:rgba(255,255,255,0.06);
+      padding:16px;
+      border-radius:12px;
+    }
+    .login-row{display:flex;gap:8px;align-items:center;justify-content:center}
+    .login-row input{
+      padding:10px 12px;border-radius:8px;border:none;background:rgba(0,0,0,0.35);color:white;flex:0 0 60%;
+    }
+    .btn-login{
+      background:#0d63c9;
+      color:white;
+      padding:10px 14px;
+      border-radius:10px;
+      margin-top:14px;
+      border:none;
+      font-weight:700;
+      cursor:pointer;
+      width:100%;
+    }
+    .btn-logout{
+      background:#bb001b;
+      color:white;
+      padding:8px 10px;
+      border-radius:8px;
+      border:none;
+      font-weight:700;
+      cursor:pointer;
+      margin-top:12px;
+      width:100%;
+      max-width:220px;
+    }
+
+    /* CUENTA */
+    .saldo-box{
+      background:rgba(255,255,255,0.06);
+      padding:18px;
+      border-radius:12px;
+      margin-bottom:20px;
+      text-align:center;
+    }
+    .saldo-monto{
+      font-size:26px;
+      font-weight:800;
+      margin-top:8px;
+    }
+    .btn-saldo{
+      background:#3db0ff;
+      color:white;
+      padding:10px 14px;
+      margin-top:14px;
+      border-radius:10px;
+      border:none;
+      font-weight:700;
+      cursor:pointer;
+      width:100%;
+      max-width:280px;
+    }
+
+    .modal-bg{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.6);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      z-index:999;
+    }
+    .modal{
+      background:#121a24;
+      padding:20px;
+      border-radius:12px;
+      width:90%;
+      max-width:350px;
+      text-align:center;
+    }
+    .pago-btn{
+      background:#0e7be2;
+      color:white;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      width:100%;
+      margin-top:10px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .pago-btn.cancel{ background:#555; margin-top:14px; }
+
+    @media (max-width:420px){
+      .offer-card{padding:10px}
+      .logo-cubacel, .logo-nauta{width:50px;padding:8px}
+      .login-row input{flex-basis:62%}
+    }
+  </style>
+</head>
+
+<body>
+<header class="appbar">
+  <h1>RecargasPaCuba</h1>
+  <div class="greeting" id="header-greeting" aria-live="polite"></div>
+</header>
+
+<main class="app" id="app">
+
+  <!-- HOME -->
+  <section id="screen-home" class="home-screen" style="display:none;">
+    <h2 id="home-title">Bienvenido</h2>
+    <p id="home-sub" style="color:#c9d3df;margin-top:8px;">Accede con tu cuenta para continuar.</p>
+
+    <!-- LOGIN VISUAL (demo) -->
+    <div class="login-box" id="login-box">
+      <div style="font-weight:700;margin-bottom:8px;">Iniciar sesión (demo)</div>
+      <div class="login-row">
+        <input id="input-nombre" placeholder="Tu nombre" aria-label="Tu nombre">
+        <button class="btn-login" id="btn-do-login">Entrar</button>
+      </div>
+      <button class="btn-logout" id="btn-logout" style="display:none">Cerrar sesión</button>
+    </div>
+  </section>
+
+  <!-- RECARGAR -->
+  <section id="screen-recargar" style="display:none;">
+    <div id="promo-container" style="display:none;">
+      <div class="promo-banner" id="promo-banner"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-cubacel" aria-selected="true">CUBACEL</button>
+      <button class="tab-btn" id="tab-nauta" aria-selected="false">NAUTA</button>
+    </div>
+
+    <div class="offers" id="offers-list" aria-live="polite"></div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section id="screen-historial" class="placeholder" style="display:none">
+    <div>Historial vacío por ahora.</div>
+  </section>
+
+  <!-- CUENTA -->
+  <section id="screen-cuenta" style="display:none">
+    <div class="saldo-box">
+      <div>Saldo disponible</div>
+      <div class="saldo-monto" id="saldo-monto">0.00 EUR</div>
+      <button class="btn-saldo" id="btn-agregar-saldo">Agregar saldo</button>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottom" role="navigation" aria-label="Navegación">
+  <div class="nav-btn" id="nav-home">Inicio</div>
+  <div class="nav-btn active" id="nav-recargar">Recargar</div>
+  <div class="nav-btn" id="nav-historial">Historial</div>
+  <div class="nav-btn" id="nav-cuenta">Cuenta</div>
+</nav>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Agregar saldo">
+    <div style="margin-bottom:10px;font-weight:700">Agregar saldo</div>
+    <button class="pago-btn" data-metodo="Bizum">Bizum</button>
+    <button class="pago-btn" data-metodo="Tarjeta">Tarjeta (Visa/Mastercard)</button>
+    <button class="pago-btn" data-metodo="PayPal">PayPal</button>
+    <button class="pago-btn cancel" id="cerrar-modal">Cancelar</button>
+  </div>
+</div>
+
+<script>
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+
+  const PROMO = {
+    active: true,
+    text: "🎁 Promo Cubacel: +1GB adicional en recargas hoy"
+  };
+
+  const STORAGE_KEY = 'rpc_user_name';
+
+  const headerGreeting = document.getElementById('header-greeting');
+  const homeTitle = document.getElementById('home-title');
+  const homeSub = document.getElementById('home-sub');
+  const inputNombre = document.getElementById('input-nombre');
+  const btnDoLogin = document.getElementById('btn-do-login');
+  const btnLogout = document.getElementById('btn-logout');
+
+  function setUserName(name){
+    if(!name) return;
+    localStorage.setItem(STORAGE_KEY, name);
+    updateUIForUser(name);
+  }
+
+  function clearUserName(){
+    localStorage.removeItem(STORAGE_KEY);
+    updateUIForUser(null);
+  }
+
+  function updateUIForUser(name){
+    if(name){
+      headerGreeting.textContent = `Hola, ${name} 👋`;
+      homeTitle.textContent = `Hola, ${name} 👋`;
+      homeSub.textContent = 'Listo para enviar recargas?';
+      inputNombre.style.display = 'none';
+      btnDoLogin.style.display = 'none';
+      btnLogout.style.display = 'block';
+    } else {
+      headerGreeting.textContent = '';
+      homeTitle.textContent = 'Bienvenido';
+      homeSub.textContent = 'Accede con tu cuenta para continuar.';
+      inputNombre.style.display = '';
+      btnDoLogin.style.display = '';
+      btnLogout.style.display = 'none';
+      inputNombre.value = '';
+    }
+  }
+
+  const savedName = localStorage.getItem(STORAGE_KEY);
+  if(savedName) updateUIForUser(savedName);
+
+  btnDoLogin.addEventListener('click', ()=>{
+    const name = inputNombre.value && inputNombre.value.trim();
+    if(!name){
+      alert('Introduce un nombre para continuar (modo demo).');
+      return;
+    }
+    setUserName(name);
+    show('home');
+  });
+
+  btnLogout.addEventListener('click', ()=>{
+    if(confirm('Cerrar sesión? (modo demo)')) {
+      clearUserName();
+      show('home');
+    }
+  });
+
+  let saldo = 0;
+  const saldoMonto = document.getElementById("saldo-monto");
+  const btnAgregarSaldo = document.getElementById("btn-agregar-saldo");
+  const modalBG = document.getElementById("modal-bg");
+
+  btnAgregarSaldo?.addEventListener("click", ()=> {
+    modalBG.style.display = "flex";
+    modalBG.setAttribute('aria-hidden','false');
+  });
+  document.getElementById("cerrar-modal")?.addEventListener("click", ()=> {
+    modalBG.style.display = "none";
+    modalBG.setAttribute('aria-hidden','true');
+  });
+
+  document.querySelectorAll(".pago-btn[data-metodo]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      saldo += 10;
+      saldoMonto.textContent = saldo.toFixed(2) + " EUR";
+      modalBG.style.display="none";
+    });
+  });
+
+  const CUBACEL = [
+    { title: "EUR 10,42 — Recarga mínima", details:"Recarga mínima válida" },
+    { title: "EUR 20,84 — Recarga 500 CUP + bonus", details:"Promo con bonus y datos" },
+    { title: "EUR 25,01 — Recarga 600 CUP + pack", details:"Pack combinado" },
+    { title: "EUR 29,18 — Recarga 700 CUP + datos", details:"Pack + datos" },
+    { title: "EUR 31,26 — 10GB (solo 4G)", details:"Datos + minutes" },
+    { title: "EUR 41,68 — 16GB solo 4G", details:"Datos para 30 días" },
+    { title: "EUR 21,98 — Paquete especial", details:"Paquete y minutos" },
+    { title: "EUR 65,93 — Modem data 50GB", details:"Datos para dispositivos" }
+  ];
+
+  const NAUTA = [
+    { title: "EUR 8,12 — Nauta Plus (15 días)", details:"Acceso Nauta Plus 15D" },
+    { title: "EUR 13,53 — Nauta Plus (30 días)", details:"Acceso Nauta Plus 30D" },
+    { title: "EUR 10,46 — NAUTA Cuba (min 250CUP)", details:"Recarga NAUTA mínima" },
+    { title: "EUR 52,20 — NAUTA Max", details:"Recarga NAUTA máxima" }
+  ];
+
+  const offersList = document.getElementById("offers-list");
+
+  function renderOffers(type){
+    offersList.innerHTML = "";
+    const list = type === "CUBACEL" ? CUBACEL : NAUTA;
+
+    list.forEach((o, i)=>{
+      offersList.innerHTML += `
+        <div class="offer-card" role="article">
+          <div style="display:flex;align-items:center;gap:12px">
+            ${type === "CUBACEL" 
+              ? `<div class="logo-cubacel">CU</div>` 
+              : `<div class="logo-nauta">NA</div>`}
+            <div class="offer-info">
+              <div class="offer-title">${o.title}</div>
+              <div class="offer-sub">${o.details}</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <div class="price">${(o.title.match(/EUR\\s?[0-9.,]+/i)||[o.title])[0]}</div>
+            <button class="btn-buy" data-offer="${i}" data-type="${type}">Comprar</button>
+          </div>
+        </div>
+      `;
+    });
+
+    offersList.querySelectorAll('.btn-buy').forEach(btn=>{
+      btn.addEventListener('click', e=>{
+        const idx = e.currentTarget.dataset.offer;
+        const t = e.currentTarget.dataset.type;
+        const selected = (t === 'CUBACEL' ? CUBACEL[idx] : NAUTA[idx]);
+        alert('Seleccionaste la oferta: ' + selected.title);
+      });
+    });
+  }
+
+  document.getElementById("tab-cubacel").addEventListener("click", ()=>{
+    renderOffers("CUBACEL");
+    document.getElementById("tab-cubacel").classList.add("active");
+    document.getElementById("tab-nauta").classList.remove("active");
+  });
+
+  document.getElementById("tab-nauta").addEventListener("click", ()=>{
+    renderOffers("NAUTA");
+    document.getElementById("tab-nauta").classList.add("active");
+    document.getElementById("tab-cubacel").classList.remove("active");
+  });
+
+  function updatePromoUI(){
+    const promoContainer = document.getElementById('promo-container');
+    const promoBanner = document.getElementById('promo-banner');
+    if(PROMO.active){
+      promoBanner.textContent = PROMO.text;
+      promoContainer.style.display = '';
+    } else {
+      promoContainer.style.display = 'none';
+    }
+  }
+
+  function show(screen){
+    document.querySelectorAll("main section").forEach(s=>s.style.display="none");
+    document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+
+    document.getElementById("screen-"+screen).style.display="block";
+    document.getElementById("nav-"+screen).classList.add("active");
+
+    if(screen === 'recargar'){
+      updatePromoUI();
+      const activeTab = document.querySelector('.tab-btn.active');
+      const type = activeTab.id === 'tab-nauta' ? 'NAUTA' : 'CUBACEL';
+      renderOffers(type);
+    }
+  }
+
+  document.getElementById("nav-home").onclick = ()=> show("home");
+  document.getElementById("nav-recargar").onclick = ()=> show("recargar");
+  document.getElementById("nav-historial").onclick = ()=> show("historial");
+  document.getElementById("nav-cuenta").onclick = ()=> show("cuenta");
+
+  const existing = localStorage.getItem(STORAGE_KEY);
+  if(existing) updateUIForUser(existing);
+
+  renderOffers('CUBACEL');
+  show('home');   /* 🔥 AHORA ABRE EN INICIO */
+</script>
+
+</body>
+</html>
