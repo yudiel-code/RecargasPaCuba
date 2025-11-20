@@ -1,83 +1,58 @@
-// service-worker.js (copiar/pegar tal cual)
-const CACHE_NAME = 'rpc-cache-v1';
-const ASSETS = [
-  './',               // permite navegación SPA desde subruta
-  './index.html',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './service-worker.js'
+// Nombre distinto para obligar siempre a refrescar cache
+const CACHE_NAME = "rpc-v" + Date.now();
+
+// Archivos que NO deben quedarse en caché antiguo
+const CORE_ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
-// Instalación: precacheo
-self.addEventListener('install', event => {
-  self.skipWaiting(); // toma el control inmediatamente
+// INSTALACIÓN
+self.addEventListener("install", (event) => {
+  self.skipWaiting();
+
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-      .catch(err => {
-        console.warn('SW precache error:', err);
-      })
-  );
-});
-
-// Activación: limpiar caches viejos y reclamar clientes
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.map(key => (key !== CACHE_NAME) ? caches.delete(key) : null)
-      ))
-      .then(() => self.clients.claim())
-  );
-});
-
-// Fetch: cache-first, luego red; guarda en cache respuestas válidas
-self.addEventListener('fetch', event => {
-  // solo GET
-  if (event.request.method !== 'GET') return;
-
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        // Return cached response immediately
-        return cachedResponse;
-      }
-
-      // No está en cache -> ir a red
-      return fetch(event.request)
-        .then(networkResponse => {
-          // si la respuesta no es válida, se devuelve tal cual (no se cachea)
-          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'opaque') {
-            return networkResponse;
-          }
-
-          // clone para guardar en cache
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => {
-              // intenta cachear la request (evita errores silenciosos)
-              cache.put(event.request, responseClone).catch(err => {
-                // algunas requests (cross-origin) pueden fallar al cachear; no es crítico
-                // console.warn('No se pudo cachear:', event.request.url, err);
-              });
-            });
-
-          return networkResponse;
-        })
-        .catch(() => {
-          // Si falla la red, intento devolver index.html (SPA offline)
-          return caches.match('./index.html');
-        });
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(CORE_ASSETS);
     })
   );
 });
 
-// Permite forzar skipWaiting desde la página:
-// navigator.serviceWorker.controller.postMessage({type: 'SKIP_WAITING'})
-self.addEventListener('message', event => {
-  if (!event.data) return;
-  if (event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+// ACTIVACIÓN
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key); // Borra cache viejo automáticamente
+          }
+        })
+      )
+    )
+  );
+  self.clients.claim();
+});
+
+// FETCH (carga SIEMPRE la versión nueva si existe)
+self.addEventListener("fetch", (event) => {
+  // No cachear peticiones POST o externas raras
+  if (event.request.method !== "GET") return;
+
+  event.respondWith(
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Guarda la nueva versión en cache
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
+        });
+        return networkResponse;
+      })
+      .catch(() =>
+        caches.match(event.request).then((resp) => resp || caches.match("./index.html"))
+      )
+  );
 });
