@@ -5,360 +5,299 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>RecargasPaCuba</title>
 
-  <!-- Manifest (ruta relativa, asegúrate de tener manifest.json en el mismo folder) -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png" sizes="192x192">
   <meta name="theme-color" content="#0d63c9">
 
   <style>
-    /* Reset y tipografía */
-    * { box-sizing: border-box; margin:0; padding:0; }
-    html,body { height:100%; }
-    body {
-      font-family: Inter, system-ui, Arial, sans-serif;
-      background: #0b0f13;
-      color: #e6eef6;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family: Inter, system-ui, Arial;
+      background:#0b0f13;
+      color:white;
       display:flex;
       flex-direction:column;
       min-height:100vh;
     }
 
-    /* Contenedor */
-    .app {
-      max-width:820px;
-      margin:0 auto;
-      width:100%;
-      padding:16px;
-      flex:1 0 auto;
-    }
+    .app{max-width:820px;margin:auto;width:100%;padding:16px;flex:1 0 auto}
 
-    header.appbar {
-      background: linear-gradient(90deg,#0e7be2,#3db0ff);
-      color: #fff;
-      padding:18px 16px;
-      border-bottom-left-radius:12px;
-      border-bottom-right-radius:12px;
-      text-align:center;
-    }
-    header.appbar h1 { font-size:20px; letter-spacing:0.2px; margin:0; }
-
-    /* Bienvenida inicio */
-    .home-screen {
+    header.appbar{
+      background:linear-gradient(90deg,#0e7be2,#3db0ff);
+      color:white;
       padding:18px;
       text-align:center;
-      color:var(--muted,#d6e7ff);
-    }
-    .welcome {
-      font-size:18px;
-      margin:12px 0 24px;
-      color:#ffffff; /* visible */
+      border-bottom-left-radius:12px;
+      border-bottom-right-radius:12px;
     }
 
-    /* Recargar - botones de selección */
-    .tabs {
-      display:flex;
-      gap:8px;
-      justify-content:center;
-      margin-bottom:14px;
-    }
-    .tab-btn {
+    .tabs{display:flex;gap:8px;justify-content:center;margin-bottom:14px}
+    .tab-btn{
       padding:10px 14px;
       border-radius:10px;
       border:1px solid rgba(255,255,255,0.06);
-      background:rgba(255,255,255,0.03);
-      color:#fff; /* texto botones en blanco */
+      background:rgba(255,255,255,0.05);
+      color:white;
       cursor:pointer;
       min-width:110px;
       text-align:center;
       font-weight:600;
     }
-    .tab-btn.active {
+    .tab-btn.active{
       background:linear-gradient(90deg,#2ea3ff,#0080ff);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
 
-    /* Lista de ofertas */
-    .offers {
-      display:block;
-      margin:0 auto;
-      max-width:820px;
-    }
-    .offer-card {
+    .offers{margin:auto;max-width:820px}
+    .offer-card{
       display:flex;
-      gap:12px;
-      align-items:center;
       justify-content:space-between;
-      padding:12px;
-      border-radius:12px;
-      margin-bottom:10px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border:1px solid rgba(255,255,255,0.02);
-    }
-    .offer-left {
-      display:flex;
-      gap:12px;
       align-items:center;
-      width:70%;
+      background:rgba(255,255,255,0.05);
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:12px;
     }
-    .operator-logo {
-      width:64px; height:44px; border-radius:8px;
-      background:#0b1220; display:flex; align-items:center; justify-content:center;
-      color:#fff; font-weight:700;
-      border:1px solid rgba(255,255,255,0.03);
-      flex-shrink:0;
+    .operator-logo{
+      width:60px;height:40px;background:#0f1826;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:8px;font-weight:700;
     }
-    .offer-info { color: rgba(255,255,255,0.92); }
-    .offer-title { font-weight:700; color:#fff; }
-    .offer-sub { color: rgba(255,255,255,0.75); font-size:13px; margin-top:4px; }
-
-    .offer-right {
-      display:flex;
-      flex-direction:column;
-      align-items:flex-end;
-      gap:8px;
-    }
-    .price {
-      font-weight:800;
-      font-size:16px;
-      color:#fff; /* TODOS los números en blanco */
-    }
-    .btn-buy {
+    .offer-info{margin-left:12px}
+    .offer-title{font-weight:700;color:white}
+    .offer-sub{font-size:13px;color:#c8d4e0;margin-top:4px}
+    .price{font-size:16px;font-weight:700;color:white}
+    .btn-buy{
       background:#0d63c9;
-      color:#fff; /* botones con texto blanco */
+      color:white;
+      border:none;
       padding:8px 12px;
       border-radius:8px;
-      border:none;
       cursor:pointer;
       font-weight:700;
     }
 
-    /* Bottom nav */
-    nav.bottom {
-      position:sticky;
-      bottom:0;
-      left:0;
-      right:0;
-      background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.01));
+    nav.bottom{
+      position:sticky;bottom:0;
       display:flex;
       justify-content:space-around;
-      padding:10px 6px;
-      border-top:1px solid rgba(255,255,255,0.03);
-      flex-shrink:0;
+      padding:10px;
+      background:rgba(255,255,255,0.05);
+      border-top:1px solid rgba(255,255,255,0.08);
     }
-    .nav-btn {
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:4px;
-      color:rgba(255,255,255,0.7);
-      cursor:pointer;
-      font-size:12px;
-    }
-    .nav-btn.active, .nav-btn:active { color:#fff; }
-    .nav-btn .dot { width:10px;height:10px;border-radius:50%;background:transparent; }
+    .nav-btn{color:#cfd8e1;cursor:pointer;text-align:center;font-size:12px}
+    .nav-btn.active{color:white}
 
-    /* Historial & Cuenta placeholders */
-    .placeholder {
-      padding:22px;
-      color:rgba(255,255,255,0.9);
+    .placeholder{text-align:center;padding:20px;color:white}
+
+    /* Cuenta */
+    .saldo-box{
+      background:rgba(255,255,255,0.08);
+      padding:20px;
+      border-radius:12px;
+      margin-bottom:20px;
       text-align:center;
     }
+    .saldo-monto{
+      font-size:28px;
+      font-weight:800;
+      margin-top:10px;
+    }
+    .btn-saldo{
+      background:#3db0ff;
+      color:white;
+      padding:10px 14px;
+      margin-top:18px;
+      border-radius:10px;
+      border:none;
+      font-weight:700;
+      cursor:pointer;
+      width:100%;
+      max-width:280px;
+    }
 
-    /* Responsive tweaks */
-    @media (max-width:420px) {
-      .offer-left { width:65%; }
-      .operator-logo { width:50px; height:36px; }
-      .price { font-size:15px; }
+    /* Modal */
+    .modal-bg{
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.6);
+      display:none;
+      justify-content:center;
+      align-items:center;
+    }
+    .modal{
+      background:#121a24;
+      padding:20px;
+      border-radius:12px;
+      width:90%;
+      max-width:350px;
+      text-align:center;
+    }
+    .pago-btn{
+      background:#0e7be2;
+      color:white;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      width:100%;
+      margin-top:10px;
+      font-weight:700;
+      cursor:pointer;
     }
   </style>
 </head>
+
 <body>
-  <header class="appbar">
-    <h1>RecargasPaCuba</h1>
-  </header>
+<header class="appbar"><h1>RecargasPaCuba</h1></header>
 
-  <main class="app" id="app">
-    <!-- Inicio -->
-    <section id="screen-home" class="home-screen">
-      <div class="welcome">Bienvenido a RecargasPaCuba — Envía recargas rápido y fácil.</div>
-    </section>
+<main class="app" id="app">
 
-    <!-- Recargar -->
-    <section id="screen-recargar" style="display:none;">
-      <div class="tabs" role="tablist" aria-label="Operadoras">
-        <button class="tab-btn active" id="tab-cubacel" role="tab" aria-selected="true">CUBACEL</button>
-        <button class="tab-btn" id="tab-nauta" role="tab" aria-selected="false">NAUTA</button>
-      </div>
+  <!-- RECARGAR -->
+  <section id="screen-recargar">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-cubacel">CUBACEL</button>
+      <button class="tab-btn" id="tab-nauta">NAUTA</button>
+    </div>
+    <div class="offers" id="offers-list"></div>
+  </section>
 
-      <div class="offers" id="offers-list" aria-live="polite">
-        <!-- Ofertas se inyectan vía JS -->
-      </div>
-    </section>
+  <!-- HISTORIAL -->
+  <section id="screen-historial" style="display:none">
+    <div class="placeholder">Historial vacío por ahora.</div>
+  </section>
 
-    <!-- Historial -->
-    <section id="screen-historial" class="placeholder" style="display:none;">
-      <div>Historial de recargas — Vacío por ahora.</div>
-    </section>
+  <!-- CUENTA + SALDO -->
+  <section id="screen-cuenta" style="display:none">
 
-    <!-- Cuenta / Registro (se deja como está) -->
-    <section id="screen-cuenta" class="placeholder" style="display:none;">
-      <div>Cuenta y registro — Mantener como está.</div>
-    </section>
-  </main>
-
-  <!-- Bottom navigation -->
-  <nav class="bottom" role="navigation" aria-label="Navegación">
-    <div class="nav-btn" id="nav-home" role="button" tabindex="0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="color:inherit"><path d="M3 11.5L12 4l9 7.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 21V11h14v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      <div>Inicio</div>
+    <div class="saldo-box">
+      <div>Saldo disponible</div>
+      <div class="saldo-monto" id="saldo-monto">0.00 EUR</div>
+      <button class="btn-saldo" id="btn-agregar-saldo">Agregar saldo</button>
     </div>
 
-    <div class="nav-btn active" id="nav-recargar" role="button" tabindex="0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 12v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><path d="M7 9l5-5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      <div>Recargar</div>
+    <div style="text-align:center;color:#c9d3df">
+      Aquí se mostrará tu información de usuario más adelante.
     </div>
 
-    <div class="nav-btn" id="nav-historial" role="button" tabindex="0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M3 3v18h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 3H8v7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      <div>Historial</div>
-    </div>
+  </section>
 
-    <div class="nav-btn" id="nav-cuenta" role="button" tabindex="0">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.6"></circle></svg>
-      <div>Cuenta</div>
-    </div>
-  </nav>
+</main>
 
-  <!-- Service worker registro (rutas relativas) -->
-  <script>
-    // Registrar service worker (archivo service-worker.js en mismo directorio)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker registrado'))
-      .catch(err => console.warn('SW error:', err));
-    }
-  </script>
+<!-- NAV -->
+<nav class="bottom">
+  <div class="nav-btn active" id="nav-recargar">Recargar</div>
+  <div class="nav-btn" id="nav-historial">Historial</div>
+  <div class="nav-btn" id="nav-cuenta">Cuenta</div>
+</nav>
 
-  <script>
-    /**************************************
-     * Datos de ofertas (edítalos si necesitas)
-     * He puesto 8 ofertas para CUBACEL y varias para NAUTA
-     **************************************/
-    const CUBACEL_OFFERS = [
-      { title: "EUR 10,42 — Recarga mínima", details:"Recarga mínima válida" },
-      { title: "EUR 20,84 — Recarga 500 CUP + bonus", details:"Promo con bonus y datos" },
-      { title: "EUR 25,01 — Recarga 600 CUP + pack", details:"Pack combinado" },
-      { title: "EUR 29,18 — Recarga 700 CUP + datos", details:"Pack + datos" },
-      { title: "EUR 31,26 — 10GB (solo 4GB)", details:"Datos + minutes" },
-      { title: "EUR 41,68 — 16GB solo 4G", details:"Datos para 30 días" },
-      { title: "EUR 21,98 — Paquete especial", details:"Paquete y minutos" },
-      { title: "EUR 65,93 — Modem data 50GB", details:"Datos para dispositivos" }
-    ];
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div style="margin-bottom:10px;font-weight:700">Agregar saldo</div>
+    <button class="pago-btn" data-metodo="Bizum">Bizum</button>
+    <button class="pago-btn" data-metodo="Tarjeta">Tarjeta (Visa/Mastercard)</button>
+    <button class="pago-btn" data-metodo="PayPal">PayPal</button>
+    <button class="pago-btn" style="background:#555;margin-top:14px" id="cerrar-modal">Cancelar</button>
+  </div>
+</div>
 
-    const NAUTA_OFFERS = [
-      { title: "EUR 8,12 — Nauta Plus (15 días)", details:"Acceso Nauta Plus 15D" },
-      { title: "EUR 13,53 — Nauta Plus (30 días)", details:"Acceso Nauta Plus 30D" },
-      { title: "EUR 10,46 — NAUTA Cuba (min 250CUP)", details:"Recarga NAUTA mínima" },
-      { title: "EUR 52,20 — NAUTA Max", details:"Recarga NAUTA máxima" }
-    ];
+<script>
+  /* -------------------
+     SALDO (modo demo)
+  ------------------- */
+  let saldo = 0;
 
-    // Elementos DOM
-    const tabCub = document.getElementById('tab-cubacel');
-    const tabNau = document.getElementById('tab-nauta');
-    const offersList = document.getElementById('offers-list');
+  const saldoMonto = document.getElementById("saldo-monto");
+  const btnAgregarSaldo = document.getElementById("btn-agregar-saldo");
+  const modalBG = document.getElementById("modal-bg");
 
-    // mostrar ofertas por defecto (Cubacel)
-    function renderOffers(operator){
-      offersList.innerHTML = '';
-      let list = operator === 'CUBACEL' ? CUBACEL_OFFERS : NAUTA_OFFERS;
-      list.forEach((o, i) => {
-        const card = document.createElement('article');
-        card.className = 'offer-card';
-        card.setAttribute('role','article');
+  btnAgregarSaldo.addEventListener("click", ()=> modalBG.style.display = "flex");
+  document.getElementById("cerrar-modal").addEventListener("click", ()=> modalBG.style.display = "none");
 
-        card.innerHTML = `
-          <div class="offer-left">
-            <div class="operator-logo">${operator}</div>
+  document.querySelectorAll(".pago-btn[data-metodo]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      saldo += 10;    // modo demo: suma 10 EUR
+      saldoMonto.textContent = saldo.toFixed(2) + " EUR";
+      modalBG.style.display="none";
+      alert("Saldo agregado (modo demo)");
+    });
+  });
+
+
+  /* -------------------
+     OFERTAS
+  ------------------- */
+  const CUBACEL = [
+    {title:"EUR 10,42", details:"Recarga mínima"},
+    {title:"EUR 20,84", details:"500 CUP + Bonus"},
+    {title:"EUR 29,18", details:"700 CUP + Datos"},
+    {title:"EUR 41,68", details:"16GB 4G"},
+  ];
+
+  const NAUTA = [
+    {title:"EUR 8,12", details:"Nauta Plus 15 días"},
+    {title:"EUR 13,53", details:"Nauta Plus 30 días"},
+    {title:"EUR 10,46", details:"Nauta mínima"},
+  ];
+
+  const offersList = document.getElementById("offers-list");
+  const tabC = document.getElementById("tab-cubacel");
+  const tabN = document.getElementById("tab-nauta");
+
+  function cargar(ofertas){
+    offersList.innerHTML="";
+    ofertas.forEach(o=>{
+      offersList.innerHTML += `
+        <div class="offer-card">
+          <div style="display:flex;align-items:center">
+            <div class="operator-logo">${o.title.includes("EUR")?"CU":"NA"}</div>
             <div class="offer-info">
               <div class="offer-title">${o.title}</div>
               <div class="offer-sub">${o.details}</div>
             </div>
           </div>
-          <div class="offer-right">
-            <div class="price">${extractNumber(o.title)}</div>
-            <button class="btn-buy" data-offer="${i}" aria-label="Comprar oferta">Compra ahora</button>
+          <div>
+            <div class="price">${o.title}</div>
+            <button class="btn-buy">Comprar</button>
           </div>
-        `;
-        offersList.appendChild(card);
-      });
-
-      // Añadir listeners a botones compra
-      offersList.querySelectorAll('.btn-buy').forEach(btn=>{
-        btn.addEventListener('click', e=>{
-          const idx = e.currentTarget.dataset.offer;
-          alert('Seleccionaste la oferta: ' + (operator === 'CUBACEL' ? CUBACEL_OFFERS[idx].title : NAUTA_OFFERS[idx].title));
-        });
-      });
-    }
-
-    function extractNumber(title){
-      // Esto devuelve la parte principal (EUR xxx,xx) o en blanco si no la hay
-      const m = title.match(/EUR\s?[0-9.,]+/i);
-      return m ? m[0] : title.split('—')[0].trim();
-    }
-
-    // Pestañas
-    function clearActiveTabs(){
-      tabCub.classList.remove('active');
-      tabNau.classList.remove('active');
-    }
-    tabCub.addEventListener('click', ()=>{
-      clearActiveTabs(); tabCub.classList.add('active');
-      renderOffers('CUBACEL');
+        </div>`;
     });
-    tabNau.addEventListener('click', ()=>{
-      clearActiveTabs(); tabNau.classList.add('active');
-      renderOffers('NAUTA');
-    });
+  }
 
-    // Navegación inferior (por pasos como pediste)
-    const navHome = document.getElementById('nav-home');
-    const navRec = document.getElementById('nav-recargar');
-    const navHist = document.getElementById('nav-historial');
-    const navAcc = document.getElementById('nav-cuenta');
+  tabC.onclick=()=>{tabC.classList.add("active");tabN.classList.remove("active");cargar(CUBACEL);}
+  tabN.onclick=()=>{tabN.classList.add("active");tabC.classList.remove("active");cargar(NAUTA);}
 
-    const screenHome = document.getElementById('screen-home');
-    const screenRec = document.getElementById('screen-recargar');
-    const screenHist = document.getElementById('screen-historial');
-    const screenAcc = document.getElementById('screen-cuenta');
+  cargar(CUBACEL);
 
-    function showScreen(screen){
-      // Oculta todos
-      screenHome.style.display = 'none';
-      screenRec.style.display = 'none';
-      screenHist.style.display = 'none';
-      screenAcc.style.display = 'none';
 
-      // Limpiar active en nav
-      document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  /* -------------------
+     NAVEGACIÓN
+  ------------------- */
+  const navRec = document.getElementById("nav-recargar");
+  const navHis = document.getElementById("nav-historial");
+  const navCue = document.getElementById("nav-cuenta");
 
-      // Mostrar elegido
-      if(screen === 'home'){ screenHome.style.display = ''; navHome.classList.add('active'); }
-      if(screen === 'recargar'){ screenRec.style.display = ''; navRec.classList.add('active'); }
-      if(screen === 'historial'){ screenHist.style.display = ''; navHist.classList.add('active'); }
-      if(screen === 'cuenta'){ screenAcc.style.display = ''; navAcc.classList.add('active'); }
-    }
+  const sRec = document.getElementById("screen-recargar");
+  const sHis = document.getElementById("screen-historial");
+  const sCue = document.getElementById("screen-cuenta");
 
-    navHome.addEventListener('click', ()=> showScreen('home'));
-    navRec.addEventListener('click', ()=> showScreen('recargar'));
-    navHist.addEventListener('click', ()=> showScreen('historial'));
-    navAcc.addEventListener('click', ()=> showScreen('cuenta'));
+  function show(screen){
+    sRec.style.display="none";
+    sHis.style.display="none";
+    sCue.style.display="none";
 
-    // Inicializar: mostrar recargar y Cubacel por defecto (tal como tenías)
-    showScreen('recargar');
-    renderOffers('CUBACEL');
-  </script>
+    navRec.classList.remove("active");
+    navHis.classList.remove("active");
+    navCue.classList.remove("active");
+
+    if(screen==="recargar"){sRec.style.display="";navRec.classList.add("active");}
+    if(screen==="historial"){sHis.style.display="";navHis.classList.add("active");}
+    if(screen==="cuenta"){sCue.style.display="";navCue.classList.add("active");}
+  }
+
+  navRec.onclick=()=>show("recargar");
+  navHis.onclick=()=>show("historial");
+  navCue.onclick=()=>show("cuenta");
+</script>
+
 </body>
 </html>
