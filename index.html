@@ -147,6 +147,9 @@
     .btn-buy{
       background:#0d63c9;border:none;padding:8px 12px;color:white;border-radius:8px;font-weight:700;cursor:pointer;
     }
+  #modal-bg {
+    display: none !important;
+  }  
   </style>
 </head>
 
@@ -279,17 +282,6 @@
   <div class="nav-btn" id="nav-historial">Historial</div>
   <div class="nav-btn" id="nav-cuenta">Cuenta</div>
 </nav>
-
-<!-- MODAL SALDO -->
-<div id="modal-bg" class="modal-bg" aria-hidden="true">
-  <div class="modal">
-    <div style="margin-bottom:10px;font-weight:700">Agregar saldo</div>
-    <button class="pago-btn" data-metodo="Bizum">Bizum</button>
-    <button class="pago-btn" data-metodo="Tarjeta">Tarjeta (Visa/Mastercard)</button>
-    <button class="pago-btn" data-metodo="PayPal">PayPal</button>
-    <button id="cerrar-modal" class="pago-btn cancel">Cancelar</button>
-  </div>
-</div>
 
 <script>
 /* -----------------------------
@@ -640,5 +632,15 @@ renderOffers("CUBACEL");
 show("home");
 </script>
 
+ <!-- MODAL SALDO -->
+<div id="modal-bg" class="modal-bg" aria-hidden="true">
+  <div class="modal">
+    <div style="margin-bottom:10px;font-weight:700">Agregar saldo</div>
+    <button class="pago-btn" data-metodo="Bizum">Bizum</button>
+    <button class="pago-btn" data-metodo="Tarjeta">Tarjeta (Visa/Mastercard)</button>
+    <button class="pago-btn" data-metodo="PayPal">PayPal</button>
+    <button id="cerrar-modal" class="pago-btn cancel">Cancelar</button>
+  </div>
+</div> 
 </body>
 </html>
