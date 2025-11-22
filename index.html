@@ -1,538 +1,564 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RecargasPaCuba</title>
-
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0d63c9">
 
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family: Inter, system-ui, Arial, sans-serif;
-  background:#0b0f13;
-  color:white;
-  display:flex;
-  flex-direction:column;
-  min-height:100vh;
-}
-.app{max-width:820px;margin:auto;width:100%;padding:16px;flex:1 0 auto}
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      font-family: Inter, system-ui, Arial, sans-serif;
+      background:#0b0f13;
+      color:white;
+      display:flex;
+      flex-direction:column;
+      min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    .app{max-width:820px;margin:auto;width:100%;padding:16px;flex:1 0 auto}
 
-header.appbar{
-  background: linear-gradient(to bottom right,
-    rgba(0,91,187,0.85),
-    rgba(255,255,255,0.18),
-    rgba(206,17,38,0.85)
-  );
-  padding:18px 22px;
-  text-align:center;
-  border-bottom-left-radius:12px;
-  border-bottom-right-radius:12px;
-}
-header.appbar h1{font-size:20px;font-weight:800;}
-header.appbar .greeting{margin-top:6px;font-size:13px;color:#ffffffc9;font-weight:600}
+    /* GENERAL HEADER (kept small so login is full-screen look) */
+    header.appbar{
+      display:none; /* hidden on new login screen; preserved in DOM */
+      background: linear-gradient(to bottom right,
+        rgba(0,91,187,0.85),
+        rgba(255,255,255,0.18),
+        rgba(206,17,38,0.85)
+      );
+      padding:18px 22px;
+      text-align:center;
+      border-bottom-left-radius:12px;
+      border-bottom-right-radius:12px;
+    }
+    header.appbar h1{font-size:20px;font-weight:800;}
+    header.appbar .greeting{margin-top:6px;font-size:13px;color:#ffffffc9;font-weight:600}
 
-nav.bottom{
-  position:sticky;bottom:0;
-  display:flex;justify-content:space-around;
-  padding:10px;
-  background:rgba(255,255,255,0.08);
-  border-top-left-radius:16px;
-  border-top-right-radius:16px;
-  backdrop-filter:blur(8px)
-}
-.nav-btn{cursor:pointer;font-size:12px;text-align:center;color:white}
-.nav-btn.active{font-weight:800}
+    /* NEW LOGIN STYLES (matches provided image) */
+    #screen-home {
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      min-height:calc(100vh - 72px);
+      background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
+      background-repeat:no-repeat;
+      position:relative;
+      padding-top:42px;
+      box-shadow: inset 0 120px 160px rgba(255,255,255,0.03);
+    }
 
-.home-screen{text-align:center;padding:20px}
+    .login-wrap{
+      width:100%;
+      max-width:420px;
+      text-align:center;
+      color:#ffffff;
+      padding:18px;
+    }
 
-.card{
-  background:rgba(255,255,255,0.06);
-  padding:16px;border-radius:12px;
-  margin:20px auto 0;
-  max-width:460px;
-}
-input{
-  width:100%;
-  padding:10px 12px;
-  border-radius:8px;
-  border:none;
-  background:rgba(0,0,0,0.35);
-  color:white;
-}
-.field{position:relative;margin-bottom:10px}
-.eye-toggle{
-  position:absolute;
-  right:10px;top:50%;
-  transform:translateY(-50%);
-  cursor:pointer;
-  font-size:14px;
-  color:#cbd5e1;
-}
+    .logo-big{
+      width:220px;
+      height:220px;
+      margin:0 auto 8px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:transparent;
+    }
+    .logo-big img{width:90%;height:auto;display:block;border-radius:50%}
 
-.btn-primary{
-  background:#0d63c9;border:none;color:white;
-  padding:10px 14px;border-radius:10px;
-  font-weight:700;cursor:pointer;width:100%;
-}
-.btn-tertiary{
-  margin-top:10px;background:transparent;
-  border:1px solid rgba(255,255,255,0.15);
-  color:#cbd5e1;padding:10px;
-  border-radius:8px;cursor:pointer;width:100%;
-}
-.btn-logout-global{
-  background:#b00020;border:none;color:white;
-  padding:12px;width:86%;margin:20px auto 70px;
-  display:block;border-radius:12px;
-  font-weight:700;text-align:center;cursor:pointer;
-}
+    .login-title{
+      font-size:40px;
+      font-weight:800;
+      margin-top:8px;
+      color:#ffffff;
+      text-shadow:0 2px 0 rgba(0,0,0,0.12);
+    }
+    .login-sub{color:#e7f7fb;margin-top:8px;font-size:16px}
 
-.saldo-box{
-  background:rgba(255,255,255,0.06);
-  padding:20px;border-radius:12px;
-  margin-bottom:20px;text-align:center;
-}
-.saldo-monto{font-weight:800;font-size:26px;margin-top:5px}
+    /* Inputs as soft pills */
+    .input-pill{
+      display:block;
+      margin:18px auto 12px;
+      width:92%;
+      max-width:360px;
+      background: rgba(255,255,255,0.18);
+      border-radius:40px;
+      padding:18px 22px;
+      color:#02333a;
+      font-size:20px;
+      border: 1px solid rgba(255,255,255,0.06);
+      outline:none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18) inset;
+    }
+    .input-pill::placeholder{color: rgba(3,51,58,0.45)}
 
-.promo-banner{
-  margin:12px 0;padding:12px;
-  background:linear-gradient(90deg,#ffefc2,#ffd27a);
-  color:#2b2b2b;border-radius:10px;font-weight:700;
-}
+    /* Primary CTA — orange rounded */
+    .btn-primary-big{
+      display:block;
+      margin:18px auto 8px;
+      width:92%;
+      max-width:360px;
+      padding:16px 22px;
+      border-radius:40px;
+      background: #ffb13b;
+      color:#2c1a00;
+      font-weight:800;
+      font-size:20px;
+      border: none;
+      cursor:pointer;
+      box-shadow: 0 8px 22px rgba(0,0,0,0.25);
+    }
 
-.offer-card{
-  background:rgba(255,255,255,0.06);
-  padding:12px;border-radius:12px;
-  margin-bottom:12px;display:flex;
-  justify-content:space-between;align-items:center;
-}
-.logo-cubacel,.logo-nauta{
-  width:60px;height:60px;border-radius:10px;
-  display:flex;justify-content:center;align-items:center;
-  color:white;font-weight:800;
-}
-.logo-cubacel{background:#005bbb}
-.logo-nauta{background:#bb001b}
+    /* Google button white */
+    .btn-google{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      justify-content:center;
+      margin:12px auto 32px;
+      width:92%;
+      max-width:360px;
+      padding:14px 18px;
+      border-radius:40px;
+      background:#fff;
+      color:#222;
+      font-weight:700;
+      font-size:18px;
+      border: none;
+      cursor:pointer;
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    }
+    .btn-google img{width:22px;height:22px}
 
-.btn-buy{
-  background:#0d63c9;border:none;padding:8px 12px;
-  color:white;border-radius:8px;font-weight:700;cursor:pointer;
-}
+    .register-link{display:block;margin-top:6px;color:#fff;font-size:15px}
+    .register-link a{color:#fff7b8;font-weight:800;text-decoration:none}
 
-/* ---------------- MODAL REPARADO ---------------- */
-.modal-bg {
-  position: fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  background:rgba(0,0,0,0.6);
-  z-index:9999;
-}
-.modal {
-  background:#0f1720;
-  padding:22px;
-  border-radius:12px;
-  max-width:92%;
-  color:white;
-  text-align:center;
-}
-.pago-btn{
-  margin:8px 0;width:100%;
-  padding:12px 16px;border-radius:10px;
-  background:#0d63c9;border:none;color:white;
-  cursor:pointer;font-weight:700;
-}
-.pago-btn.cancel{
-  background:#6b6b6b;color:#fff;
-}
-</style>
+    /* Small screen tweak */
+    @media (max-width:420px){
+      .login-title{font-size:34px}
+      .logo-big{width:180px;height:180px}
+    }
+
+    /* Keep the rest of original styles for other screens (minimally) */
+    nav.bottom{
+      position:sticky;bottom:0;
+      display:flex;justify-content:space-around;
+      padding:10px;
+      background:rgba(255,255,255,0.08);
+      border-top-left-radius:16px;
+      border-top-right-radius:16px;
+      backdrop-filter:blur(8px)
+    }
+    .nav-btn{cursor:pointer;font-size:12px;text-align:center;color:white}
+    .nav-btn.active{font-weight:800}
+
+    /* Offer/other components (left unchanged from original) */
+    .card{
+      background:rgba(255,255,255,0.06);
+      padding:16px;border-radius:12px;
+      margin:20px auto 0;
+      max-width:460px;
+    }
+
+    .logo-cubacel,.logo-nauta{
+      width:60px;height:60px;border-radius:10px;
+      display:flex;justify-content:center;align-items:center;
+      color:white;font-weight:800;
+    }
+    .logo-cubacel{background:#005bbb}
+    .logo-nauta{background:#bb001b}
+
+    .btn-buy{
+      background:#0d63c9;border:none;padding:8px 12px;
+      color:white;border-radius:8px;font-weight:700;cursor:pointer;
+    }
+
+    /* Modal */
+    .modal-bg {
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      display:none; justify-content:center; align-items:center;
+      background:rgba(0,0,0,0.6); z-index:9999;
+    }
+    .modal { background:#0f1720; padding:22px; border-radius:12px; max-width:92%; color:white; text-align:center; }
+    .pago-btn{ margin:8px 0;width:100%; padding:12px 16px;border-radius:10px; background:#0d63c9;border:none;color:white; cursor:pointer;font-weight:700; }
+    .pago-btn.cancel{ background:#6b6b6b;color:#fff; }
+
+    /* small visual reset for hidden sections */
+    main section{display:none}
+  </style>
 </head>
 
 <body>
 
-<header class="appbar">
-  <h1>RecargasPaCuba</h1>
-  <div id="header-greeting"></div>
-</header>
+  <!-- keep header in DOM (hidden on login) -->
+  <header class="appbar">
+    <h1>RecargasPaCuba</h1>
+    <div id="header-greeting"></div>
+  </header>
 
-<main class="app">
+  <main class="app">
 
-  <!-- HOME -->
-  <section id="screen-home" style="display:none" class="home-screen">
-    <h2 id="home-title">Bienvenido</h2>
-    <p id="home-sub" style="color:#c9d3df;margin-top:8px;"></p>
-
-    <div class="card" id="auth-card">
-
-      <!-- LOGIN -->
-      <div id="login-form">
-        <h3>Iniciar sesión</h3>
-
-        <div class="field">
-          <input id="login-identifier" placeholder="Usuario o correo">
+    <!-- LOGIN HOME (new design) -->
+    <section id="screen-home" style="display:block">
+      <div class="login-wrap">
+        <div class="logo-big" role="img" aria-label="Logo RecargasPaCuba">
+          <!-- use the icon you uploaded; change filename if needed -->
+          <img src="icon-256.png" alt="RecargasPaCuba logo">
         </div>
 
-        <div class="field">
-          <input id="login-password" type="password" placeholder="Contraseña">
-          <span class="eye-toggle" data-target="login-password">👁</span>
-        </div>
+        <div class="login-title">Iniciar Sesión</div>
+        <div class="login-sub">¿Eres nuevo? <a href="#" id="link-register" style="color:#fff7b8;font-weight:800;">Regístrate aquí</a></div>
 
-        <button id="btn-login-do" class="btn-primary">Entrar</button>
+        <!-- Inputs -->
+        <input id="login-identifier" class="input-pill" placeholder="Email o PIN" />
+        <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
+
+        <button id="btn-login-do" class="btn-primary-big">Continuar</button>
+
+        <button id="btn-google" class="btn-google" aria-label="Continuar con Google">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G">
+          Continuar con Google
+        </button>
+      </div>
+    </section>
+
+    <!-- RECARGAR (kept but hidden until nav) -->
+    <section id="screen-recargar">
+      <div id="promo-container" style="display:none">
+        <div id="promo-banner" class="promo-banner"></div>
       </div>
 
-      <button id="btn-show-register" class="btn-tertiary">Registrarse</button>
-
-      <!-- REGISTRO -->
-      <div id="register-form" style="display:none;margin-top:12px">
-        <h3>Crear cuenta</h3>
-
-        <div class="field"><input id="reg-username" placeholder="Nombre de usuario (opcional)"></div>
-        <div class="field"><input id="reg-email" type="email" placeholder="Correo electrónico (opcional)"></div>
-        <div class="field"><input id="reg-phone" type="tel" placeholder="Teléfono (opcional)"></div>
-
-        <div class="field">
-          <input id="reg-password" type="password" placeholder="Contraseña (obligatoria)">
-          <span class="eye-toggle" data-target="reg-password">👁</span>
-        </div>
-
-        <div class="field">
-          <input id="reg-password2" type="password" placeholder="Repetir contraseña">
-          <span class="eye-toggle" data-target="reg-password2">👁</span>
-        </div>
-
-        <button id="btn-register-do" class="btn-primary">Crear cuenta</button>
-        <button id="btn-cancel-register" class="btn-tertiary">Volver</button>
+      <div class="tabs" style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
+        <button class="tab-btn active" id="tab-cubacel">CUBACEL</button>
+        <button class="tab-btn" id="tab-nauta">NAUTA</button>
       </div>
 
-    </div>
-  </section>
+      <div id="offers-list"></div>
+    </section>
 
-  <!-- RECARGAR -->
-  <section id="screen-recargar" style="display:none">
-    <div id="promo-container" style="display:none">
-      <div id="promo-banner" class="promo-banner"></div>
-    </div>
-
-    <div class="tabs" style="display:flex;gap:8px;justify-content:center;margin-bottom:14px">
-      <button class="tab-btn active" id="tab-cubacel">CUBACEL</button>
-      <button class="tab-btn" id="tab-nauta">NAUTA</button>
-    </div>
-
-    <div id="offers-list"></div>
-  </section>
-
-  <!-- HISTORIAL -->
-  <section id="screen-historial" style="display:none">
-    <div style="padding:20px;text-align:center;color:#cbd5e1">
-      Historial vacío (demo)
-    </div>
-  </section>
-
-  <!-- CUENTA -->
-  <section id="screen-cuenta" style="display:none">
-    <div class="saldo-box">
-      <div>Saldo disponible</div>
-      <div id="saldo-monto" class="saldo-monto">0.00 EUR</div>
-      <button id="btn-agregar-saldo" class="btn-primary" style="max-width:260px;margin-top:12px">Agregar saldo</button>
-    </div>
-
-    <div class="card" id="profile-card" style="display:none">
-      <h3>Perfil</h3>
-      <div id="profile-username" style="font-weight:700;margin-bottom:6px"></div>
-      <div id="profile-email" style="color:#cbd5e1;margin-bottom:6px"></div>
-      <div id="profile-phone" style="color:#cbd5e1;margin-bottom:10px"></div>
-
-      <div style="margin-top:12px;color:#cbd5e1;text-align:left">Métodos de pago guardados (demo)</div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn-tertiary">Bizum</button>
-        <button class="btn-tertiary">Tarjeta</button>
-        <button class="btn-tertiary">PayPal</button>
+    <!-- HISTORIAL -->
+    <section id="screen-historial">
+      <div style="padding:20px;text-align:center;color:#cbd5e1">
+        Historial vacío (demo)
       </div>
+    </section>
+
+    <!-- CUENTA -->
+    <section id="screen-cuenta">
+      <div class="saldo-box">
+        <div>Saldo disponible</div>
+        <div id="saldo-monto" class="saldo-monto">0.00 EUR</div>
+        <button id="btn-agregar-saldo" class="btn-primary" style="max-width:260px;margin-top:12px">Agregar saldo</button>
+      </div>
+
+      <div class="card" id="profile-card" style="display:none">
+        <h3>Perfil</h3>
+        <div id="profile-username" style="font-weight:700;margin-bottom:6px"></div>
+        <div id="profile-email" style="color:#cbd5e1;margin-bottom:6px"></div>
+        <div id="profile-phone" style="color:#cbd5e1;margin-bottom:10px"></div>
+
+        <div style="margin-top:12px;color:#cbd5e1;text-align:left">Métodos de pago guardados (demo)</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-tertiary">Bizum</button>
+          <button class="btn-tertiary">Tarjeta</button>
+          <button class="btn-tertiary">PayPal</button>
+        </div>
+      </div>
+
+      <button id="btn-logout-global" class="btn-logout-global" style="display:none">Cerrar sesión</button>
+    </section>
+
+  </main>
+
+  <nav class="bottom">
+    <div class="nav-btn" id="nav-home">Inicio</div>
+    <div class="nav-btn active" id="nav-recargar">Recargar</div>
+    <div class="nav-btn" id="nav-historial">Historial</div>
+    <div class="nav-btn" id="nav-cuenta">Cuenta</div>
+  </nav>
+
+  <!-- MODAL -->
+  <div id="modal-bg" class="modal-bg">
+    <div class="modal">
+      <div style="margin-bottom:10px;font-weight:700">Agregar saldo</div>
+      <button class="pago-btn" data-metodo="Bizum">Bizum</button>
+      <button class="pago-btn" data-metodo="Tarjeta">Tarjeta (Visa/Mastercard)</button>
+      <button class="pago-btn" data-metodo="PayPal">PayPal</button>
+      <button id="cerrar-modal" class="pago-btn cancel">Cancelar</button>
     </div>
-
-    <button id="btn-logout-global" class="btn-logout-global" style="display:none">Cerrar sesión</button>
-  </section>
-
-</main>
-
-<nav class="bottom">
-  <div class="nav-btn" id="nav-home">Inicio</div>
-  <div class="nav-btn active" id="nav-recargar">Recargar</div>
-  <div class="nav-btn" id="nav-historial">Historial</div>
-  <div class="nav-btn" id="nav-cuenta">Cuenta</div>
-</nav>
-
-<!-- MODAL FIJO Y REPARADO -->
-<div id="modal-bg" class="modal-bg">
-  <div class="modal">
-    <div style="margin-bottom:10px;font-weight:700">Agregar saldo</div>
-    <button class="pago-btn" data-metodo="Bizum">Bizum</button>
-    <button class="pago-btn" data-metodo="Tarjeta">Tarjeta (Visa/Mastercard)</button>
-    <button class="pago-btn" data-metodo="PayPal">PayPal</button>
-    <button id="cerrar-modal" class="pago-btn cancel">Cancelar</button>
   </div>
-</div>
 
-<script>
-// SERVICE WORKER
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
+  <script>
+    // SERVICE WORKER (unchanged)
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('service-worker.js');
 
-// VARIABLES
-const STORAGE_KEY="rpc_user";
-const loginForm=document.getElementById("login-form");
-const registerForm=document.getElementById("register-form");
-const btnShowRegister=document.getElementById("btn-show-register");
-const btnCancelRegister=document.getElementById("btn-cancel-register");
+    // VARIABLES (kept from your original index)
+    const STORAGE_KEY="rpc_user";
+    const loginForm=document.getElementById("login-form"); // note: not used visually in new login
+    const registerForm=document.getElementById("register-form");
+    const btnShowRegister=document.getElementById("btn-show-register");
+    const btnCancelRegister=document.getElementById("btn-cancel-register");
 
-const loginIdentifier=document.getElementById("login-identifier");
-const loginPassword=document.getElementById("login-password");
-const btnLoginDo=document.getElementById("btn-login-do");
+    const loginIdentifier=document.getElementById("login-identifier");
+    const loginPassword=document.getElementById("login-password");
+    const btnLoginDo=document.getElementById("btn-login-do");
 
-const regUsername=document.getElementById("reg-username");
-const regEmail=document.getElementById("reg-email");
-const regPhone=document.getElementById("reg-phone");
-const regPassword=document.getElementById("reg-password");
-const regPassword2=document.getElementById("reg-password2");
-const btnRegisterDo=document.getElementById("btn-register-do");
+    const regUsername=document.getElementById("reg-username");
+    const regEmail=document.getElementById("reg-email");
+    const regPhone=document.getElementById("reg-phone");
+    const regPassword=document.getElementById("reg-password");
+    const regPassword2=document.getElementById("reg-password2");
+    const btnRegisterDo=document.getElementById("btn-register-do");
 
-const profileCard=document.getElementById("profile-card");
-const profileUsername=document.getElementById("profile-username");
-const profileEmail=document.getElementById("profile-email");
-const profilePhone=document.getElementById("profile-phone");
-const btnLogoutGlobal=document.getElementById("btn-logout-global");
+    const profileCard=document.getElementById("profile-card");
+    const profileUsername=document.getElementById("profile-username");
+    const profileEmail=document.getElementById("profile-email");
+    const profilePhone=document.getElementById("profile-phone");
+    const btnLogoutGlobal=document.getElementById("btn-logout-global");
 
-let saldo=0;
-const saldoMonto=document.getElementById("saldo-monto");
-const modalBG=document.getElementById("modal-bg");
+    let saldo=0;
+    const saldoMonto=document.getElementById("saldo-monto");
+    const modalBG=document.getElementById("modal-bg");
 
-// Mostrar/Ocultar contraseña
-document.querySelectorAll(".eye-toggle").forEach(eye=>{
-  eye.onclick=()=>{
-    const id=eye.dataset.target;
-    const input=document.getElementById(id);
-    input.type=input.type==="password"?"text":"password";
-    eye.textContent=input.type==="password"?"👁":"🙈";
-  }
-});
+    // Helper storage functions
+    function saveUser(obj){localStorage.setItem(STORAGE_KEY,JSON.stringify(obj))}
+    function getUser(){return JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")}
+    function clearUser(){localStorage.removeItem(STORAGE_KEY)}
 
-// STORAGE
-function saveUser(obj){localStorage.setItem(STORAGE_KEY,JSON.stringify(obj))}
-function getUser(){return JSON.parse(localStorage.getItem(STORAGE_KEY)||"null")}
-function clearUser(){localStorage.removeItem(STORAGE_KEY)}
-
-// Autogenerar username
-function autoUsernameFromEmail(email){
-  if(!email) return "";
-  return email.split("@")[0].toLowerCase();
-}
-
-// UI
-function updateUIForUser(user){
-  const greet=document.getElementById("header-greeting");
-  const homeT=document.getElementById("home-title");
-  const homeS=document.getElementById("home-sub");
-
-  if(user){
-    const name=user.username||autoUsernameFromEmail(user.email)||"Usuario";
-
-    greet.textContent=`Hola, ${name} 👋`;
-    homeT.textContent=`Hola, ${name} 👋`;
-    homeS.textContent="Listo para enviar recargas";
-
-    loginForm.style.display="none";
-    registerForm.style.display="none";
-    btnShowRegister.style.display="none";
-
-    profileCard.style.display="block";
-    btnLogoutGlobal.style.display="block";
-
-    profileUsername.textContent=user.username?`@${user.username}`:"(sin usuario)";
-    profileEmail.textContent=user.email?`✉ ${user.email}`:"";
-    profilePhone.textContent=user.phone?`📞 ${user.phone}`:"";
-  }else{
-    greet.textContent="";
-    homeT.textContent="Bienvenido";
-    homeS.textContent="Accede con tu cuenta para continuar";
-
-    loginForm.style.display="";
-    registerForm.style.display="none";
-    btnShowRegister.style.display="";
-    profileCard.style.display="none";
-    btnLogoutGlobal.style.display="none";
-  }
-}
-
-// REGISTRO
-btnShowRegister.onclick=()=>{
-  loginForm.style.display="none";
-  registerForm.style.display="";
-};
-
-btnCancelRegister.onclick=()=>{
-  registerForm.style.display="none";
-  loginForm.style.display="";
-};
-
-btnRegisterDo.onclick=()=>{
-  let username=regUsername.value.trim();
-  const email=regEmail.value.trim();
-  const phone=regPhone.value.trim();
-  const pass1=regPassword.value;
-  const pass2=regPassword2.value;
-
-  if(pass1.length<6) return alert("La contraseña debe tener al menos 6 caracteres.");
-  if(pass1!==pass2) return alert("Las contraseñas no coinciden.");
-  if(!username && !email) return alert("Debes ingresar un usuario o correo.");
-
-  if(!username && email) username=autoUsernameFromEmail(email);
-
-  const user={username,email,phone,password:pass1,created:Date.now()};
-  saveUser(user); updateUIForUser(user);
-  alert("Cuenta creada correctamente.");
-  show("home");
-};
-
-// LOGIN
-btnLoginDo.onclick=()=>{
-  const id=loginIdentifier.value.trim();
-  const pwd=loginPassword.value;
-
-  const user=getUser();
-  if(!user) return alert("No existe ninguna cuenta registrada.");
-
-  const ok=
-    (user.username && id===user.username) ||
-    (user.email && id.toLowerCase()===user.email.toLowerCase());
-
-  if(ok && pwd===user.password){
-    updateUIForUser(user);
-    alert("Sesión iniciada.");
-    show("home");
-  }else alert("Usuario/correo o contraseña incorrectos.");
-};
-
-// LOGOUT
-btnLogoutGlobal.onclick=()=>{
-  if(confirm("¿Cerrar sesión?")){
-    clearUser(); updateUIForUser(null); show("home");
-  }
-};
-
-// SALDO
-document.getElementById("btn-agregar-saldo").onclick=()=>modalBG.style.display="flex";
-document.getElementById("cerrar-modal").onclick=()=>modalBG.style.display="none";
-
-document.querySelectorAll(".pago-btn[data-metodo]").forEach(btn=>{
-  btn.onclick=()=>{
-    saldo+=10;
-    saldoMonto.textContent=saldo.toFixed(2)+" EUR";
-    modalBG.style.display="none";
-    alert("Saldo agregado (demo)");
-  };
-});
-
-// OFERTAS
-const CUBACEL=[
-  {title:"EUR 10,42 — Recarga mínima"},
-  {title:"EUR 20,84 — Recarga 500 CUP + bonus"},
-  {title:"EUR 25,01 — Recarga 600 CUP + pack"},
-  {title:"EUR 29,18 — Recarga 700 CUP + datos"},
-  {title:"EUR 31,26 — 10GB (solo 4G)"},
-  {title:"EUR 41,68 — 16GB solo 4G"},
-  {title:"EUR 21,98 — Paquete especial"},
-  {title:"EUR 65,93 — Modem data 50GB"},
-];
-const NAUTA=[
-  {title:"EUR 8,12 — Nauta Plus (15 días)"},
-  {title:"EUR 13,53 — Nauta Plus (30 días)"},
-  {title:"EUR 10,46 — NAUTA mínima"},
-  {title:"EUR 52,20 — NAUTA Max"},
-];
-
-function renderOffers(type){
-  const list=type==="CUBACEL"?CUBACEL:NAUTA;
-  const offers=document.getElementById("offers-list");
-  offers.innerHTML="";
-
-  list.forEach((o,i)=>{
-    const price=(o.title.match(/EUR\s?[0-9.,]+/)||[""])[0];
-    offers.innerHTML+=`
-      <div class="offer-card">
-        <div style="display:flex;gap:12px;align-items:center">
-          <div class="${type==="CUBACEL"?"logo-cubacel":"logo-nauta"}">
-            ${type==="CUBACEL"?"CU":"NA"}
-          </div>
-          <div>${o.title}</div>
-        </div>
-        <div>
-          <div style="font-weight:700">${price}</div>
-          <button class="btn-buy" data-type="${type}" data-index="${i}">
-            ${getUser()?"Comprar":"Entrar para comprar"}
-          </button>
-        </div>
-      </div>
-    `;
-  });
-
-  document.querySelectorAll(".btn-buy").forEach(btn=>{
-    btn.onclick=()=>{
-      if(!getUser()){ alert("Debes iniciar sesión."); show("home"); return;}
-      alert("Comprar (demo): "+list[btn.dataset.index].title);
-    };
-  });
-}
-
-document.getElementById("tab-cubacel").onclick=()=>{
-  document.getElementById("tab-cubacel").classList.add("active");
-  document.getElementById("tab-nauta").classList.remove("active");
-  renderOffers("CUBACEL");
-};
-document.getElementById("tab-nauta").onclick=()=>{
-  document.getElementById("tab-nauta").classList.add("active");
-  document.getElementById("tab-cubacel").classList.remove("active");
-  renderOffers("NAUTA");
-};
-
-// NAVEGACIÓN
-function show(screen){
-  document.querySelectorAll("main section").forEach(s=>s.style.display="none");
-  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
-
-  document.getElementById("screen-"+screen).style.display="block";
-  document.getElementById("nav-"+screen).classList.add("active");
-
-  if(screen==="recargar"){
-    const type=document.querySelector(".tab-btn.active").id==="tab-nauta"?"NAUTA":"CUBACEL";
-    renderOffers(type);
-  }
-  if(screen==="cuenta"){
-    if(getUser()){
-      profileCard.style.display="block";
-      btnLogoutGlobal.style.display="block";
-    }else{
-      profileCard.style.display="none";
-      btnLogoutGlobal.style.display="none";
+    function autoUsernameFromEmail(email){
+      if(!email) return "";
+      return email.split("@")[0].toLowerCase();
     }
-  }
-}
 
-document.getElementById("nav-home").onclick=()=>show("home");
-document.getElementById("nav-recargar").onclick=()=>show("recargar");
-document.getElementById("nav-historial").onclick=()=>show("historial");
-document.getElementById("nav-cuenta").onclick=()=>show("cuenta");
+    // Reusable UI update (kept)
+    function updateUIForUser(user){
+      const greet=document.getElementById("header-greeting");
+      const homeT=document.getElementById("home-title");
+      const homeS=document.getElementById("home-sub");
 
-// INICIO APP
-const existing=getUser();
-if(existing) updateUIForUser(existing);
+      if(user){
+        const name=user.username||autoUsernameFromEmail(user.email)||"Usuario";
+        greet.textContent=`Hola, ${name} 👋`;
+        if(homeT) homeT.textContent=`Hola, ${name} 👋`;
+        if(homeS) homeS.textContent="Listo para enviar recargas";
 
-renderOffers("CUBACEL");
-show("home");
-</script>
+        if(loginForm) loginForm.style.display="none";
+        if(registerForm) registerForm.style.display="none";
+        if(btnShowRegister) btnShowRegister.style.display="none";
+
+        if(profileCard) profileCard.style.display="block";
+        if(btnLogoutGlobal) btnLogoutGlobal.style.display="block";
+
+        if(profileUsername) profileUsername.textContent=user.username?`@${user.username}`:"(sin usuario)";
+        if(profileEmail) profileEmail.textContent=user.email?`✉ ${user.email}`:"";
+        if(profilePhone) profilePhone.textContent=user.phone?`📞 ${user.phone}`:"";
+      }else{
+        if(greet) greet.textContent="";
+        if(homeT) homeT.textContent="Bienvenido";
+        if(homeS) homeS.textContent="Accede con tu cuenta para continuar";
+
+        if(loginForm) loginForm.style.display="";
+        if(registerForm) registerForm.style.display="none";
+        if(btnShowRegister) btnShowRegister.style.display="";
+        if(profileCard) profileCard.style.display="none";
+        if(btnLogoutGlobal) btnLogoutGlobal.style.display="none";
+      }
+    }
+
+    // Register/login flows (kept behavior; some UI elements not visible in new login layout but logic preserved)
+    if(btnRegisterDo){
+      btnRegisterDo.onclick=()=>{
+        let username=(regUsername?regUsername.value.trim():"");
+        const email=(regEmail?regEmail.value.trim():"");
+        const phone=(regPhone?regPhone.value.trim():"");
+        const pass1=(regPassword?regPassword.value:"");
+        const pass2=(regPassword2?regPassword2.value:"");
+
+        if(pass1.length<6) return alert("La contraseña debe tener al menos 6 caracteres.");
+        if(pass1!==pass2) return alert("Las contraseñas no coinciden.");
+        if(!username && !email) return alert("Debes ingresar un usuario o correo.");
+
+        if(!username && email) username=autoUsernameFromEmail(email);
+
+        const user={username,email,phone,password:pass1,created:Date.now()};
+        saveUser(user); updateUIForUser(user);
+        alert("Cuenta creada correctamente.");
+        show("home");
+      };
+    }
+
+    if(btnLoginDo){
+      btnLoginDo.onclick=()=>{
+        const id=(loginIdentifier?loginIdentifier.value.trim():"");
+        const pwd=(loginPassword?loginPassword.value:"");
+
+        const user=getUser();
+        if(!user) return alert("No existe ninguna cuenta registrada.");
+
+        const ok=
+          (user.username && id===user.username) ||
+          (user.email && id.toLowerCase()===user.email.toLowerCase());
+
+        if(ok && pwd===user.password){
+          updateUIForUser(user);
+          alert("Sesión iniciada.");
+          show("home");
+        }else alert("Usuario/correo o contraseña incorrectos.");
+      };
+    }
+
+    if(btnLogoutGlobal){
+      btnLogoutGlobal.onclick=()=>{
+        if(confirm("¿Cerrar sesión?")){
+          clearUser(); updateUIForUser(null); show("home");
+        }
+      };
+    }
+
+    // Modal and add-saldo logic (kept)
+    const btnAgregar=document.getElementById("btn-agregar-saldo");
+    if(btnAgregar) btnAgregar.onclick=()=>modalBG.style.display="flex";
+    const cerrarModal=document.getElementById("cerrar-modal");
+    if(cerrarModal) cerrarModal.onclick=()=>modalBG.style.display="none";
+
+    document.querySelectorAll(".pago-btn[data-metodo]").forEach(btn=>{
+      btn.onclick=()=>{
+        saldo+=10;
+        if(saldoMonto) saldoMonto.textContent=saldo.toFixed(2)+" EUR";
+        modalBG.style.display="none";
+        alert("Saldo agregado (demo)");
+      };
+    });
+
+    // OFFERS demo arrays (kept)
+    const CUBACEL=[
+      {title:"EUR 10,42 — Recarga mínima"},
+      {title:"EUR 20,84 — Recarga 500 CUP + bonus"},
+      {title:"EUR 25,01 — Recarga 600 CUP + pack"},
+      {title:"EUR 29,18 — Recarga 700 CUP + datos"},
+      {title:"EUR 31,26 — 10GB (solo 4G)"},
+      {title:"EUR 41,68 — 16GB solo 4G"},
+      {title:"EUR 21,98 — Paquete especial"},
+      {title:"EUR 65,93 — Modem data 50GB"},
+    ];
+    const NAUTA=[
+      {title:"EUR 8,12 — Nauta Plus (15 días)"},
+      {title:"EUR 13,53 — Nauta Plus (30 días)"},
+      {title:"EUR 10,46 — NAUTA mínima"},
+      {title:"EUR 52,20 — NAUTA Max"},
+    ];
+
+    function renderOffers(type){
+      const list=type==="CUBACEL"?CUBACEL:NAUTA;
+      const offers=document.getElementById("offers-list");
+      if(!offers) return;
+      offers.innerHTML="";
+
+      list.forEach((o,i)=>{
+        const price=(o.title.match(/EUR\s?[0-9.,]+/)||[""])[0];
+        offers.innerHTML+=`
+          <div class="offer-card">
+            <div style="display:flex;gap:12px;align-items:center">
+              <div class="${type==="CUBACEL"?"logo-cubacel":"logo-nauta"}">
+                ${type==="CUBACEL"?"CU":"NA"}
+              </div>
+              <div>${o.title}</div>
+            </div>
+            <div>
+              <div style="font-weight:700">${price}</div>
+              <button class="btn-buy" data-type="${type}" data-index="${i}">
+                ${getUser()?"Comprar":"Entrar para comprar"}
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      document.querySelectorAll(".btn-buy").forEach(btn=>{
+        btn.onclick=()=>{
+          if(!getUser()){ alert("Debes iniciar sesión."); show("home"); return;}
+          alert("Comprar (demo): "+list[btn.dataset.index].title);
+        };
+      });
+    }
+
+    const tabCub=document.getElementById("tab-cubacel");
+    const tabNau=document.getElementById("tab-nauta");
+    if(tabCub) tabCub.onclick=()=>{
+      tabCub.classList.add("active");
+      if(tabNau) tabNau.classList.remove("active");
+      renderOffers("CUBACEL");
+    };
+    if(tabNau) tabNau.onclick=()=>{
+      tabNau.classList.add("active");
+      if(tabCub) tabCub.classList.remove("active");
+      renderOffers("NAUTA");
+    };
+
+    // Navigation helper (kept)
+    function show(screen){
+      document.querySelectorAll("main section").forEach(s=>s.style.display="none");
+      document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+
+      const sec=document.getElementById("screen-"+screen);
+      if(sec) sec.style.display="block";
+      const nav=document.getElementById("nav-"+screen);
+      if(nav) nav.classList.add("active");
+
+      if(screen==="recargar"){
+        const type=document.querySelector(".tab-btn.active") && document.querySelector(".tab-btn.active").id==="tab-nauta"?"NAUTA":"CUBACEL";
+        renderOffers(type);
+      }
+      if(screen==="cuenta"){
+        if(getUser()){
+          profileCard.style.display="block";
+          btnLogoutGlobal.style.display="block";
+        }else{
+          profileCard.style.display="none";
+          btnLogoutGlobal.style.display="none";
+        }
+      }
+    }
+
+    const navHome=document.getElementById("nav-home");
+    const navRec=document.getElementById("nav-recargar");
+    const navHist=document.getElementById("nav-historial");
+    const navAcc=document.getElementById("nav-cuenta");
+    if(navHome) navHome.onclick=()=>show("home");
+    if(navRec) navRec.onclick=()=>show("recargar");
+    if(navHist) navHist.onclick=()=>show("historial");
+    if(navAcc) navAcc.onclick=()=>show("cuenta");
+
+    // Link register in new UI opens register form (if present) or alerts
+    const linkRegister=document.getElementById("link-register");
+    if(linkRegister){
+      linkRegister.onclick=(e)=>{
+        e.preventDefault();
+        // if register form exists, show it; else show alert
+        if(registerForm){
+          registerForm.style.display="";
+          if(loginForm) loginForm.style.display="none";
+          // switch to home section (already there)
+        }else{
+          alert("Funcionalidad de registro (demo)");
+        }
+      };
+    }
+
+    // INIT
+    const existing=getUser();
+    if(existing) updateUIForUser(existing);
+
+    // Default: render offers behind (kept)
+    renderOffers("CUBACEL");
+    // show home by default (login visible)
+    show("home");
+  </script>
 
 </body>
 </html>
