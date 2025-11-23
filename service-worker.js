@@ -1,58 +1,70 @@
-// Nombre distinto para obligar siempre a refrescar cache
 const CACHE_NAME = "rpc-v" + Date.now();
 
-// Archivos que NO deben quedarse en caché antiguo
+// Archivos esenciales de la app
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./icon-192.png",
-  "./icon-512.png"
+
+  // ICONOS ACTUALIZADOS (los nuevos que subiste)
+  "./app-icon-96.png",
+  "./app-icon-128.png",
+  "./app-icon-144.png",
+  "./app-icon-152.png",
+  "./app-icon-192.png",
+  "./app-icon-256.png",
+  "./app-icon-384.png",
+  "./app-icon-512.png",
+  "./app-icon-1024.png"
 ];
 
-// INSTALACIÓN
+// INSTALACIÓN — CACHEA ARCHIVOS ESENCIALES
 self.addEventListener("install", (event) => {
-  self.skipWaiting();
-
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(CORE_ASSETS);
     })
   );
+  self.skipWaiting(); // Para activar la nueva versión sin esperar
 });
 
-// ACTIVACIÓN
+// ACTIVACIÓN — BORRA CACHÉ ANTIGUA
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    caches.keys().then((keys) => {
+      return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            return caches.delete(key); // Borra cache viejo automáticamente
+            return caches.delete(key);
           }
         })
-      )
-    )
+      );
+    })
   );
-  self.clients.claim();
+  self.clients.claim(); // Toma control inmediato
 });
 
-// FETCH (carga SIEMPRE la versión nueva si existe)
+// INTERCEPCIÓN DE PETICIONES
 self.addEventListener("fetch", (event) => {
-  // No cachear peticiones POST o externas raras
-  if (event.request.method !== "GET") return;
+  const request = event.request;
 
+  // 1️⃣ — PRIORIDAD: obtener siempre versión más nueva de internet
   event.respondWith(
-    fetch(event.request)
-      .then((networkResponse) => {
-        // Guarda la nueva versión en cache
+    fetch(request)
+      .then((response) => {
+        // guarda copia en caché
+        const clone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, networkResponse.clone());
+          cache.put(request, clone);
         });
-        return networkResponse;
+        return response; // devuelve versión en línea
       })
-      .catch(() =>
-        caches.match(event.request).then((resp) => resp || caches.match("./index.html"))
-      )
+      .catch(() => {
+        // 2️⃣ — Si no hay internet, usar caché
+        return caches.match(request).then((cacheResponse) => {
+          // fallback: si no existe en caché, devolver index.html
+          return cacheResponse || caches.match("./index.html");
+        });
+      })
   );
 });
