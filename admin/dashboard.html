@@ -4,96 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f2f2f2;
-        }
-
-        header {
-            background: #222;
-            color: #fff;
-            padding: 15px;
-            text-align: center;
-        }
-
-        nav {
-            background: #333;
-            padding: 10px;
-        }
-
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            margin-right: 20px;
-            font-size: 16px;
-        }
-
-        nav a:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-            padding: 20px;
-        }
-
-        #logout {
-            background: #d9534f;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        #logout:hover {
-            background: #c9302c;
-        }
-    </style>
+    <link rel="stylesheet" href="admin.css">
 </head>
 
 <body>
 
-    <!-- ENCABEZADO -->
-    <header>
-        <h2>Panel de Administración</h2>
-    </header>
+<header class="site-header">
+    <span class="brand">Panel de Administración</span>
+</header>
 
-    <!-- MENÚ -->
-    <nav>
-        <a href="dashboard.html">🏠 Inicio</a>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <a href="dashboard.html" class="active">🏠 Inicio</a>
         <a href="stats.html">📊 Estadísticas</a>
         <a href="ventas.html">🛒 Ventas</a>
         <a href="ganancias.html">💸 Ganancias</a>
         <a href="productos.html">📦 Productos</a>
-    </nav>
+        <br>
+        <button id="logout" class="logout-btn">Cerrar sesión</button>
+    </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
-    <div class="container">
-        <h3>Bienvenido administrador</h3>
-        <p>Has iniciado sesión correctamente.</p>
+    <!-- CONTENIDO -->
+    <main class="main">
+        <div class="topbar"><h3>Bienvenido administrador</h3></div>
 
-        <button id="logout">Cerrar sesión</button>
-    </div>
+        <div class="card-grid">
+            <div class="card"><h4>Recargas hoy</h4><div class="value">0</div></div>
+            <div class="card"><h4>Total ventas hoy</h4><div class="value">0 €</div></div>
+            <div class="card"><h4>Usuarios</h4><div class="value">0</div></div>
+        </div>
 
-    <!-- SCRIPT DE SEGURIDAD Y LOGOUT -->
-    <script>
-        // Comprobar si el admin está logueado
-        const logged = localStorage.getItem("adminLogged");
+    </main>
 
-        if (logged !== "true") {
-            window.location.href = "login.html";
-        }
+</div>
 
-        // Lógica del logout
-        document.getElementById("logout").addEventListener("click", () => {
-            localStorage.removeItem("adminLogged");
-            window.location.href = "login.html";
-        });
-    </script>
+<script src="admin.js"></script>
 
 </body>
 </html>
