@@ -9,6 +9,15 @@
     }
   }
 
+  // 🔥 NUEVO: Forzar que siempre se cargue el Inicio del panel
+  const isDashboard = /dashboard\.html$/i.test(window.location.pathname);
+  const isLogin = /login\.html$/i.test(window.location.pathname);
+
+  // Si NO estás en login y NO estás en dashboard, redirige a dashboard
+  if (!isLogin && !isDashboard) {
+    window.location.href = "dashboard.html";
+  }
+
   // aplicar logout si existe el botón
   const logout = document.querySelector('#logout');
   if (logout) {
