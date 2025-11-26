@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Admin</title>
+
+    <!-- FIX GitHub Pages -->
+    <base href="/RecargasPaCuba/admin/">
+
     <link rel="stylesheet" href="admin.css">
 </head>
 
@@ -15,7 +19,6 @@
 
 <div class="layout">
 
-    <!-- SIDEBAR -->
     <aside class="sidebar">
         <a href="dashboard.html" class="active">🏠 Inicio</a>
         <a href="stats.html">📊 Estadísticas</a>
@@ -26,7 +29,6 @@
         <button id="logout" class="logout-btn">Cerrar sesión</button>
     </aside>
 
-    <!-- CONTENIDO -->
     <main class="main">
         <div class="topbar"><h3>Bienvenido administrador</h3></div>
 
@@ -35,19 +37,15 @@
             <div class="card"><h4>Total ventas hoy</h4><div class="value">0 €</div></div>
             <div class="card"><h4>Usuarios</h4><div class="value">0</div></div>
         </div>
-
     </main>
 
 </div>
 
 <script src="admin.js"></script>
 
-<!-- 🔥 SOLUCIÓN: evitar que el navegador recuerde scroll + forzar inicio -->
 <script>
     window.history.scrollRestoration = "manual";
-    window.onload = () => {
-        window.scrollTo(0, 0);
-    };
+    window.onload = () => window.scrollTo(0,0);
 </script>
 
 </body>
