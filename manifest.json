@@ -2,7 +2,7 @@
   "name": "RecargasPaCuba",
   "short_name": "PaCuba",
   "description": "Recargas móviles y servicios para Cuba de forma rápida y segura.",
-  "start_url": "/?source=pwa",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
