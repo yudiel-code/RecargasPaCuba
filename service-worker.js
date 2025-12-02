@@ -7,7 +7,9 @@
 */
 
 const CACHE_PREFIX = "rpc-pro-";
-const CACHE_VERSION = Date.now().toString();
+// Bump APP_VERSION whenever you need to invalidate cached HTML (e.g., after UI updates)
+const APP_VERSION = "v2-2024-08-20";
+const CACHE_VERSION = APP_VERSION;
 const PRECACHE = `${CACHE_PREFIX}static-${CACHE_VERSION}`;
 const RUNTIME = `${CACHE_PREFIX}runtime-${CACHE_VERSION}`;
 
@@ -24,7 +26,8 @@ const PRECACHE_URLS = [
   "./app-icon-256.png",
   "./app-icon-384.png",
   "./app-icon-512.png",
-  "./app-icon-1024.png"
+  "./app-icon-1024.png",
+  "./recargar.html"
 ];
 
 // Helper: determina si la petición pertenece al panel admin
