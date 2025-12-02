@@ -244,7 +244,7 @@ nav.bottom{
   box-shadow: 0 12px 30px rgba(8,20,40,0.32);
   z-index:2000;
 }
-nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px}
+nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none}
 nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.06);box-shadow:0 8px 18px rgba(0,0,0,0.25)}
 
 /* responsive tweaks */
@@ -341,7 +341,7 @@ nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,25
   
 <nav class="bottom" role="navigation" aria-label="Barra inferior">
   <div class="nav-btn" id="nav-home" data-screen="home"><span style="font-size:20px">🏠</span><div style="font-size:12px">Inicio</div></div>
-  <div class="nav-btn" id="nav-recargar" data-screen="recargar"><span style="font-size:20px">⚡</span><div style="font-size:12px">Recargar</div></div>
+  <a href="recargar.html" class="nav-btn active"><span style="font-size:20px">⚡</span><div style="font-size:12px">Recargar</div></a>
   <div class="nav-btn" id="nav-historial" data-screen="historial"><span style="font-size:20px">📜</span><div style="font-size:12px">Historial</div></div>
   <div class="nav-btn" id="nav-cuenta" data-screen="cuenta"><span style="font-size:20px">👤</span><div style="font-size:12px">Cuenta</div></div>
 </nav>
