@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recargar | RecargasPaCuba</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d63c9">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(160deg,#0d63c9 0%,#0b86e5 45%,#21c6d0 100%);
+      color:#ffffff;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    .app{
+      width:100%;
+      max-width:960px;
+      margin:0 auto;
+      padding:18px 16px 96px;
+      flex:1 0 auto;
+    }
+    header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+    }
+    header h1{
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-0.3px;
+    }
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      background:rgba(255,255,255,0.08);
+      padding:6px;
+      border-radius:16px;
+      margin-bottom:18px;
+      backdrop-filter:blur(10px);
+      box-shadow:0 8px 20px rgba(0,0,0,0.18);
+    }
+    .tab{
+      padding:12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.08);
+      text-align:center;
+      font-weight:800;
+      font-size:15px;
+      color:#e9f6ff;
+      background:linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02));
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .tab.active{
+      background:#ffffff;
+      color:#0d63c9;
+      box-shadow:0 10px 24px rgba(0,0,0,0.25);
+    }
+    .cards{display:grid;gap:14px}
+    @media (min-width:700px){
+      .cards{grid-template-columns:repeat(auto-fit,minmax(320px,1fr));}
+    }
+    .card{
+      background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:20px;
+      padding:16px;
+      display:flex;
+      gap:14px;
+      backdrop-filter:blur(10px);
+      box-shadow:0 12px 28px rgba(0,0,0,0.25);
+    }
+    .card-left{
+      width:68px;height:68px;border-radius:50%;
+      background:radial-gradient(circle at 20% 20%,rgba(255,255,255,0.32),rgba(255,255,255,0.06));
+      display:flex;align-items:center;justify-content:center;
+      color:#0d63c9;font-weight:900;font-size:24px;
+      border:2px solid rgba(255,255,255,0.2);
+    }
+    .card-body{flex:1;display:flex;flex-direction:column;gap:8px}
+    .price{
+      font-size:26px;
+      font-weight:900;
+      letter-spacing:-0.4px;
+    }
+    .type{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:12px;
+      font-weight:800;
+      font-size:13px;
+      background:rgba(255,255,255,0.14);
+      border:1px solid rgba(255,255,255,0.12);
+      text-transform:uppercase;
+    }
+    .details{color:#e8f6ff;font-size:14px;line-height:1.5}
+    .cta{
+      margin-top:auto;
+      align-self:flex-start;
+      background:#ff8c29;
+      color:#2a1400;
+      border:none;
+      padding:12px 18px;
+      border-radius:16px;
+      font-weight:900;
+      font-size:15px;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,0.25);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .cta:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(0,0,0,0.28);}
+    nav.bottom{
+      position:fixed;
+      left:0;right:0;bottom:0;
+      display:flex;justify-content:space-around;
+      background:rgba(10,15,25,0.82);
+      backdrop-filter:blur(12px);
+      padding:10px 4px 16px;
+      border-top-left-radius:18px;
+      border-top-right-radius:18px;
+      box-shadow:0 -4px 18px rgba(0,0,0,0.25);
+    }
+    .nav-btn{
+      color:#dbefff;
+      font-size:12px;
+      text-align:center;
+      font-weight:700;
+      flex:1;
+      padding:6px 0;
+    }
+    .nav-btn strong{display:block;font-size:18px;margin-bottom:4px}
+    .nav-btn.active{color:#ffb13b;}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>Recargar</h1>
+    </header>
+
+    <div class="tabs">
+      <div class="tab active">CUBACEL</div>
+      <div class="tab">NAUTA</div>
+    </div>
+
+    <section class="cards">
+      <article class="card">
+        <div class="card-left">€</div>
+        <div class="card-body">
+          <div class="price">15.00 EUR</div>
+          <span class="type">Recarga promocional</span>
+          <p class="details">• 25 GB + 200 min + 200 SMS<br>• Vigencia: 30 días<br>• Bono nocturno incluido</p>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-left">€</div>
+        <div class="card-body">
+          <div class="price">10.00 EUR</div>
+          <span class="type">Recarga normal</span>
+          <p class="details">• 8 GB + 100 min + 100 SMS<br>• Vigencia: 30 días</p>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-left">€</div>
+        <div class="card-body">
+          <div class="price">20.00 EUR</div>
+          <span class="type">Recarga promocional</span>
+          <p class="details">• 40 GB + 300 min + 300 SMS<br>• Vigencia: 35 días<br>• Navegación LTE prioritaria</p>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <nav class="bottom">
+    <div class="nav-btn"><strong>🏠</strong>Inicio</div>
+    <div class="nav-btn active"><strong>⚡</strong>Recargar</div>
+    <div class="nav-btn"><strong>📜</strong>Historial</div>
+    <div class="nav-btn"><strong>👤</strong>Cuenta</div>
+  </nav>
+</body>
+</html>
