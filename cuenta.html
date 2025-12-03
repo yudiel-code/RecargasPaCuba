@@ -57,7 +57,6 @@
       fill: #fff;
     }
 
-    /* ESTILO NUEVO: correo debajo del avatar */
     .user-email {
       font-size: 14px;
       font-weight: 600;
@@ -110,6 +109,7 @@
       backdrop-filter: blur(12px);
       border: 1px solid rgba(255,255,255,0.25);
     }
+
     nav.bottom .nav-btn{
       display:flex;
       flex-direction:column;
@@ -120,9 +120,8 @@
       padding:8px 12px;
       border-radius:10px;
       text-decoration:none;
-      box-shadow:none;
-      background:transparent;
     }
+
     nav.bottom .nav-btn.active{
       transform:translateY(-6px);
       background:rgba(255,255,255,0.12);
@@ -137,30 +136,26 @@
 
   <main class="app">
 
-    <!-- AVATAR -->
     <div class="avatar">
       <svg viewBox="0 0 24 24">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
       </svg>
     </div>
 
-    <!-- MOSTRAR CORREO DEL USUARIO -->
     <div id="emailUsuario" class="user-email"></div>
 
-    <!-- SALDO -->
     <div class="saldo-title">Saldo disponible</div>
-    <div class="saldo">0,00 €</div>
+    <div id="saldo" class="saldo">0,00 €</div>
 
-    <!-- BOTONES -->
     <div class="botones">
-      <button class="btn">Agregar saldo</button>
+      <button class="btn" id="addSaldoBtn">Agregar saldo</button>
       <button class="btn">Métodos de pago</button>
       <button class="btn">Datos de la cuenta</button>
       <button class="btn" id="logoutBtn">Cerrar sesión</button>
     </div>
+
   </main>
 
-  <!-- BARRA INFERIOR -->
   <nav class="bottom" role="navigation" aria-label="Barra inferior">
     <a href="recargar.html" class="nav-btn">
       <span style="font-size:20px">⚡</span>
@@ -178,9 +173,9 @@
     </a>
   </nav>
 
-  <!-- SCRIPT LOGIN / LOGOUT -->
   <script>
-    // Proteger página: si no está logueado → index
+
+    // Protección: si no hay login → index
     const usuario = localStorage.getItem("usuario");
     if (!usuario) {
       window.location.href = "index.html";
@@ -189,11 +184,25 @@
     // Mostrar correo
     document.getElementById("emailUsuario").textContent = usuario;
 
+    // Mostrar saldo guardado
+    function cargarSaldo() {
+      let saldo = localStorage.getItem("saldo");
+      if (!saldo) saldo = 0;
+      document.getElementById("saldo").textContent = parseFloat(saldo).toFixed(2) + " €";
+    }
+    cargarSaldo();
+
+    // ⚠️ TEST: botón debe mostrar una alerta
+    document.getElementById("addSaldoBtn").addEventListener("click", () => {
+      alert("El botón SI funciona");
+    });
+
     // Cerrar sesión
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("usuario");
       window.location.href = "index.html";
     });
+
   </script>
 
 </body>
