@@ -47,7 +47,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       margin-top: 10px;
     }
 
@@ -55,6 +55,15 @@
       width: 60px;
       height: 60px;
       fill: #fff;
+    }
+
+    /* ESTILO NUEVO: correo debajo del avatar */
+    .user-email {
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.85;
+      margin-bottom: 20px;
+      text-align: center;
     }
 
     .saldo-title {
@@ -127,23 +136,31 @@
 <body>
 
   <main class="app">
+
+    <!-- AVATAR -->
     <div class="avatar">
       <svg viewBox="0 0 24 24">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
       </svg>
     </div>
 
+    <!-- MOSTRAR CORREO DEL USUARIO -->
+    <div id="emailUsuario" class="user-email"></div>
+
+    <!-- SALDO -->
     <div class="saldo-title">Saldo disponible</div>
     <div class="saldo">0,00 €</div>
 
+    <!-- BOTONES -->
     <div class="botones">
       <button class="btn">Agregar saldo</button>
       <button class="btn">Métodos de pago</button>
       <button class="btn">Datos de la cuenta</button>
-      <button class="btn">Cerrar sesión</button>
+      <button class="btn" id="logoutBtn">Cerrar sesión</button>
     </div>
   </main>
 
+  <!-- BARRA INFERIOR -->
   <nav class="bottom" role="navigation" aria-label="Barra inferior">
     <a href="recargar.html" class="nav-btn">
       <span style="font-size:20px">⚡</span>
@@ -160,6 +177,24 @@
       <div style="font-size:12px">Cuenta</div>
     </a>
   </nav>
+
+  <!-- SCRIPT LOGIN / LOGOUT -->
+  <script>
+    // Proteger página: si no está logueado → index
+    const usuario = localStorage.getItem("usuario");
+    if (!usuario) {
+      window.location.href = "index.html";
+    }
+
+    // Mostrar correo
+    document.getElementById("emailUsuario").textContent = usuario;
+
+    // Cerrar sesión
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("usuario");
+      window.location.href = "index.html";
+    });
+  </script>
 
 </body>
 </html>
