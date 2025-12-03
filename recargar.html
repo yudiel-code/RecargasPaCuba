@@ -128,7 +128,20 @@
       cursor: pointer;
     }
 
-    nav.bottom {
+    nav.bottom{
+      position:sticky;bottom:0;
+      display:flex;justify-content:space-around;
+      padding:10px;
+      background:rgba(255,255,255,0.08);
+      border-top-left-radius:16px;
+      border-top-right-radius:16px;
+      backdrop-filter:blur(8px)
+    }
+    .nav-btn{cursor:pointer;font-size:12px;text-align:center;color:white}
+    .nav-btn.active{font-weight:800}
+
+    /* Bottom nav gradient left->right */
+    nav.bottom{
       position:fixed;left:12px;right:12px;bottom:18px;
       display:flex;justify-content:space-around;align-items:center;
       padding:10px 14px;border-radius:18px;

@@ -8,6 +8,11 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
 
+    :root{
+      --left:#0b63d1;
+      --right:#19c6c3;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -77,52 +82,29 @@
       margin-top: 30px;
     }
 
-    /* Barra inferior IGUAL a todas */
-    nav.bottom {
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      background: linear-gradient(135deg, #0a5fcb, #0db3da);
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      padding: 12px 10px 20px;
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
-      box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.25);
+    nav.bottom{
+      position:sticky;bottom:0;
+      display:flex;justify-content:space-around;
+      padding:10px;
+      background:rgba(255,255,255,0.08);
+      border-top-left-radius:16px;
+      border-top-right-radius:16px;
+      backdrop-filter:blur(8px)
     }
+    .nav-btn{cursor:pointer;font-size:12px;text-align:center;color:white}
+    .nav-btn.active{font-weight:800}
 
-    .nav-btn {
-      text-decoration: none;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #dff1ff;
+    /* Bottom nav gradient left->right */
+    nav.bottom{
+      position:fixed;left:12px;right:12px;bottom:18px;
+      display:flex;justify-content:space-around;align-items:center;
+      padding:10px 14px;border-radius:18px;
+      background: linear-gradient(90deg,var(--left),var(--right));
+      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
+      z-index:2000;
     }
-
-    .nav-btn .icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.15);
-      font-size: 18px;
-    }
-
-    .nav-btn.active {
-      color: #ffb13b;
-    }
-
-    .nav-btn.active .icon {
-      background: rgba(255, 166, 66, 0.25);
-      color: #ffb13b;
-    }
+    nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none}
+    nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.06);box-shadow:0 8px 18px rgba(0,0,0,0.25)}
 
   </style>
 </head>
@@ -154,27 +136,11 @@
     </div>
   </main>
 
-  <!-- Barra inferior -->
-  <nav class="bottom">
-    <a href="index.html" class="nav-btn">
-      <div class="icon">🏠</div>
-      <span>Inicio</span>
-    </a>
-
-    <a href="recargar.html" class="nav-btn">
-      <div class="icon">⚡</div>
-      <span>Recargar</span>
-    </a>
-
-    <a href="historial.html" class="nav-btn active">
-      <div class="icon">📜</div>
-      <span>Historial</span>
-    </a>
-
-    <a href="cuenta.html" class="nav-btn">
-      <div class="icon">👤</div>
-      <span>Cuenta</span>
-    </a>
+  <nav class="bottom" role="navigation" aria-label="Barra inferior">
+    <div class="nav-btn" id="nav-home" data-screen="home"><span style="font-size:20px">🏠</span><div style="font-size:12px">Inicio</div></div>
+    <a href="recargar.html" class="nav-btn"><span style="font-size:20px">⚡</span><div style="font-size:12px">Recargar</div></a>
+    <div class="nav-btn active" id="nav-historial" data-screen="historial"><span style="font-size:20px">📜</span><div style="font-size:12px">Historial</div></div>
+    <div class="nav-btn" id="nav-cuenta" data-screen="cuenta"><span style="font-size:20px">👤</span><div style="font-size:12px">Cuenta</div></div>
   </nav>
 
 </body>
