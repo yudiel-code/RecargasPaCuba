@@ -11,32 +11,34 @@
     :root{
       --left:#0b63d1;
       --right:#19c6c3;
+      --accent:#ffb13b;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Poppins', system-ui, sans-serif;
     }
 
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0a5fcb, #0db3da);
+      background: linear-gradient(90deg, var(--left), var(--right));
       color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-bottom: 120px; /* hueco para la barra inferior */
+      padding: 24px 18px 120px; /* hueco para la barra inferior */
     }
 
     .app {
       width: 100%;
       max-width: 520px;
-      padding: 24px 18px 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 22px;
     }
 
     /* Avatar */
@@ -48,13 +50,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
+      margin-bottom: 8px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
     }
 
     .avatar svg {
       width: 60px;
       height: 60px;
-      fill: #fff;
+      fill: #0b63d1;
     }
 
     /* Saldo */
@@ -68,7 +73,7 @@
     .saldo {
       font-size: 36px;
       font-weight: 800;
-      margin-bottom: 28px;
+      margin-bottom: 20px;
     }
 
     /* Botones */
@@ -82,29 +87,16 @@
     .btn {
       width: 100%;
       border: none;
-      border-radius: 30px;
-      padding: 18px;
+      border-radius: 40px;
+      padding: 16px;
       font-size: 18px;
-      font-weight: 700;
-      background: linear-gradient(145deg, #ffae43, #ff941f);
-      color: #2e1200;
+      font-weight: 800;
+      background: #ffb13b;
+      color: #2c1a00;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.25);
     }
 
-    nav.bottom{
-      position:sticky;bottom:0;
-      display:flex;justify-content:space-around;
-      padding:10px;
-      background:rgba(255,255,255,0.08);
-      border-top-left-radius:16px;
-      border-top-right-radius:16px;
-      backdrop-filter:blur(8px)
-    }
-    .nav-btn{cursor:pointer;font-size:12px;text-align:center;color:white}
-    .nav-btn.active{font-weight:800}
-
-    /* Bottom nav gradient left->right */
     nav.bottom{
       position:fixed;left:12px;right:12px;bottom:18px;
       display:flex;justify-content:space-around;align-items:center;
@@ -112,9 +104,11 @@
       background: linear-gradient(90deg,var(--left),var(--right));
       box-shadow: 0 12px 30px rgba(8,20,40,0.32);
       z-index:2000;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.25);
     }
-    nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none}
-    nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.06);box-shadow:0 8px 18px rgba(0,0,0,0.25)}
+    nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none;box-shadow:none;background:transparent;}
+    nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.12);box-shadow:0 8px 18px rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.25)}
 
   </style>
 </head>
