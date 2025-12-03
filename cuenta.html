@@ -99,6 +99,55 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.25);
     }
 
+    /* ---------------- MODAL ERROR ---------------- */
+    .modal-bg, .modal-bg-saldo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal {
+      background: rgba(255,255,255,0.10);
+      padding: 22px;
+      border-radius: 16px;
+      max-width: 85%;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal button {
+      margin-top: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ffb13b;
+      color: #2c1200;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* ----------- MODAL AGREGAR SALDO -------------- */
+    .modal input {
+      width: 80%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      margin-top: 12px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* ---------------- BARRA INFERIOR ---------------- */
     nav.bottom{
       position:fixed;left:12px;right:12px;bottom:18px;
       display:flex;justify-content:space-around;align-items:center;
@@ -173,31 +222,82 @@
     </a>
   </nav>
 
+  <!-- MODAL ERROR -->
+  <div id="modal-bg" class="modal-bg">
+    <div class="modal">
+      <div id="modal-text">Error</div>
+      <button id="modal-btn">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- MODAL AGREGAR SALDO -->
+  <div id="modal-bg-saldo" class="modal-bg-saldo">
+    <div class="modal">
+      <div>Introduce la cantidad que deseas agregar:</div>
+      <input id="saldoInput" type="number" min="1" />
+      <button id="btnAgregarSaldo">Agregar</button>
+    </div>
+  </div>
+
   <script>
 
-    // Protección: si no hay login → index
+    // PROTECCIÓN DE SESIÓN
     const usuario = localStorage.getItem("usuario");
     if (!usuario) {
       window.location.href = "index.html";
     }
 
-    // Mostrar correo
     document.getElementById("emailUsuario").textContent = usuario;
 
-    // Mostrar saldo guardado
+    // Cargar saldo
     function cargarSaldo() {
       let saldo = localStorage.getItem("saldo");
       if (!saldo) saldo = 0;
-      document.getElementById("saldo").textContent = parseFloat(saldo).toFixed(2) + " €";
+      document.getElementById("saldo").textContent =
+        parseFloat(saldo).toFixed(2) + " €";
     }
     cargarSaldo();
 
-    // ⚠️ TEST: botón debe mostrar una alerta
+    // Abrir modal agregar saldo
     document.getElementById("addSaldoBtn").addEventListener("click", () => {
-      alert("El botón SI funciona");
+      document.getElementById("modal-bg-saldo").style.display = "flex";
+      document.getElementById("saldoInput").value = "";
     });
 
-    // Cerrar sesión
+    // Botón de AGREGAR dentro del modal
+    document.getElementById("btnAgregarSaldo").addEventListener("click", () => {
+
+      let cantidad = parseFloat(document.getElementById("saldoInput").value);
+
+      if (isNaN(cantidad)) {
+        return mostrarError("Ingrese una cantidad válida.");
+      }
+
+      if (cantidad < 10) {
+        return mostrarError("El importe mínimo para agregar saldo es de 10 €.");
+      }
+
+      let saldoActual = parseFloat(localStorage.getItem("saldo")) || 0;
+      let nuevoSaldo = saldoActual + cantidad;
+
+      localStorage.setItem("saldo", nuevoSaldo);
+      cargarSaldo();
+
+      // Cerrar modal
+      document.getElementById("modal-bg-saldo").style.display = "none";
+    });
+
+    // MODAL ERROR
+    function mostrarError(texto) {
+      document.getElementById("modal-text").textContent = texto;
+      document.getElementById("modal-bg").style.display = "flex";
+    }
+
+    document.getElementById("modal-btn").addEventListener("click", () => {
+      document.getElementById("modal-bg").style.display = "none";
+    });
+
+    // CERRAR SESIÓN
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("usuario");
       window.location.href = "index.html";
