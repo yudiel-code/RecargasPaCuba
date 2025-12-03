@@ -192,67 +192,67 @@
     main section{display:none}
   </style>
 
-<!-- REDISEÑO FINAL: Glassmorphism + gradientes -->
-<style>
-:root{
-  --left:#0b63d1;
-  --right:#19c6c3;
-  --accent:#ffb13b;
-  --glass-bg: rgba(255,255,255,0.06);
-  --glass-border: rgba(255,255,255,0.12);
-  --muted: rgba(255,255,255,0.85);
-}
-/* Global gradient background like login */
-body, main, #screen-home, #screen-recargar, #screen-historial, #screen-cuenta {
-  background: linear-gradient(90deg, var(--left), var(--right));
-  color: white;
-}
-/* Glass card common */
-.glass-card{
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius:14px;
-  padding:14px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 12px 30px rgba(8,20,40,0.28);
-}
-/* Offers */
-.offers-grid{display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:14px; align-items:start}
-.offer-card{min-height:140px; display:flex; flex-direction:column; gap:8px;}
-.offer-logo{width:64px;height:64px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
-.offer-title{font-weight:800;font-size:15px}
-.offer-price{font-weight:900;font-size:16px;color:var(--accent);margin-top:auto}
+  <!-- REDISEÑO FINAL: Glassmorphism + gradientes -->
+  <style>
+  :root{
+    --left:#0b63d1;
+    --right:#19c6c3;
+    --accent:#ffb13b;
+    --glass-bg: rgba(255,255,255,0.06);
+    --glass-border: rgba(255,255,255,0.12);
+    --muted: rgba(255,255,255,0.85);
+  }
+  /* Global gradient background like login */
+  body, main, #screen-home, #screen-recargar, #screen-historial, #screen-cuenta {
+    background: linear-gradient(90deg, var(--left), var(--right));
+    color: white;
+  }
+  /* Glass card common */
+  .glass-card{
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius:14px;
+    padding:14px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 12px 30px rgba(8,20,40,0.28);
+  }
+  /* Offers */
+  .offers-grid{display:grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); gap:14px; align-items:start}
+  .offer-card{min-height:140px; display:flex; flex-direction:column; gap:8px;}
+  .offer-logo{width:64px;height:64px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+  .offer-title{font-weight:800;font-size:15px}
+  .offer-price{font-weight:900;font-size:16px;color:var(--accent);margin-top:auto}
 
-/* History list */
-.history-list{display:flex;flex-direction:column;gap:12px}
-.history-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)}
+  /* History list */
+  .history-list{display:flex;flex-direction:column;gap:12px}
+  .history-item{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)}
 
-/* Profile */
-.profile-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px)}
-.profile-avatar{width:72px;height:72px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center}
+  /* Profile */
+  .profile-card{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px)}
+  .profile-avatar{width:72px;height:72px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center}
 
-/* Buttons */
-.btn-primary-big{background:var(--accent);color:#2c1a00;border:none;padding:12px 18px;border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,0.2)}
-.btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
+  /* Buttons */
+  .btn-primary-big{background:var(--accent);color:#2c1a00;border:none;padding:12px 18px;border-radius:12px;font-weight:800;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,0.2)}
+  .btn-secondary{background:transparent;border:1px solid rgba(255,255,255,0.08);padding:10px 12px;border-radius:10px;color:var(--muted);cursor:pointer}
 
-/* Bottom nav gradient left->right */
-nav.bottom{
-  position:fixed;left:12px;right:12px;bottom:18px;
-  display:flex;justify-content:space-around;align-items:center;
-  padding:10px 14px;border-radius:18px;
-  background: linear-gradient(90deg,var(--left),var(--right));
-  box-shadow: 0 12px 30px rgba(8,20,40,0.32);
-  z-index:2000;
-}
-nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none}
-nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.06);box-shadow:0 8px 18px rgba(0,0,0,0.25)}
+  /* Bottom nav gradient left->right */
+  nav.bottom{
+    position:fixed;left:12px;right:12px;bottom:18px;
+    display:flex;justify-content:space-around;align-items:center;
+    padding:10px 14px;border-radius:18px;
+    background: linear-gradient(90deg,var(--left),var(--right));
+    box-shadow: 0 12px 30px rgba(8,20,40,0.32);
+    z-index:2000;
+  }
+  nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none}
+  nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.06);box-shadow:0 8px 18px rgba(0,0,0,0.25)}
 
-/* responsive tweaks */
-@media(max-width:420px){
-  .offers-grid{grid-template-columns:repeat(2,1fr)}
-  .profile-avatar{width:60px;height:60px}
-}
-</style>
+  /* responsive tweaks */
+  @media(max-width:420px){
+    .offers-grid{grid-template-columns:repeat(2,1fr)}
+    .profile-avatar{width:60px;height:60px}
+  }
+  </style>
 
 </head>
 
@@ -338,14 +338,12 @@ nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,25
 
   </main>
 
-  
-<nav class="bottom" role="navigation" aria-label="Barra inferior">
-  <div class="nav-btn active" id="nav-home" data-screen="home"><span style="font-size:20px">🏠</span><div style="font-size:12px">Inicio</div></div>
-  <a href="recargar.html" class="nav-btn"><span style="font-size:20px">⚡</span><div style="font-size:12px">Recargar</div></a>
-  <div class="nav-btn" id="nav-historial" data-screen="historial"><span style="font-size:20px">📜</span><div style="font-size:12px">Historial</div></div>
-  <div class="nav-btn" id="nav-cuenta" data-screen="cuenta"><span style="font-size:20px">👤</span><div style="font-size:12px">Cuenta</div></div>
-</nav>
-
+  <nav class="bottom" role="navigation" aria-label="Barra inferior">
+    <div class="nav-btn active" id="nav-home" data-screen="home"><span style="font-size:20px">🏠</span><div style="font-size:12px">Inicio</div></div>
+    <div class="nav-btn" id="nav-recargar" data-screen="recargar"><span style="font-size:20px">⚡</span><div style="font-size:12px">Recargar</div></div>
+    <div class="nav-btn" id="nav-historial" data-screen="historial"><span style="font-size:20px">📜</span><div style="font-size:12px">Historial</div></div>
+    <div class="nav-btn" id="nav-cuenta" data-screen="cuenta"><span style="font-size:20px">👤</span><div style="font-size:12px">Cuenta</div></div>
+  </nav>
 
   <!-- MODAL -->
   <div id="modal-bg" class="modal-bg">
@@ -581,11 +579,11 @@ nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,25
       }
       if(screen==="cuenta"){
         if(getUser()){
-          profileCard.style.display="block";
-          btnLogoutGlobal.style.display="block";
+          if(profileCard) profileCard.style.display="block";
+          if(btnLogoutGlobal) btnLogoutGlobal.style.display="block";
         }else{
-          profileCard.style.display="none";
-          btnLogoutGlobal.style.display="none";
+          if(profileCard) profileCard.style.display="none";
+          if(btnLogoutGlobal) btnLogoutGlobal.style.display="none";
         }
       }
     }
@@ -624,29 +622,6 @@ nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,25
     // show home by default (login visible)
     show("home");
   </script>
-
-
-<script>
-(function(){
-  function q(id){return document.getElementById(id);}
-  function safeRender(type){
-    try{ if(typeof renderOffers === 'function'){ renderOffers(type); return; } }catch(e){}
-    var list = (type==="NAUTA") ? (window.NAUTA || []) : (window.CUBACEL || []);
-    var container = q('offers-list');
-    if(!container) return;
-    container.innerHTML='';
-    list.forEach(function(o,i){
-      var el = document.createElement('div'); el.className='offer-card glass-card';
-      el.innerHTML = '<div class="offer-top" style="display:flex;gap:10px;align-items:center"><div class="offer-logo">'+(type==="NAUTA"?"NA":"CU")+'</div><div style="flex:1"><div class="offer-title">'+o.title+'</div></div></div><div class="offer-price">'+(o.title.match(/EUR\\s?[0-9.,]+/)||[""])[0]+'</div>';
-      container.appendChild(el);
-    });
-  }
-  document.querySelectorAll('.recarga-tab').forEach(function(t){ t.addEventListener('click', function(){ document.querySelectorAll('.recarga-tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); safeRender(t.getAttribute('data-type')||'CUBACEL'); }); });
-  document.querySelectorAll('.nav-btn').forEach(function(b){ b.addEventListener('click', function(){ var s = b.getAttribute('data-screen'); document.querySelectorAll('main section').forEach(function(sec){ sec.style.display='none'; }); var sec = document.getElementById('screen-'+s); if(sec) sec.style.display='block'; document.querySelectorAll('.nav-btn').forEach(function(nb){ nb.classList.remove('active'); }); b.classList.add('active'); if(s==='recargar') safeRender('CUBACEL'); }); });
-  var hx = q('history-list'); if(hx && !hx.children.length){ var sample=[{title:'Recarga EUR 10 — 500 CUP',date:'2025-11-20',status:'Completada'},{title:'Recarga EUR 25 — 1200 CUP',date:'2025-11-18',status:'Completada'}]; sample.forEach(function(it){ var d=document.createElement('div'); d.className='history-item'; d.innerHTML='<div><div style="font-weight:800'>+it.title+'</div><div class="history-meta">'+it.date+'</div></div><div style="font-weight:800">'+it.status+'</div>'; hx.appendChild(d); }); }
-  var home = document.getElementById('screen-home'); if(home) home.style.display='block'; var navHome = document.getElementById('nav-home'); if(navHome) navHome.classList.add('active');
-})();
-</script>
 
 </body>
 </html>
