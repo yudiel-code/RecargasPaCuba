@@ -17,8 +17,6 @@
       --button-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
       --text: #ffffff;
       --text-strong: #1d1d1d;
-      --left: #0b63d1;
-      --right: #19c6c3;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -94,17 +92,6 @@
       transform: translateY(2px);
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.18);
     }
-
-    nav.bottom {
-      position:fixed;left:12px;right:12px;bottom:18px;
-      display:flex;justify-content:space-around;align-items:center;
-      padding:10px 14px;border-radius:18px;
-      background: linear-gradient(90deg,var(--left),var(--right));
-      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
-      z-index:2000;
-    }
-    nav.bottom .nav-btn{display:flex;flex-direction:column;align-items:center;gap:6px;color:white;font-weight:800;padding:8px 12px;border-radius:10px;text-decoration:none}
-    nav.bottom .nav-btn.active{transform:translateY(-6px);background:rgba(255,255,255,0.06);box-shadow:0 8px 18px rgba(0,0,0,0.25)}
   </style>
 </head>
 <body>
@@ -130,12 +117,5 @@
       <button class="action-btn" type="button">Cerrar sesión</button>
     </div>
   </main>
-
-  <nav class="bottom" role="navigation" aria-label="Barra inferior">
-    <div class="nav-btn" id="nav-home" data-screen="home"><span style="font-size:20px">🏠</span><div style="font-size:12px">Inicio</div></div>
-    <a href="recargar.html" class="nav-btn"><span style="font-size:20px">⚡</span><div style="font-size:12px">Recargar</div></a>
-    <div class="nav-btn" id="nav-historial" data-screen="historial"><span style="font-size:20px">📜</span><div style="font-size:12px">Historial</div></div>
-    <div class="nav-btn active" id="nav-cuenta" data-screen="cuenta"><span style="font-size:20px">👤</span><div style="font-size:12px">Cuenta</div></div>
-  </nav>
 </body>
 </html>
