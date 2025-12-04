@@ -33,7 +33,7 @@
 
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0d63c9, #08b3db);
+      background: linear-gradient(90deg, var(--left), var(--right));
       color: #fff;
       display: flex;
       flex-direction: column;
@@ -103,7 +103,7 @@
       position:fixed;left:12px;right:12px;bottom:18px;
       display:flex;justify-content:space-around;align-items:center;
       padding:10px 14px;border-radius:18px;
-      background: linear-gradient(135deg, #0d63c9, #08b3db);
+      background: linear-gradient(90deg,var(--left),var(--right));
       box-shadow: 0 12px 30px rgba(8,20,40,0.32);
       z-index:2000;
       backdrop-filter: blur(12px);
@@ -135,7 +135,30 @@
 <body>
 
   <main class="app">
-    
+
+        <div class="history-container" style="margin-top:20px; display:flex; flex-direction:column; gap:12px;">
+
+            <div class="history-item" style="display:flex; align-items:center; background:white; padding:14px; border-radius:16px; box-shadow:0px 3px 10px rgba(0,0,0,0.12);">
+                <div class="history-icon" style="width:40px;height:40px;background:#e6f9ff;border-radius:12px;display:flex;justify-content:center;align-items:center;font-size:20px;margin-right:12px;">🔋</div>
+                <div class="history-info" style="display:flex;flex-direction:column;">
+                    <span class="history-title" style="font-size:15px;font-weight:600;margin-bottom:2px;">Recarga completada</span>
+                    <span class="history-desc" style="font-size:13px;opacity:0.7;margin-bottom:4px;">Número: 5XX XXX — 10€</span>
+                    <span class="history-date" style="font-size:12px;opacity:0.6;">Hoy • 3:40 p. m.</span>
+                </div>
+            </div>
+
+            <div class="history-item" style="display:flex; align-items:center; background:white; padding:14px; border-radius:16px; box-shadow:0px 3px 10px rgba(0,0,0,0.12);">
+                <div class="history-icon" style="width:40px;height:40px;background:#e6f9ff;border-radius:12px;display:flex;justify-content:center;align-items:center;font-size:20px;margin-right:12px;">💳</div>
+                <div class="history-info" style="display:flex;flex-direction:column;">
+                    <span class="history-title" style="font-size:15px;font-weight:600;margin-bottom:2px;">Saldo añadido</span>
+                    <span class="history-desc" style="font-size:13px;opacity:0.7;margin-bottom:4px;">Método: Tarjeta Visa</span>
+                    <span class="history-date" style="font-size:12px;opacity:0.6;">Ayer • 11:10 a. m.</span>
+                </div>
+            </div>
+
+        </div>
+
+    <h1>Historial</h1>
 
     <div class="historial-card">
       <div class="historial-item">
