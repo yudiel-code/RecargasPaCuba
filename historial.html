@@ -1,180 +1,145 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Historial | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Historial</title>
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #28c6db, #009fc7);
+            color: #000;
+            padding-bottom: 120px;
+        }
 
-    /* 🔥 FIX DEFINITIVO: elimina la raya de overscroll */
-    html, body {
-      overscroll-behavior-y: none;
-      overscroll-behavior-x: none;
-      overscroll-behavior: none;
-    }
+        .app {
+            padding: calc(env(safe-area-inset-top, 0px) + 20px) 20px 40px;
+        }
 
-    :root{
-      --left:#0b63d1;
-      --right:#19c6c3;
-      --accent:#ffb13b;
-    }
+        .filters {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', system-ui, sans-serif;
-    }
+        .filter-btn {
+            background: white;
+            border-radius: 20px;
+            padding: 8px 18px;
+            font-size: 14px;
+            white-space: nowrap;
+            border: none;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            font-weight: 500;
+        }
 
-    body {
-      min-height: 100vh;
-      background: linear-gradient(90deg, var(--left), var(--right));
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 18px 120px;
-    }
+        .history-container {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    .app {
-      width: 100%;
-      max-width: 520px;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 22px;
-    }
+        .history-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 14px;
+            border-radius: 16px;
+            box-shadow: 0px 3px 10px rgba(0,0,0,0.12);
+        }
 
-    h1 {
-      text-align: center;
-      font-size: 28px;
-      font-weight: 800;
-      margin-top: 10px;
-      margin-bottom: 16px;
-    }
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            background: #e6f9ff;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            margin-right: 12px;
+        }
 
-    .historial-card {
-      background: rgba(255,255,255,0.12);
-      border-radius: 22px;
-      padding: 18px;
-      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      backdrop-filter: blur(14px);
-      border: 1px solid rgba(255,255,255,0.25);
-    }
+        .history-info {
+            display: flex;
+            flex-direction: column;
+        }
 
-    .historial-item {
-      background: rgba(255,255,255,0.12);
-      border-radius: 16px;
-      padding: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 14px;
-      border: 1px solid rgba(255,255,255,0.25);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 10px 28px rgba(0,0,0,0.2);
-    }
+        .history-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
 
-    .historial-item span {
-      opacity: 0.92;
-    }
+        .history-desc {
+            font-size: 13px;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
 
-    .estado {
-      font-weight: 700;
-      color: #ffb13b;
-    }
-
-    .vacio {
-      text-align: center;
-      opacity: 0.85;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-
-    nav.bottom{
-      position:fixed;left:12px;right:12px;bottom:18px;
-      display:flex;justify-content:space-around;align-items:center;
-      padding:10px 14px;border-radius:18px;
-      background: linear-gradient(90deg,var(--left),var(--right));
-      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
-      z-index:2000;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.25);
-    }
-    nav.bottom .nav-btn{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
-      color:white;
-      font-weight:800;
-      padding:8px 12px;
-      border-radius:10px;
-      text-decoration:none;
-      box-shadow:none;
-      background:transparent;
-    }
-    nav.bottom .nav-btn.active{
-      transform:translateY(-6px);
-      background:rgba(255,255,255,0.12);
-      box-shadow:0 8px 18px rgba(0,0,0,0.25);
-      border:1px solid rgba(255,255,255,0.25);
-    }
-
-  </style>
+        .history-date {
+            font-size: 12px;
+            opacity: 0.6;
+        }
+    </style>
 </head>
 
 <body>
+    <main class="app">
 
-  <main class="app">
-    <h1>Historial</h1>
+        <div class="filters">
+            <button class="filter-btn">Todo</button>
+            <button class="filter-btn">Recargas</button>
+            <button class="filter-btn">Saldo</button>
+            <button class="filter-btn">Notificaciones</button>
+            <button class="filter-btn">Correos</button>
+        </div>
 
-    <div class="historial-card">
-      <div class="historial-item">
-        <span>Recarga 10 EUR</span>
-        <span class="estado">Completada</span>
-      </div>
+        <div class="history-container">
 
-      <div class="historial-item">
-        <span>Recarga 20 EUR</span>
-        <span class="estado">Completada</span>
-      </div>
+            <div class="history-item">
+                <div class="history-icon">🔋</div>
+                <div class="history-info">
+                    <span class="history-title">Recarga completada</span>
+                    <span class="history-desc">Número: 5XX XXX — 10€</span>
+                    <span class="history-date">Hoy • 3:40 p. m.</span>
+                </div>
+            </div>
 
-      <div class="historial-item">
-        <span>Recarga 25 EUR</span>
-        <span class="estado">Pendiente</span>
-      </div>
-    </div>
+            <div class="history-item">
+                <div class="history-icon">💳</div>
+                <div class="history-info">
+                    <span class="history-title">Saldo añadido</span>
+                    <span class="history-desc">Método: Tarjeta Visa</span>
+                    <span class="history-date">Ayer • 11:10 a. m.</span>
+                </div>
+            </div>
 
-    <div class="vacio">
-      (Esto es solo diseño por ahora)
-    </div>
-  </main>
+            <div class="history-item">
+                <div class="history-icon">🔔</div>
+                <div class="history-info">
+                    <span class="history-title">Nueva oferta disponible</span>
+                    <span class="history-desc">Consulta las promociones activas</span>
+                    <span class="history-date">Hace 3 días</span>
+                </div>
+            </div>
 
-  <nav class="bottom" role="navigation" aria-label="Barra inferior">
-    <a href="recargar.html" class="nav-btn">
-      <span style="font-size:20px">⚡</span>
-      <div style="font-size:12px">Recargar</div>
-    </a>
+            <div class="history-item">
+                <div class="history-icon">📧</div>
+                <div class="history-info">
+                    <span class="history-title">Correo enviado</span>
+                    <span class="history-desc">Confirmación de compra enviada</span>
+                    <span class="history-date">Hace 5 días</span>
+                </div>
+            </div>
 
-    <a href="historial.html" class="nav-btn active">
-      <span style="font-size:20px">📜</span>
-      <div style="font-size:12px">Historial</div>
-    </a>
+        </div>
 
-    <a href="cuenta.html" class="nav-btn">
-      <span style="font-size:20px">👤</span>
-      <div style="font-size:12px">Cuenta</div>
-    </a>
-  </nav>
-
+    </main>
 </body>
 </html>
