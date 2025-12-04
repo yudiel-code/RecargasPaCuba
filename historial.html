@@ -3,31 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <title>Historial | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0284c7">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
 
-    /* 🔥 FIX DEFINITIVO: elimina la raya de overscroll */
-    html, body {
-      overscroll-behavior-y: none;
-      overscroll-behavior-x: none;
-      overscroll-behavior: none;
-    }
-
     :root{
-      --left:#0284c7;
+      --left:#0b63d1;
       --right:#19c6c3;
       --accent:#ffb13b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', system-ui, sans-serif; }
-
-    html {
-      min-height: 100%;
-      background: linear-gradient(90deg, var(--left), var(--right));
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', system-ui, sans-serif;
     }
 
     body {
@@ -37,7 +28,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: calc(env(safe-area-inset-top, 0px) + 24px) 18px 120px;
+      padding: 24px 18px 120px;
     }
 
     .app {
@@ -47,13 +38,6 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
-      background: linear-gradient(90deg, var(--left), var(--right));
-    }
-
-    html, body, .app {
-      backface-visibility: hidden;
-      transform: translateZ(0);
-      background-attachment: fixed;
     }
 
     h1 {

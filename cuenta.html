@@ -3,33 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Cuenta | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0284c7">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
 
     :root{
-      --left:#0284c7;
+      --left:#0b63d1;
       --right:#19c6c3;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-
-    html {
-      min-height: 100%;
-      background: linear-gradient(135deg, #0284c7, #0db3da);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
     }
 
     body {
       min-height: 100vh;
-      background: linear-gradient(135deg, #0284c7, #0db3da);
+      background: linear-gradient(135deg, #0a5fcb, #0db3da);
       color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: calc(env(safe-area-inset-top, 0px) + 0px) 0 120px;
+      padding-bottom: 120px;
     }
 
     .app {
@@ -39,13 +37,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      background: linear-gradient(135deg, #0284c7, #0db3da);
-    }
-
-    html, body, .app {
-      backface-visibility: hidden;
-      transform: translateZ(0);
-      background-attachment: fixed;
     }
 
     .avatar {

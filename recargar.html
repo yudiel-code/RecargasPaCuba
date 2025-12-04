@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Recargar | RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0284c7">
+  <meta name="theme-color" content="#0b5bd3">
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 
     :root {
-      --left: #0284c7;
+      --left: #0b63d1;
       --right: #19c6c3;
       --accent: #ffb13b;
       --glass: rgba(255, 255, 255, 0.10);
@@ -20,11 +20,10 @@
       --text: #ffffff;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html {
-      min-height: 100%;
-      background: linear-gradient(135deg, var(--left), var(--right));
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
@@ -32,7 +31,7 @@
       background: linear-gradient(135deg, var(--left), var(--right));
       color: var(--text);
       min-height: 100vh;
-      padding: calc(env(safe-area-inset-top, 0px) + 18px) 16px 110px;
+      padding: 18px 16px 110px;
       display: flex;
       justify-content: center;
     }
@@ -43,13 +42,6 @@
       display: flex;
       flex-direction: column;
       gap: 18px;
-      background: linear-gradient(135deg, var(--left), var(--right));
-    }
-
-    html, body, .app {
-      backface-visibility: hidden;
-      transform: translateZ(0);
-      background-attachment: fixed;
     }
 
     /* Pestañas CUBACEL / NAUTA */
