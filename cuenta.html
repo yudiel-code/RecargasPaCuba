@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cuenta | RecargasPaCuba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b63d1">
+
+  <style>
+    html, body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--left), var(--right));
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 120px;
+    }
+
+
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
+
+    :root{
+      --left:#0b63d1;
+      --right:#19c6c3;
+    }
+
+    html {
+      min-height: 100%;
+      background: linear-gradient(135deg, var(--left), var(--right));
+    }
+
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0a5fcb, #0db3da);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 120px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      padding: 24px 18px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      margin-top: 10px;
+    }
+
+    .avatar svg {
+      width: 60px;
+      height: 60px;
+      fill: #fff;
+    }
+
+    .user-email {
+      font-size: 14px;
+      font-weight: 600;
+      opacity: 0.85;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .saldo-title {
+      font-size: 16px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-top: 6px;
+    }
+
+    .saldo {
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 28px;
+    }
+
+    .botones {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      width: 100%;
+      border: none;
+      border-radius: 30px;
+      padding: 18px;
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(145deg, #ffae43, #ff941f);
+      color: #2e1200;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    }
+
+    /* ---------------- MODALES ---------------- */
+    .modal-bg, .modal-bg-saldo {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal {
+      background: rgba(255,255,255,0.10);
+      padding: 22px;
+      border-radius: 16px;
+      max-width: 85%;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal button {
+      margin-top: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ffb13b;
+      color: #2c1200;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* MODAL AGREGAR SALDO */
+    .modal input {
+      width: 80%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      margin-top: 12px;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* ---------------- BARRA INFERIOR ---------------- */
+    nav.bottom{
+      position:fixed;left:12px;right:12px;bottom:18px;
+      display:flex;justify-content:space-around;align-items:center;
+      padding:10px 14px;border-radius:18px;
+      background: linear-gradient(90deg,var(--left),var(--right));
+      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
+      z-index:2000;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    nav.bottom .nav-btn{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      color:white;
+      font-weight:800;
+      padding:8px 12px;
+      border-radius:10px;
+      text-decoration:none;
+    }
+
+    nav.bottom .nav-btn.active{
+      transform:translateY(-6px);
+      background:rgba(255,255,255,0.12);
+      box-shadow:0 8px 18px rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.25);
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <main class="app">
+
+    <div class="avatar">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
+      </svg>
+    </div>
+
+    <div id="emailUsuario" class="user-email"></div>
+
+    <div class="saldo-title">Saldo disponible</div>
+    <div id="saldo" class="saldo">0,00 €</div>
+
+    <div class="botones">
+      <button class="btn" id="addSaldoBtn">Agregar saldo</button>
+      <button class="btn">Métodos de pago</button>
+      <button class="btn">Datos de la cuenta</button>
+      <button class="btn" id="logoutBtn">Cerrar sesión</button>
+    </div>
+
+  </main>
+
+  <nav class="bottom" role="navigation" aria-label="Barra inferior">
+    <a href="recargar.html" class="nav-btn">
+      <span style="font-size:20px">⚡</span>
+      <div style="font-size:12px">Recargar</div>
+    </a>
+
+    <a href="historial.html" class="nav-btn">
+      <span style="font-size:20px">📜</span>
+      <div style="font-size:12px">Historial</div>
+    </a>
+
+    <a href="cuenta.html" class="nav-btn active">
+      <span style="font-size:20px">👤</span>
+      <div style="font-size:12px">Cuenta</div>
+    </a>
+  </nav>
+
+  <!-- MODAL ERROR -->
+  <div id="modal-bg" class="modal-bg">
+    <div class="modal">
+      <div id="modal-text">Error</div>
+      <button id="modal-btn">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- MODAL AGREGAR SALDO -->
+  <div id="modal-bg-saldo" class="modal-bg-saldo">
+    <div class="modal">
+      <div>Introduce la cantidad que deseas agregar:</div>
+      <input id="saldoInput" type="number" min="1" />
+      <button id="btnAgregarSaldo">Agregar</button>
+    </div>
+  </div>
+
+  <script>
+
+    // PROTECCIÓN DE SESIÓN
+    const usuario = localStorage.getItem("usuario");
+    if (!usuario) {
+      window.location.href = "index.html";
+    }
+
+    document.getElementById("emailUsuario").textContent = usuario;
+
+    // Cargar saldo
+    function cargarSaldo() {
+      let saldo = localStorage.getItem("saldo");
+      if (!saldo) saldo = 0;
+      document.getElementById("saldo").textContent =
+        parseFloat(saldo).toFixed(2) + " €";
+    }
+    cargarSaldo();
+
+    // Abrir modal agregar saldo
+    document.getElementById("addSaldoBtn").addEventListener("click", () => {
+      document.getElementById("modal-bg-saldo").style.display = "flex";
+      document.getElementById("saldoInput").value = "";
+    });
+
+    // Botón AGREGAR dentro del modal
+    document.getElementById("btnAgregarSaldo").addEventListener("click", () => {
+
+      let cantidad = parseFloat(document.getElementById("saldoInput").value);
+
+      if (isNaN(cantidad)) {
+        // Cerrar modal de saldo y mostrar error
+        document.getElementById("modal-bg-saldo").style.display = "none";
+        return mostrarError("Ingrese una cantidad válida.");
+      }
+
+      if (cantidad < 10) {
+        // Cerrar modal de saldo y mostrar error
+        document.getElementById("modal-bg-saldo").style.display = "none";
+        return mostrarError("El importe mínimo para agregar saldo es de 10 €.");
+      }
+
+      let saldoActual = parseFloat(localStorage.getItem("saldo")) || 0;
+      let nuevoSaldo = saldoActual + cantidad;
+
+      localStorage.setItem("saldo", nuevoSaldo);
+      cargarSaldo();
+
+      // Cerrar modal correctamente
+      document.getElementById("modal-bg-saldo").style.display = "none";
+    });
+
+    // MODAL ERROR
+    function mostrarError(texto) {
+      document.getElementById("modal-text").textContent = texto;
+      document.getElementById("modal-bg").style.display = "flex";
+    }
+
+    document.getElementById("modal-btn").addEventListener("click", () => {
+      document.getElementById("modal-bg").style.display = "none";
+    });
+
+    // CERRAR SESIÓN
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem("usuario");
+      window.location.href = "index.html";
+    });
+
+  </script>
+
+</body>
+</html>
