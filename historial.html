@@ -47,6 +47,13 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
+      background: linear-gradient(90deg, var(--left), var(--right));
+    }
+
+    html, body, .app {
+      backface-visibility: hidden;
+      transform: translateZ(0);
+      background-attachment: fixed;
     }
 
     h1 {
