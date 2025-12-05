@@ -9,6 +9,18 @@
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
 
+  <!-- ✅ ANTI-FLASH GLOBAL -->
+  <style>
+    html, body {
+      background: linear-gradient(135deg, #0a5fcb, #0db3da) !important;
+    }
+
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  </style>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
 
@@ -44,7 +56,6 @@
       gap: 22px;
     }
 
-    /* ===== CARDS ===== */
     .card {
       background: var(--glass);
       border-radius: 22px;
@@ -54,7 +65,6 @@
       border: 1px solid rgba(255,255,255,0.25);
     }
 
-    /* PERFIL */
     .perfil {
       display: flex;
       flex-direction: column;
@@ -84,7 +94,6 @@
       opacity: 0.9;
     }
 
-    /* SALDO */
     .saldo-box {
       display: flex;
       flex-direction: column;
@@ -102,7 +111,6 @@
       font-weight: 800;
     }
 
-    /* ACCIONES */
     .acciones {
       display: flex;
       flex-direction: column;
@@ -122,7 +130,6 @@
       box-shadow: 0 8px 18px rgba(0,0,0,0.25);
     }
 
-    /* ================= MODALES ================= */
     .modal-bg, .modal-bg-saldo {
       position: fixed;
       top: 0; left: 0;
@@ -169,7 +176,6 @@
       text-align: center;
     }
 
-    /* ================= BARRA INFERIOR ================= */
     nav.bottom {
       position: fixed;
       left: 12px;
@@ -212,7 +218,6 @@
 
   <main class="app">
 
-    <!-- PERFIL -->
     <div class="card perfil">
       <div class="avatar">
         <svg viewBox="0 0 24 24">
@@ -222,13 +227,11 @@
       <div id="emailUsuario" class="user-email"></div>
     </div>
 
-    <!-- SALDO -->
     <div class="card saldo-box">
       <div class="saldo-title">Saldo disponible</div>
       <div id="saldo" class="saldo">0,00 €</div>
     </div>
 
-    <!-- ACCIONES -->
     <div class="card acciones">
       <button class="btn" id="addSaldoBtn">Agregar saldo</button>
       <button class="btn">Métodos de pago</button>
@@ -238,7 +241,6 @@
 
   </main>
 
-  <!-- BARRA INFERIOR -->
   <nav class="bottom" role="navigation" aria-label="Barra inferior">
     <a href="recargar.html" class="nav-btn">
       <span style="font-size:20px">⚡</span>
@@ -256,7 +258,6 @@
     </a>
   </nav>
 
-  <!-- MODAL ERROR (ORIGINAL INTACTO) -->
   <div id="modal-bg" class="modal-bg">
     <div class="modal">
       <div id="modal-text">Error</div>
@@ -264,7 +265,6 @@
     </div>
   </div>
 
-  <!-- MODAL AGREGAR SALDO (ORIGINAL INTACTO) -->
   <div id="modal-bg-saldo" class="modal-bg-saldo">
     <div class="modal">
       <div>Introduce la cantidad que deseas agregar:</div>
@@ -273,9 +273,7 @@
     </div>
   </div>
 
-  <!-- ===================== JS ORIGINAL INTACTO ===================== -->
   <script>
-    // PROTECCIÓN DE SESIÓN
     const usuario = localStorage.getItem("usuario");
     if (!usuario) {
       window.location.href = "index.html";
@@ -283,7 +281,6 @@
 
     document.getElementById("emailUsuario").textContent = usuario;
 
-    // Cargar saldo
     function cargarSaldo() {
       let saldo = localStorage.getItem("saldo");
       if (!saldo) saldo = 0;
@@ -292,13 +289,11 @@
     }
     cargarSaldo();
 
-    // Abrir modal agregar saldo
     document.getElementById("addSaldoBtn").addEventListener("click", () => {
       document.getElementById("modal-bg-saldo").style.display = "flex";
       document.getElementById("saldoInput").value = "";
     });
 
-    // Botón AGREGAR dentro del modal
     document.getElementById("btnAgregarSaldo").addEventListener("click", () => {
       let cantidad = parseFloat(document.getElementById("saldoInput").value);
 
@@ -321,7 +316,6 @@
       document.getElementById("modal-bg-saldo").style.display = "none";
     });
 
-    // MODAL ERROR
     function mostrarError(texto) {
       document.getElementById("modal-text").textContent = texto;
       document.getElementById("modal-bg").style.display = "flex";
@@ -331,7 +325,6 @@
       document.getElementById("modal-bg").style.display = "none";
     });
 
-    // CERRAR SESIÓN
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("usuario");
       window.location.href = "index.html";
