@@ -2,79 +2,462 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Recargar</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+  <title>Recargar | RecargasPaCuba</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b5bd3">
 
-  <!-- ANTI-FLASH + ANTI-REBOTE -->
   <style>
-    html, body {
-      background: linear-gradient(135deg, #0b63d1, #19c6c3) !important;
-      overscroll-behavior: none;
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --left: #0b63d1;
+      --right: #19c6c3;
+      --accent: #ffb13b;
+      --glass: rgba(255, 255, 255, 0.10);
+      --glass-strong: rgba(255, 255, 255, 0.18);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --text: #ffffff;
     }
+
     * {
-      animation: none !important;
-      transition: none !important;
-    }
-  </style>
-
-  <style>
-    body {
+      box-sizing: border-box;
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0b63d1, #19c6c3);
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', system-ui, sans-serif;
+      background: linear-gradient(135deg, var(--left), var(--right));
+      color: var(--text);
       min-height: 100vh;
       padding: 18px 16px 110px;
       display: flex;
       justify-content: center;
-      color: white;
     }
 
     .app {
       width: 100%;
       max-width: 520px;
-    }
-
-    nav.bottom {
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 18px;
       display: flex;
-      justify-content: space-around;
-      padding: 10px 14px;
-      border-radius: 18px;
-      background: linear-gradient(90deg,#0b63d1,#19c6c3);
+      flex-direction: column;
+      gap: 18px;
     }
 
-    nav.bottom .nav-btn {
-      color: white;
-      text-decoration: none;
-      font-weight: bold;
+    /* Pestañas CUBACEL / NAUTA */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--glass);
+      padding: 8px;
+      border-radius: 20px;
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+      margin-top: 4px;
     }
+
+    .tab {
+      padding: 10px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 13px;
+      border-radius: 16px;
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.09);
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.20);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+
+    .tab.active {
+      background: #ffffff;
+      color: #0b63d1;
+    }
+
+    /* Contenedor de tarjetas */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+      padding-bottom: 6px;
+    }
+
+    /* Tarjeta de oferta */
+    .card {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: var(--glass-strong);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 14px 14px 12px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.32);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .badge.promo {
+      background: rgba(255, 177, 59, 0.2);
+      border-color: rgba(255, 177, 59, 0.7);
+      color: #ffe6b3;
+    }
+
+    .tag-operator {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.9;
+    }
+
+    .card-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .price-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .price {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .price-label {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .receive-block {
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .receive-label {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .receive-main {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .benefits-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .benefit {
+      background: rgba(255,255,255,0.10);
+      border-radius: 10px;
+      padding: 6px 4px;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+
+    .benefit strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .extra-info {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .validity {
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffe6b3;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .fees {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .cta {
+      background: linear-gradient(135deg, #ffe176, #ffb13b);
+      border: none;
+      color: #2c1a00;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.30);
+      white-space: nowrap;
+    }
+
+    /* Barra inferior */
+    nav.bottom{
+      position:fixed;left:12px;right:12px;bottom:18px;
+      display:flex;justify-content:space-around;align-items:center;
+      padding:10px 14px;border-radius:18px;
+      background: linear-gradient(90deg,var(--left),var(--right));
+      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
+      z-index:2000;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+    nav.bottom .nav-btn{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      color:white;
+      font-weight:800;
+      padding:8px 12px;
+      border-radius:10px;
+      text-decoration:none;
+      box-shadow:none;
+      background:transparent;
+      font-size: 11px;
+    }
+    nav.bottom .nav-btn.active{
+      transform:translateY(-6px);
+      background:rgba(255,255,255,0.12);
+      box-shadow:0 8px 18px rgba(0,0,0,0.25);
+      border:1px solid rgba(255,255,255,0.25);
+    }
+
   </style>
 </head>
 
 <body>
 
   <main class="app">
-    <h2>Recargas</h2>
-    <!-- TU CONTENIDO DE TARJETAS SIGUE AQUÍ TAL CUAL -->
+
+    <!-- PESTAÑAS -->
+    <div class="tabs">
+      <div class="tab active">CUBACEL</div>
+      <div class="tab">NAUTA</div>
+    </div>
+
+    <!-- TARJETAS DE OFERTAS -->
+    <section class="cards">
+
+      <!-- OFERTA 1 -->
+      <article class="card">
+        <div class="card-header">
+          <span class="badge">Recarga normal</span>
+          <span class="tag-operator">CUBACEL · Cuba</span>
+        </div>
+
+        <div class="card-main">
+          <div class="price-block">
+            <div class="price">10,42 €</div>
+            <div class="price-label">Precio final</div>
+          </div>
+          <div class="receive-block">
+            <div class="receive-label">Recibe</div>
+            <div class="receive-main">568 CUP + 2 GB</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="benefits-row">
+            <div class="benefit">
+              <strong>568</strong>
+              CUP
+            </div>
+            <div class="benefit">
+              <strong>2 GB</strong>
+              Datos
+            </div>
+            <div class="benefit">
+              <strong>60</strong>
+              Min
+            </div>
+            <div class="benefit">
+              <strong>80</strong>
+              SMS
+            </div>
+          </div>
+          <div class="extra-info">
+            Ideal para uso mixto de llamadas, datos y SMS.
+          </div>
+          <div class="validity">
+            Validez estándar según condiciones de CUBACEL.
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="fees">
+            Tasas e impuestos incluidos.
+          </div>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+      <!-- OFERTA 2 -->
+      <article class="card">
+        <div class="card-header">
+          <span class="badge promo">Promo especial</span>
+          <span class="tag-operator">CUBACEL · Cuba</span>
+        </div>
+
+        <div class="card-main">
+          <div class="price-block">
+            <div class="price">20,84 €</div>
+            <div class="price-label">Precio final</div>
+          </div>
+          <div class="receive-block">
+            <div class="receive-label">Recibe</div>
+            <div class="receive-main">500 CUP + 4 GB</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="benefits-row">
+            <div class="benefit">
+              <strong>500</strong>
+              CUP
+            </div>
+            <div class="benefit">
+              <strong>4 GB</strong>
+              Datos
+            </div>
+            <div class="benefit">
+              <strong>75</strong>
+              Min
+            </div>
+            <div class="benefit">
+              <strong>80</strong>
+              SMS
+            </div>
+          </div>
+          <div class="extra-info">
+            Recarga promocional con datos extra y minutos.
+          </div>
+          <div class="validity">
+            Vigencia estimada: 35 días desde la activación.
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="fees">
+            Oferta sujeta a calendario de promociones.
+          </div>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+      <!-- OFERTA 3 -->
+      <article class="card">
+        <div class="card-header">
+          <span class="badge promo">Promo limitada</span>
+          <span class="tag-operator">CUBACEL · Cuba</span>
+        </div>
+
+        <div class="card-main">
+          <div class="price-block">
+            <div class="price">25,01 €</div>
+            <div class="price-label">Precio final</div>
+          </div>
+          <div class="receive-block">
+            <div class="receive-label">Recibe</div>
+            <div class="receive-main">700 CUP + 4 GB LTE</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="benefits-row">
+            <div class="benefit">
+              <strong>700</strong>
+              CUP
+            </div>
+            <div class="benefit">
+              <strong>4 GB</strong>
+              LTE
+            </div>
+            <div class="benefit">
+              <strong>60</strong>
+              Min
+            </div>
+            <div class="benefit">
+              <strong>—</strong>
+              Extra
+            </div>
+          </div>
+          <div class="extra-info">
+            Pensada para uso intensivo de datos y llamadas.
+          </div>
+          <div class="validity">
+            Vigencia estimada: 7 días desde la activación.
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="fees">
+            Tasas incluidas. Oferta de corta duración.
+          </div>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+    </section>
   </main>
 
-  <nav class="bottom">
-    <a href="recargar.html" class="nav-btn">⚡ Recargar</a>
-    <a href="historial.html" class="nav-btn">📜 Historial</a>
-    <a href="cuenta.html" class="nav-btn">👤 Cuenta</a>
-  </nav>
+  <!-- BARRA INFERIOR -->
+  <nav class="bottom" role="navigation" aria-label="Barra inferior">
+    <a href="recargar.html" class="nav-btn active">
+      <span style="font-size:20px">⚡</span>
+      <div style="font-size:12px">Recargar</div>
+    </a>
 
-  <script>
-    // FORZAR REPINTADO AL ENTRAR DESDE HISTORIAL
-    window.addEventListener("pageshow", () => {
-      document.body.style.display = "none";
-      document.body.offsetHeight;
-      document.body.style.display = "";
-    });
-  </script>
+    <a href="historial.html" class="nav-btn">
+      <span style="font-size:20px">📜</span>
+      <div style="font-size:12px">Historial</div>
+    </a>
+
+    <a href="cuenta.html" class="nav-btn">
+      <span style="font-size:20px">👤</span>
+      <div style="font-size:12px">Cuenta</div>
+    </a>
+  </nav>
 
 </body>
 </html>

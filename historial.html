@@ -4,19 +4,6 @@
   <meta charset="UTF-8">
   <title>Historial</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- ANTI-FLASH + ANTI-REBOTE -->
-  <style>
-    html, body {
-      background: linear-gradient(135deg, #0d63c9, #08b3db) !important;
-      overscroll-behavior: none;
-    }
-    * {
-      animation: none !important;
-      transition: none !important;
-    }
-  </style>
-
   <style>
     body {
       margin: 0;
@@ -26,7 +13,7 @@
       display: flex;
       flex-direction: column;
       color: white;
-      padding-bottom: 100px;
+      padding-bottom: 100px; /* Espacio para la barra fija */
     }
 
     .header {
@@ -63,10 +50,26 @@
       font-size: 20px;
     }
 
-    .contenido { flex: 1; }
-    .titulo { font-size: 15px; font-weight: bold; }
-    .descripcion { font-size: 13px; opacity: 0.9; margin-top: 3px; }
-    .fecha { font-size: 12px; opacity: 0.7; margin-top: 4px; }
+    .contenido {
+      flex: 1;
+    }
+
+    .titulo {
+      font-size: 15px;
+      font-weight: bold;
+    }
+
+    .descripcion {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 3px;
+    }
+
+    .fecha {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
 
     .estado {
       font-size: 12px;
@@ -81,6 +84,7 @@
     .azul { background: #4bbcff; color: #000; }
     .rojo { background: #ff6b6b; color: #000; }
 
+    /* NAV FIJA */
     .nav-wrapper {
       position: fixed;
       bottom: 0;
@@ -96,9 +100,16 @@
       padding: 12px 0;
       background: rgba(255,255,255,0.20);
       border-radius: 25px;
+      backdrop-filter: blur(6px);
     }
 
-    .nav a { text-decoration: none; color: white; flex: 1; display: flex; justify-content: center; }
+    .nav a {
+      text-decoration: none;
+      color: white;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
 
     .nav-item {
       display: flex;
@@ -115,7 +126,10 @@
       border-radius: 15px;
     }
 
-    .nav-item span { font-size: 20px; margin-bottom: 4px; }
+    .nav-item span {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 
@@ -145,21 +159,63 @@
       <div class="estado verde">OK</div>
     </div>
 
+    <div class="card">
+      <div class="icono">📩</div>
+      <div class="contenido">
+        <div class="titulo">Correo recibido</div>
+        <div class="descripcion">Confirmación de pago</div>
+        <div class="fecha">04/12/2025 - 5:30 p. m.</div>
+      </div>
+      <div class="estado azul">Info</div>
+    </div>
+
+    <div class="card">
+      <div class="icono">🎁</div>
+      <div class="contenido">
+        <div class="titulo">Nueva oferta</div>
+        <div class="descripcion">Bono extra por recarga de 20 €</div>
+        <div class="fecha">03/12/2025 - 9:15 p. m.</div>
+      </div>
+      <div class="estado azul">Oferta</div>
+    </div>
+
+    <div class="card">
+      <div class="icono">⚠️</div>
+      <div class="contenido">
+        <div class="titulo">Error de operación</div>
+        <div class="descripcion">No se pudo procesar un pago</div>
+        <div class="fecha">03/12/2025 - 6:40 p. m.</div>
+      </div>
+      <div class="estado rojo">Error</div>
+    </div>
+
   </div>
 
+  <!-- NAVBAR FIJA -->
   <div class="nav-wrapper">
     <div class="nav">
-      <a href="recargar.html"><div class="nav-item"><span>⚡</span>Recargar</div></a>
-      <a href="historial.html"><div class="nav-item active"><span>📜</span>Historial</div></a>
-      <a href="cuenta.html"><div class="nav-item"><span>👤</span>Cuenta</div></a>
+      <a href="index.html">
+        <div class="nav-item">
+          <span>⚡</span>
+          Recargar
+        </div>
+      </a>
+
+      <a href="historial.html">
+        <div class="nav-item active">
+          <span>📜</span>
+          Historial
+        </div>
+      </a>
+
+      <a href="cuenta.html">
+        <div class="nav-item">
+          <span>👤</span>
+          Cuenta
+        </div>
+      </a>
     </div>
   </div>
-
-  <script>
-    if ("scrollRestoration" in history) {
-      history.scrollRestoration = "manual";
-    }
-  </script>
 
 </body>
 </html>
