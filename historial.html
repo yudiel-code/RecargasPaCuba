@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Historial | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#28c6db">
+  <meta name="theme-color" content="#0d63c9">
 
   <style>
     :root{
@@ -18,11 +18,11 @@
       margin: 0;
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #0d63c9, #08b3db);
-      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       color: white;
-      padding-bottom: 120px;
+      padding: env(safe-area-inset-top) 0 calc(120px + env(safe-area-inset-bottom));
     }
 
     .historial-container { flex: 1; padding: 20px; }
@@ -83,7 +83,7 @@
       position: fixed;
       left: 12px;
       right: 12px;
-      bottom: 18px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
       display: flex;
       justify-content: space-around;
       align-items: center;

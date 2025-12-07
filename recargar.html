@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
   <title>Recargar | RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b5bd3">
+  <meta name="theme-color" content="#0b63d1">
 
   <!-- ✅ EmailJS para correo de recarga -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -36,8 +36,8 @@
       font-family: 'Poppins', system-ui, sans-serif;
       background: linear-gradient(135deg, var(--left), var(--right));
       color: var(--text);
-      min-height: 100vh;
-      padding: 18px 16px 110px;
+      min-height: 100dvh;
+      padding: calc(18px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom));
       display: flex;
       justify-content: center;
     }
@@ -237,7 +237,7 @@
 
     /* Barra inferior */
     nav.bottom {
-      position:fixed;left:12px;right:12px;bottom:18px;
+      position:fixed;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));
       display:flex;justify-content:space-around;align-items:center;
       padding:10px 14px;border-radius:18px;
       background: linear-gradient(90deg,var(--left),var(--right));
