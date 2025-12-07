@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -6,19 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
-  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+  <meta name="theme-color" content="#28c6db">
 
-  <!-- ✅ ANTI-FLASH GLOBAL -->
   <style>
     html, body {
       background: linear-gradient(135deg, #0a5fcb, #0db3da) !important;
     }
-
-    * {
-      animation: none !important;
-      transition: none !important;
-    }
+    * { animation: none !important; transition: none !important; }
   </style>
 
   <style>
@@ -44,7 +38,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-bottom: 120px;
+      padding-bottom: 150px;
     }
 
     .app {
@@ -54,6 +48,7 @@
       display: flex;
       flex-direction: column;
       gap: 22px;
+      position: relative; /* para el widget de monedas */
     }
 
     .card {
@@ -69,7 +64,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 6px;
+      position: relative;
+      margin-bottom: 10px;
     }
 
     .avatar {
@@ -80,6 +77,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
     }
 
     .avatar svg {
@@ -88,10 +88,42 @@
       fill: #fff;
     }
 
-    .user-email {
-      font-size: 14px;
-      font-weight: 600;
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* 🔧 Punto verde recolocado */
+    .estado-online {
+  width: 14px;
+  height: 14px;
+  background: #3ddc97;
+  border-radius: 50%;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border: 2px solid white;
+}
+
+    .user-name {
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .user-status {
+      font-size: 12px;
       opacity: 0.9;
+    }
+
+    .verificacion {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 6px;
+      color: #3ddc97;
     }
 
     .saldo-box {
@@ -107,8 +139,21 @@
     }
 
     .saldo {
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 800;
+    }
+
+    .ultimo-mov {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .ver-historial {
+      margin-top: 8px;
+      font-size: 13px;
+      text-decoration: underline;
+      cursor: pointer;
     }
 
     .acciones {
@@ -128,9 +173,35 @@
       color: #2e1200;
       cursor: pointer;
       box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
-    .modal-bg, .modal-bg-saldo {
+    .soporte-btn {
+      margin-top: 6px;
+      background: linear-gradient(145deg, #4bbcff, #2ea5ff);
+      color: #00203d;
+    }
+
+    .legales {
+      margin-top: 8px;
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .legales a {
+      color: white;
+      text-decoration: underline;
+      margin: 0 6px;
+    }
+
+    /* Overlays de modales */
+    .modal-bg-saldo,
+    .modal-bg-metodo,
+    .modal-bg-cuenta {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -176,6 +247,84 @@
       text-align: center;
     }
 
+    /* Opciones de método de pago */
+    .metodo-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .metodo-opcion {
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.35);
+      background: rgba(0,0,0,0.15);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .metodo-opcion span.metodo-nombre {
+      text-align: left;
+    }
+
+    .metodo-opcion span.metodo-tag {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .metodo-opcion:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    /* Campos de modal de cuenta */
+    .cuenta-campos {
+      margin-top: 10px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .campo {
+      margin-bottom: 10px;
+    }
+
+    .campo-label {
+      opacity: 0.85;
+      font-size: 12px;
+    }
+
+    .campo input {
+      width: 100%;
+      margin-top: 4px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .campo-password {
+      position: relative;
+    }
+
+    .campo-password input {
+      padding-right: 40px;
+    }
+
+    .ojo-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      cursor: pointer;
+      opacity: 0.85;
+    }
+
     nav.bottom {
       position: fixed;
       left: 12px;
@@ -211,6 +360,76 @@
       box-shadow: 0 8px 18px rgba(0,0,0,0.25);
       border: 1px solid rgba(255,255,255,0.25);
     }
+
+    /* 💰 Widget monedas (solo icono + número) */
+    .coin-widget {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      z-index: 500;
+    }
+
+    /* Modal específico para monedas */
+    .modal-bg-monedas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3500;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-monedas {
+      background: rgba(255,255,255,0.10);
+      padding: 20px;
+      border-radius: 16px;
+      width: 85%;
+      max-width: 360px;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .progress-bar {
+      margin-top: 12px;
+      height: 10px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg,#ffd36b,#ff9f00);
+    }
+
+    .btn-canje {
+      margin-top: 16px;
+      padding: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      background: #888;
+      color: #222;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .btn-canje.activo {
+      background: linear-gradient(145deg, #ffae43, #ff941f);
+      cursor: pointer;
+      opacity: 1;
+    }
   </style>
 </head>
 
@@ -218,117 +437,494 @@
 
   <main class="app">
 
-    <div class="card perfil">
-      <div class="avatar">
+    <!-- 🪙 Widget monedas arriba derecha -->
+    <div class="coin-widget" id="coinWidget">
+      🪙 <span id="coinTotal">0</span>
+    </div>
+
+    <div class="perfil">
+      <div class="avatar" id="avatarBox">
+        <img id="avatarImg" style="display:none;" alt="Avatar usuario">
         <svg viewBox="0 0 24 24">
           <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
         </svg>
+        <div class="estado-online"></div>
       </div>
-      <div id="emailUsuario" class="user-email"></div>
+      <!-- input para subir avatar -->
+      <input type="file" id="inputAvatar" accept="image/*" hidden>
+
+      <div id="emailUsuario" class="user-name"></div>
+      <div class="user-status">Cuenta activa ✅</div>
+      <div class="verificacion">Usuario verificado ✅</div>
     </div>
 
     <div class="card saldo-box">
       <div class="saldo-title">Saldo disponible</div>
       <div id="saldo" class="saldo">0,00 €</div>
+      <div id="ultimoMovimiento" class="ultimo-mov">Último movimiento: sin actividad</div>
+      <div class="ver-historial" onclick="window.location.href='historial.html'">Ver historial</div>
     </div>
 
     <div class="card acciones">
-      <button class="btn" id="addSaldoBtn">Agregar saldo</button>
-      <button class="btn">Métodos de pago</button>
-      <button class="btn">Datos de la cuenta</button>
-      <button class="btn" id="logoutBtn">Cerrar sesión</button>
-    </div>
+      <button class="btn" id="addSaldoBtn">💰 Agregar saldo</button>
+      <button class="btn" id="btnMetodosPago">💳 Métodos de pago</button>
+      <button class="btn" id="btnDatosCuenta">👤 Datos de la cuenta</button>
+      <button class="btn soporte-btn" id="btnSoporte">🆘 Soporte</button>
+      <button class="btn" id="logoutBtn">🚪 Cerrar sesión</button>
+
+      <div class="legales">
+  <a href="terminos.html" target="_blank" rel="noopener">Términos</a> •
+  <a href="privacidad.html" target="_blank" rel="noopener">Privacidad</a> •
+  <a href="reembolsos.html" target="_blank" rel="noopener">Reembolsos</a>
+</div>
+
 
   </main>
 
-  <nav class="bottom" role="navigation" aria-label="Barra inferior">
-    <a href="recargar.html" class="nav-btn">
-      <span style="font-size:20px">⚡</span>
-      <div style="font-size:12px">Recargar</div>
-    </a>
-
-    <a href="historial.html" class="nav-btn">
-      <span style="font-size:20px">📜</span>
-      <div style="font-size:12px">Historial</div>
-    </a>
-
-    <a href="cuenta.html" class="nav-btn active">
-      <span style="font-size:20px">👤</span>
-      <div style="font-size:12px">Cuenta</div>
-    </a>
-  </nav>
-
-  <div id="modal-bg" class="modal-bg">
-    <div class="modal">
-      <div id="modal-text">Error</div>
-      <button id="modal-btn">Aceptar</button>
-    </div>
-  </div>
-
+  <!-- MODAL: IMPORTE SALDO -->
   <div id="modal-bg-saldo" class="modal-bg-saldo">
     <div class="modal">
-      <div>Introduce la cantidad que deseas agregar:</div>
-      <input id="saldoInput" type="number" min="1" />
+      <div>Introduce la cantidad que deseas agregar (mínimo 10 €):</div>
+      <input id="saldoInput" type="number" min="10" />
       <button id="btnAgregarSaldo">Agregar</button>
     </div>
   </div>
 
+  <!-- MODAL: MÉTODO DE PAGO -->
+  <div id="modal-bg-metodo" class="modal-bg-metodo">
+    <div class="modal">
+      <div style="font-weight:700;">Selecciona tu método de pago</div>
+      <div style="font-size:12px;opacity:0.9;margin-top:4px;">
+        Podrás cambiarlo más adelante en “Métodos de pago”.
+      </div>
+
+      <div class="metodo-lista" id="listaMetodos">
+        <div class="metodo-opcion" data-metodo="Tarjeta (Visa/Mastercard)">
+          <span class="metodo-nombre">💳 Visa / Mastercard</span>
+          <span class="metodo-tag">Tarjeta</span>
+        </div>
+        <div class="metodo-opcion" data-metodo="PayPal">
+          <span class="metodo-nombre">🅿️ PayPal</span>
+          <span class="metodo-tag">Wallet</span>
+        </div>
+        <div class="metodo-opcion" data-metodo="Apple Pay">
+          <span class="metodo-nombre">🍏 Apple Pay</span>
+          <span class="metodo-tag">Móvil</span>
+        </div>
+        <div class="metodo-opcion" data-metodo="Google Pay">
+          <span class="metodo-nombre">🤖 Google Pay</span>
+          <span class="metodo-tag">Móvil</span>
+        </div>
+        <div class="metodo-opcion" data-metodo="Bizum">
+          <span class="metodo-nombre">📲 Bizum</span>
+          <span class="metodo-tag">España</span>
+        </div>
+      </div>
+
+      <button id="cerrarMetodo">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- MODAL: DATOS DE LA CUENTA -->
+  <div id="modal-bg-cuenta" class="modal-bg-cuenta">
+    <div class="modal">
+      <div style="font-weight:700; margin-bottom:6px;">Datos de tu cuenta</div>
+      <div style="font-size:12px; opacity:0.9;">
+        Podrás editar estos datos más adelante desde esta sección.
+      </div>
+
+      <div class="cuenta-campos">
+        <div class="campo">
+          <div class="campo-label">Nombre</div>
+          <input id="cuentaNombre" type="text" placeholder="Usuario">
+        </div>
+
+        <div class="campo">
+          <div class="campo-label">Correo</div>
+          <input id="cuentaCorreo" type="email" readonly>
+        </div>
+
+        <div class="campo campo-password">
+          <div class="campo-label">Contraseña</div>
+          <input id="cuentaPass" type="password" placeholder="••••••••">
+          <span id="togglePass" class="ojo-toggle">👁</span>
+        </div>
+
+        <div class="campo">
+          <div class="campo-label">Método de pago actual</div>
+          <input id="cuentaMetodo" type="text" readonly placeholder="Sin método guardado">
+        </div>
+      </div>
+
+      <button id="cerrarCuenta">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- NUEVO MODAL: MONEDAS -->
+  <div id="modal-bg-monedas" class="modal-bg-monedas">
+    <div class="modal-monedas">
+      <div style="font-weight:700;">Sistema de recompensas</div>
+
+      <p style="font-size:13px;margin-top:8px;">
+        ✅ <b>Tus recargas te premian:</b> acumula <b>699 monedas</b> y canjéalas por <b>20 €</b>.
+      </p>
+
+      <p style="font-size:12px;opacity:0.9;margin-top:6px;">
+        Las monedas se generan automáticamente según el importe de cada recarga.
+      </p>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="barraProgreso"></div>
+      </div>
+
+      <div id="progresoTexto" style="margin-top:8px;font-size:13px;"></div>
+
+      <button id="btnCanje" class="btn-canje">Canjear 20 €</button>
+
+      <div style="font-size:11px;opacity:0.8;margin-top:10px;">
+        Las monedas solo son válidas dentro de la app.
+      </div>
+
+      <button id="cerrarMonedas" style="margin-top:12px;">Cerrar</button>
+    </div>
+  </div>
+
+  <nav class="bottom">
+    <a href="recargar.html" class="nav-btn">
+      <span>⚡</span>
+      <div>Recargar</div>
+    </a>
+    <a href="historial.html" class="nav-btn">
+      <span>📜</span>
+      <div>Historial</div>
+    </a>
+    <a href="cuenta.html" class="nav-btn active">
+      <span>👤</span>
+      <div>Cuenta</div>
+    </a>
+  </nav>
+
   <script>
-    const usuario = localStorage.getItem("usuario");
-    if (!usuario) {
+    // Sesión y datos del usuario
+    const usuarioSesion     = localStorage.getItem("usuario");
+    const datosUsuario      = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
+
+    if (!usuarioSesion) {
       window.location.href = "index.html";
     }
 
-    document.getElementById("emailUsuario").textContent = usuario;
+    // 👤 Mostrar NOMBRE bajo el avatar (no el correo)
+    const nombreMostrar = datosUsuario.nombre || "Usuario";
+    document.getElementById("emailUsuario").textContent = nombreMostrar;
 
     function cargarSaldo() {
-      let saldo = localStorage.getItem("saldo");
-      if (!saldo) saldo = 0;
-      document.getElementById("saldo").textContent =
-        parseFloat(saldo).toFixed(2) + " €";
+      let saldo = parseFloat(localStorage.getItem("rpc_saldo")) || 0;
+      document.getElementById("saldo").textContent = saldo.toFixed(2) + " €";
     }
-    cargarSaldo();
 
-    document.getElementById("addSaldoBtn").addEventListener("click", () => {
+    function cargarUltimoMovimiento() {
+      const cont = document.getElementById("ultimoMovimiento");
+      const historial = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
+
+      if (!historial.length) {
+        cont.textContent = "Último movimiento: sin actividad";
+        return;
+      }
+
+      const ultimo = historial[0];
+
+      if (ultimo.tipo === "recarga") {
+        cont.textContent =
+          "Último movimiento: Recarga de " +
+          ultimo.importe.toFixed(2) + " € a " + (ultimo.numero || "");
+      } else if (ultimo.tipo === "saldo") {
+        cont.textContent =
+          "Último movimiento: Saldo agregado +" +
+          ultimo.importe.toFixed(2) + " €";
+      } else {
+        cont.textContent = "Último movimiento: Movimiento registrado";
+      }
+    }
+
+    function getMetodoPagoActual() {
+      return localStorage.getItem("rpc_metodo_pago") || null;
+    }
+
+    function abrirModalSaldo() {
       document.getElementById("modal-bg-saldo").style.display = "flex";
       document.getElementById("saldoInput").value = "";
+    }
+
+    function cerrarModalSaldo() {
+      document.getElementById("modal-bg-saldo").style.display = "none";
+    }
+
+    function abrirModalMetodo() {
+      document.getElementById("modal-bg-metodo").style.display = "flex";
+    }
+
+    function cerrarModalMetodo() {
+      document.getElementById("modal-bg-metodo").style.display = "none";
+    }
+
+    function abrirModalCuenta() {
+      const modalBg    = document.getElementById("modal-bg-cuenta");
+      const inputNombre= document.getElementById("cuentaNombre");
+      const inputCorreo= document.getElementById("cuentaCorreo");
+      const inputPass  = document.getElementById("cuentaPass");
+      const inputMetodo= document.getElementById("cuentaMetodo");
+
+      // 🔄 Cargar datos reales del registro
+      const nombreGuardado = datosUsuario.nombre || "Usuario";
+      const correoGuardado = datosUsuario.email  || usuarioSesion || "";
+      const passGuardada   = datosUsuario.pass   || "";
+      const metodo         = getMetodoPagoActual() || "Sin método guardado";
+
+      inputNombre.value = nombreGuardado;
+      inputCorreo.value = correoGuardado;
+      inputPass.value   = passGuardada;
+      inputMetodo.value = metodo;
+
+      // Siempre iniciar en modo oculto
+      inputPass.type = "password";
+      document.getElementById("togglePass").textContent = "👁";
+
+      modalBg.style.display = "flex";
+    }
+
+    function cerrarModalCuenta() {
+      document.getElementById("modal-bg-cuenta").style.display = "none";
+    }
+
+    cargarSaldo();
+    cargarUltimoMovimiento();
+
+    // Agregar saldo
+    document.getElementById("addSaldoBtn").addEventListener("click", () => {
+      const metodo = getMetodoPagoActual();
+      if (!metodo) {
+        abrirModalMetodo();
+      } else {
+        abrirModalSaldo();
+      }
+    });
+
+    document.querySelectorAll(".metodo-opcion").forEach(op => {
+      op.addEventListener("click", () => {
+        const metodo = op.getAttribute("data-metodo");
+        if (!metodo) return;
+        localStorage.setItem("rpc_metodo_pago", metodo);
+        cerrarModalMetodo();
+        abrirModalSaldo();
+      });
+    });
+
+    document.getElementById("cerrarMetodo").addEventListener("click", cerrarModalMetodo);
+
+    document.getElementById("modal-bg-metodo").addEventListener("click", (e) => {
+      if (e.target.id === "modal-bg-metodo") cerrarModalMetodo();
+    });
+
+    document.getElementById("modal-bg-saldo").addEventListener("click", (e) => {
+      if (e.target.id === "modal-bg-saldo") cerrarModalSaldo();
     });
 
     document.getElementById("btnAgregarSaldo").addEventListener("click", () => {
       let cantidad = parseFloat(document.getElementById("saldoInput").value);
 
-      if (isNaN(cantidad)) {
-        document.getElementById("modal-bg-saldo").style.display = "none";
-        return mostrarError("Ingrese una cantidad válida.");
+      if (isNaN(cantidad) || cantidad < 10) {
+        alert("El importe mínimo para agregar saldo es de 10 €.");
+        return;
       }
 
-      if (cantidad < 10) {
-        document.getElementById("modal-bg-saldo").style.display = "none";
-        return mostrarError("El importe mínimo para agregar saldo es de 10 €.");
-      }
-
-      let saldoActual = parseFloat(localStorage.getItem("saldo")) || 0;
+      let saldoActual = parseFloat(localStorage.getItem("rpc_saldo")) || 0;
       let nuevoSaldo = saldoActual + cantidad;
+      localStorage.setItem("rpc_saldo", nuevoSaldo);
 
-      localStorage.setItem("saldo", nuevoSaldo);
+      let historial = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
+      const metodo = getMetodoPagoActual() || "Sin método";
+
+      historial.unshift({
+        tipo: "saldo",
+        importe: cantidad,
+        fecha: new Date().toLocaleString(),
+        metodo: metodo
+      });
+      localStorage.setItem("rpc_historial", JSON.stringify(historial));
+
+      cerrarModalSaldo();
       cargarSaldo();
-
-      document.getElementById("modal-bg-saldo").style.display = "none";
+      cargarUltimoMovimiento();
     });
 
-    function mostrarError(texto) {
-      document.getElementById("modal-text").textContent = texto;
-      document.getElementById("modal-bg").style.display = "flex";
-    }
-
-    document.getElementById("modal-btn").addEventListener("click", () => {
-      document.getElementById("modal-bg").style.display = "none";
+    // Métodos de pago
+    const btnMetodosPago = document.getElementById("btnMetodosPago");
+    btnMetodosPago.addEventListener("click", () => {
+      const metodo = getMetodoPagoActual();
+      if (!metodo) {
+        const quiere = confirm(
+          "Aún no tienes ningún método de pago guardado.\n\n¿Quieres seleccionar uno ahora?"
+        );
+        if (quiere) abrirModalMetodo();
+      } else {
+        const quiere = confirm(
+          "Método de pago actual:\n\n" +
+          metodo +
+          "\n\n¿Quieres cambiarlo?"
+        );
+        if (quiere) abrirModalMetodo();
+      }
     });
 
+    // Datos de la cuenta
+    const btnDatosCuenta = document.getElementById("btnDatosCuenta");
+    btnDatosCuenta.addEventListener("click", abrirModalCuenta);
+
+    // 👁 Toggle ojito contraseña
+    document.getElementById("togglePass").addEventListener("click", () => {
+      const input = document.getElementById("cuentaPass");
+      const icono = document.getElementById("togglePass");
+      if (input.type === "password") {
+        input.type = "text";
+        icono.textContent = "🙈";
+      } else {
+        input.type = "password";
+        icono.textContent = "👁";
+      }
+    });
+
+    document.getElementById("cerrarCuenta").addEventListener("click", cerrarModalCuenta);
+
+    document.getElementById("modal-bg-cuenta").addEventListener("click", (e) => {
+      if (e.target.id === "modal-bg-cuenta") cerrarModalCuenta();
+    });
+
+    // Soporte
+    const btnSoporte = document.getElementById("btnSoporte");
+    btnSoporte.addEventListener("click", () => {
+      window.location.href =
+        "mailto:recargaspacubaapp@gmail.com" +
+        "?subject=Soporte%20RecargasPaCuba" +
+        "&body=Hola%20equipo%20RecargasPaCuba,%0D%0A%0D%0A";
+    });
+
+    // Logout
     document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("usuario");
       window.location.href = "index.html";
     });
+
+    // ✅ AVATAR: cargar/guardar foto en localStorage
+    const avatarBox   = document.getElementById("avatarBox");
+    const inputAvatar = document.getElementById("inputAvatar");
+    const avatarImg   = document.getElementById("avatarImg");
+    const avatarIcon  = document.querySelector(".avatar svg");
+
+    const avatarGuardado = localStorage.getItem("rpc_avatar");
+    if (avatarGuardado) {
+      avatarImg.src = avatarGuardado;
+      avatarImg.style.display = "block";
+      if (avatarIcon) avatarIcon.style.display = "none";
+    }
+
+    if (avatarBox && inputAvatar && avatarImg) {
+      avatarBox.addEventListener("click", () => {
+        inputAvatar.click();
+      });
+
+      inputAvatar.addEventListener("change", () => {
+        const file = inputAvatar.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const dataUrl = e.target.result;
+          localStorage.setItem("rpc_avatar", dataUrl);
+          avatarImg.src = dataUrl;
+          avatarImg.style.display = "block";
+          if (avatarIcon) avatarIcon.style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    /* ========= LÓGICA MONEDAS ========= */
+
+    function monedasPorImporte(importe){
+      if (importe >= 25) return 32;
+      if (importe >= 20) return 25;
+      if (importe >= 15) return 18;
+      if (importe >= 10) return 12;
+      if (importe >= 5)  return 5;
+      return 0;
+    }
+
+    function calcularMonedas(){
+      const historial = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
+      let total = 0;
+
+      historial.forEach(mov => {
+        if (mov.tipo === "recarga") {
+          total += monedasPorImporte(mov.importe);
+        }
+      });
+
+      localStorage.setItem("rpc_monedas", total);
+
+      const coinSpan = document.getElementById("coinTotal");
+      if (coinSpan) coinSpan.textContent = total;
+
+      const progreso = Math.min((total / 699) * 100, 100);
+      const barra = document.getElementById("barraProgreso");
+      if (barra) barra.style.width = progreso + "%";
+
+      const texto = document.getElementById("progresoTexto");
+      if (texto) texto.textContent = total + " / 699 monedas";
+
+      const btnCanje = document.getElementById("btnCanje");
+      if (btnCanje) {
+        if (total >= 699) {
+          btnCanje.classList.add("activo");
+          btnCanje.disabled = false;
+        } else {
+          btnCanje.classList.remove("activo");
+          btnCanje.disabled = true;
+        }
+      }
+    }
+
+    const coinWidget = document.getElementById("coinWidget");
+    const modalMonedas = document.getElementById("modal-bg-monedas");
+    const cerrarMonedasBtn = document.getElementById("cerrarMonedas");
+
+    if (coinWidget && modalMonedas) {
+      coinWidget.addEventListener("click", () => {
+        modalMonedas.style.display = "flex";
+      });
+
+      modalMonedas.addEventListener("click", (e) => {
+        if (e.target.id === "modal-bg-monedas") {
+          modalMonedas.style.display = "none";
+        }
+      });
+    }
+
+    if (cerrarMonedasBtn) {
+      cerrarMonedasBtn.addEventListener("click", () => {
+        modalMonedas.style.display = "none";
+      });
+    }
+
+    const btnCanje = document.getElementById("btnCanje");
+    if (btnCanje) {
+      btnCanje.addEventListener("click", () => {
+        if (!btnCanje.classList.contains("activo")) return;
+        alert("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
+        // Más adelante: restar 699 monedas, sumar saldo, etc.
+      });
+    }
+
+    calcularMonedas();
   </script>
 
 </body>

@@ -2,9 +2,18 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Historial</title>
+  <title>Historial | RecargasPaCuba</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#28c6db">
+
   <style>
+    :root{
+      --left:#0b63d1;
+      --right:#19c6c3;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -13,20 +22,10 @@
       display: flex;
       flex-direction: column;
       color: white;
-      padding-bottom: 100px; /* Espacio para la barra fija */
+      padding-bottom: 120px;
     }
 
-    .header {
-      padding: 25px 20px 10px;
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-    }
-
-    .historial-container {
-      flex: 1;
-      padding: 20px;
-    }
+    .historial-container { flex: 1; padding: 20px; }
 
     .card {
       background: rgba(255,255,255,0.20);
@@ -37,6 +36,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      cursor: pointer;
     }
 
     .icono {
@@ -50,14 +50,9 @@
       font-size: 20px;
     }
 
-    .contenido {
-      flex: 1;
-    }
+    .contenido { flex: 1; }
 
-    .titulo {
-      font-size: 15px;
-      font-weight: bold;
-    }
+    .titulo { font-size: 15px; font-weight: bold; }
 
     .descripcion {
       font-size: 13px;
@@ -79,143 +74,330 @@
       white-space: nowrap;
     }
 
-    .verde { background: #3ddc97; color: #000; }
-    .amarillo { background: #ffc83d; color: #000; }
-    .azul { background: #4bbcff; color: #000; }
-    .rojo { background: #ff6b6b; color: #000; }
+    .verde    { background: #3ddc97; color: #000; }
+    .azul     { background: #4bbcff; color: #000; }
+    .rojo     { background: #ff6b6b; color: #000; }
+    .amarillo { background: #ffd966; color:#000; }
 
-    /* NAV FIJA */
-    .nav-wrapper {
+    nav.bottom {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 0 16px 18px;
-      z-index: 999;
-    }
-
-    .nav {
+      left: 12px;
+      right: 12px;
+      bottom: 18px;
       display: flex;
       justify-content: space-around;
-      padding: 12px 0;
-      background: rgba(255,255,255,0.20);
-      border-radius: 25px;
-      backdrop-filter: blur(6px);
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 18px;
+      background: linear-gradient(90deg,var(--left),var(--right));
+      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.25);
     }
 
-    .nav a {
-      text-decoration: none;
-      color: white;
-      flex: 1;
-      display: flex;
-      justify-content: center;
-    }
-
-    .nav-item {
+    nav.bottom .nav-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
-      font-size: 12px;
-      opacity: 0.7;
+      gap: 6px;
+      color: white;
+      font-weight: 800;
+      padding: 8px 12px;
+      border-radius: 10px;
+      text-decoration: none;
     }
 
-    .nav-item.active {
-      opacity: 1;
-      background: rgba(255,255,255,0.25);
-      padding: 8px 16px;
-      border-radius: 15px;
+    nav.bottom .nav-btn.active {
+      transform: translateY(-6px);
+      background: rgba(255,255,255,0.12);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.25);
     }
 
-    .nav-item span {
-      font-size: 20px;
-      margin-bottom: 4px;
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal {
+      background: rgba(255,255,255,0.10);
+      padding: 20px;
+      border-radius: 16px;
+      max-width: 90%;
+      width: 360px;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      color: #fff;
+    }
+
+    .modal h3 {
+      margin: 0 0 10px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .modal-item {
+      font-size: 13px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .cerrar {
+      margin-top: 12px;
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-weight: bold;
+      background: #ffb13b;
+      color: #2c1200;
+      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="header">Historial</div>
-
   <div class="historial-container">
 
-    <div class="card">
+    <div class="card" id="card-recarga">
       <div class="icono">⚡</div>
       <div class="contenido">
         <div class="titulo">Recarga realizada</div>
-        <div class="descripcion">Recarga 10 € al ***123</div>
-        <div class="fecha">05/12/2025 - 8:42 p. m.</div>
+        <div class="descripcion" id="recarga-desc">Sin datos</div>
+        <div class="fecha" id="recarga-fecha"></div>
       </div>
-      <div class="estado verde">OK</div>
+      <div class="estado verde" id="recarga-estado">Sin datos</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-saldo">
       <div class="icono">💳</div>
       <div class="contenido">
         <div class="titulo">Saldo agregado</div>
-        <div class="descripcion">Se añadieron 50 € a tu cuenta</div>
-        <div class="fecha">04/12/2025 - 6:05 p. m.</div>
+        <div class="descripcion" id="saldo-desc">Sin datos</div>
+        <div class="fecha" id="saldo-fecha"></div>
       </div>
-      <div class="estado verde">OK</div>
+      <div class="estado verde" id="saldo-estado">Sin datos</div>
     </div>
 
-    <div class="card">
+    <div class="card" id="card-correo">
       <div class="icono">📩</div>
       <div class="contenido">
         <div class="titulo">Correo recibido</div>
-        <div class="descripcion">Confirmación de pago</div>
-        <div class="fecha">04/12/2025 - 5:30 p. m.</div>
+        <div class="descripcion" id="correo-desc">Sin datos</div>
+        <div class="fecha" id="correo-fecha"></div>
       </div>
-      <div class="estado azul">Info</div>
+      <div class="estado azul" id="correo-estado">Sin datos</div>
     </div>
 
     <div class="card">
       <div class="icono">🎁</div>
       <div class="contenido">
         <div class="titulo">Nueva oferta</div>
-        <div class="descripcion">Bono extra por recarga de 20 €</div>
-        <div class="fecha">03/12/2025 - 9:15 p. m.</div>
+        <div class="descripcion">Sin datos</div>
+        <div class="fecha"></div>
       </div>
-      <div class="estado azul">Oferta</div>
+      <div class="estado azul">Sin datos</div>
     </div>
 
     <div class="card">
       <div class="icono">⚠️</div>
       <div class="contenido">
         <div class="titulo">Error de operación</div>
-        <div class="descripcion">No se pudo procesar un pago</div>
-        <div class="fecha">03/12/2025 - 6:40 p. m.</div>
+        <div class="descripcion">Sin datos</div>
+        <div class="fecha"></div>
       </div>
-      <div class="estado rojo">Error</div>
+      <div class="estado rojo">Sin datos</div>
     </div>
 
   </div>
 
-  <!-- NAVBAR FIJA -->
-  <div class="nav-wrapper">
-    <div class="nav">
-      <a href="index.html">
-        <div class="nav-item">
-          <span>⚡</span>
-          Recargar
-        </div>
-      </a>
-
-      <a href="historial.html">
-        <div class="nav-item active">
-          <span>📜</span>
-          Historial
-        </div>
-      </a>
-
-      <a href="cuenta.html">
-        <div class="nav-item">
-          <span>👤</span>
-          Cuenta
-        </div>
-      </a>
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal">
+      <h3 id="modal-titulo"></h3>
+      <div id="modal-lista"></div>
+      <button class="cerrar" id="cerrarModal">Cerrar</button>
     </div>
   </div>
+
+  <nav class="bottom">
+    <a href="recargar.html" class="nav-btn">
+      <span>⚡</span><div>Recargar</div>
+    </a>
+    <a href="historial.html" class="nav-btn active">
+      <span>📜</span><div>Historial</div>
+    </a>
+    <a href="cuenta.html" class="nav-btn">
+      <span>👤</span><div>Cuenta</div>
+    </a>
+  </nav>
+
+  <script>
+    window.addEventListener("load", () => {
+      let lista;
+      try {
+        lista = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
+      } catch (e) {
+        lista = [];
+      }
+      if (!Array.isArray(lista)) lista = [];
+
+      const recargas = lista.filter(m => m && m.tipo === "recarga");
+      const saldos   = lista.filter(m => m && m.tipo === "saldo");
+
+      const emailUsuario = localStorage.getItem("usuario") || "";
+
+      // ---- Tarjeta Recarga ----
+      if (recargas.length) {
+        const u = recargas[0];
+        const descR   = document.getElementById("recarga-desc");
+        const fechaR  = document.getElementById("recarga-fecha");
+        const estadoR = document.getElementById("recarga-estado");
+
+        const importeR = Number(u.importe);
+        const importeTxtR = isNaN(importeR) ? "-" : `-${importeR.toFixed(2)} €`;
+
+        if (descR)  descR.textContent  = `Recarga a ${u.numero || ""}`;
+        if (fechaR) fechaR.textContent = u.fecha || "";
+        if (estadoR) {
+          estadoR.textContent = importeTxtR;
+          estadoR.className = "estado rojo";
+        }
+
+        // ---- Tarjeta Correo recibido (última recarga) ----
+        const correoDesc   = document.getElementById("correo-desc");
+        const correoFecha  = document.getElementById("correo-fecha");
+        const correoEstado = document.getElementById("correo-estado");
+
+        if (correoDesc && correoFecha && correoEstado) {
+          const idTxt      = u.id || "Sin ID";
+          const emailTxt   = emailUsuario || "Sin correo registrado";
+          const estadoBase = u.estado || ""; // en recargar.html ahora mismo es "OK"
+          const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
+
+          const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
+
+          correoDesc.textContent  = `${emailTxt} | ${importeTxt} | ID: ${idTxt}`;
+          correoFecha.textContent = u.fecha || "";
+          correoEstado.textContent = estadoTxt;
+
+          // color según estado
+          if (estadoTxt === "Entregada") {
+            correoEstado.className = "estado verde";
+          } else {
+            correoEstado.className = "estado amarillo";
+          }
+        }
+      }
+
+      // ---- Tarjeta Saldo ----
+      if (saldos.length) {
+        const u = saldos[0];
+        const descS   = document.getElementById("saldo-desc");
+        const fechaS  = document.getElementById("saldo-fecha");
+        const estadoS = document.getElementById("saldo-estado");
+
+        const importeS = Number(u.importe);
+        const importeTxtS = isNaN(importeS) ? "-" : `+${importeS.toFixed(2)} €`;
+
+        if (descS)  descS.textContent  = "Ingreso recibido";
+        if (fechaS) fechaS.textContent = u.fecha || "";
+        if (estadoS) {
+          estadoS.textContent = importeTxtS;
+          estadoS.className = "estado verde";
+        }
+      }
+
+      // ---- Modal genérico (recargas / saldos) ----
+      const modalBg    = document.getElementById("modal-bg");
+      const modalLista = document.getElementById("modal-lista");
+      const modalTitulo= document.getElementById("modal-titulo");
+      const cerrar     = document.getElementById("cerrarModal");
+
+      function abrirModal(tipo, titulo) {
+        if (!modalLista || !modalTitulo || !modalBg) return;
+
+        modalTitulo.textContent = titulo;
+        modalLista.innerHTML = "";
+
+        const datos = lista.filter(m => m && m.tipo === tipo);
+
+        if (!datos.length) {
+          modalLista.innerHTML = '<div class="modal-item">Sin movimientos</div>';
+        } else {
+          datos.forEach(m => {
+            const importe = Number(m.importe);
+            const signo   = tipo === "saldo" ? "+" : "-";
+            const impTxt  = isNaN(importe) ? "" : `${signo}${importe.toFixed(2)} €`;
+            const fila = document.createElement("div");
+            fila.className = "modal-item";
+            fila.textContent = `${m.fecha || ""} · ${impTxt}`;
+            modalLista.appendChild(fila);
+          });
+        }
+
+        modalBg.style.display = "flex";
+      }
+
+      // ---- Modal específico para CORREO RECIBIDO (historial de correos) ----
+      function abrirModalCorreos() {
+        if (!modalLista || !modalTitulo || !modalBg) return;
+
+        modalTitulo.textContent = "Historial de correos enviados";
+        modalLista.innerHTML = "";
+
+        const recargasLocal = lista.filter(m => m && m.tipo === "recarga");
+
+        if (!recargasLocal.length) {
+          modalLista.innerHTML = '<div class="modal-item">Sin correos enviados</div>';
+        } else {
+          recargasLocal.forEach(m => {
+            const idTxt      = m.id || "Sin ID";
+            const emailTxt   = emailUsuario || "Sin correo";
+            const importe    = Number(m.importe);
+            const importeTxt = isNaN(importe) ? "" : `${importe.toFixed(2)} €`;
+            const estadoBase = m.estado || "";
+            const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
+
+            const fila = document.createElement("div");
+            fila.className = "modal-item";
+            fila.textContent =
+              `${m.fecha || ""} · ${emailTxt} · ${importeTxt} · ${m.numero || ""} · ${estadoTxt} · ID: ${idTxt}`;
+            modalLista.appendChild(fila);
+          });
+        }
+
+        modalBg.style.display = "flex";
+      }
+
+      const cardRecarga = document.getElementById("card-recarga");
+      const cardSaldo   = document.getElementById("card-saldo");
+      const cardCorreo  = document.getElementById("card-correo");
+
+      if (cardRecarga) {
+        cardRecarga.onclick = () => abrirModal("recarga", "Historial de recargas");
+      }
+
+      if (cardSaldo) {
+        cardSaldo.onclick = () => abrirModal("saldo", "Historial de saldos");
+      }
+
+      if (cardCorreo) {
+        cardCorreo.onclick = () => abrirModalCorreos();
+      }
+
+      if (cerrar && modalBg) {
+        cerrar.onclick = () => modalBg.style.display = "none";
+        modalBg.onclick = e => e.target === modalBg && (modalBg.style.display = "none");
+      }
+    });
+  </script>
 
 </body>
 </html>

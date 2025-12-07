@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
-<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
   <title>Recargar | RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0b5bd3">
+
+  <!-- ✅ EmailJS para correo de recarga -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -72,6 +75,7 @@
       cursor: pointer;
       border: 1px solid rgba(255,255,255,0.20);
       box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+      user-select: none;
     }
 
     .tab.active {
@@ -232,7 +236,7 @@
     }
 
     /* Barra inferior */
-    nav.bottom{
+    nav.bottom {
       position:fixed;left:12px;right:12px;bottom:18px;
       display:flex;justify-content:space-around;align-items:center;
       padding:10px 14px;border-radius:18px;
@@ -263,6 +267,126 @@
       border:1px solid rgba(255,255,255,0.25);
     }
 
+    /* ✅ Anti-flash específico para esta página */
+    html {
+      visibility: hidden;
+    }
+
+    html.loaded {
+      visibility: visible;
+    }
+
+    /* ✅ MODAL RECARGA (mismo estilo que modal saldo de cuenta) */
+    .modal-bg-recarga {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-recarga {
+      background: rgba(255,255,255,0.10);
+      padding: 22px;
+      border-radius: 16px;
+      max-width: 85%;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal-recarga .modal-titulo {
+      font-weight: 800;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .modal-recarga .modal-linea {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .modal-recarga .modal-aviso {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 10px;
+    }
+
+    .modal-recarga button {
+      margin-top: 14px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ffb13b;
+      color: #2c1200;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    }
+
+    /* ✅ PREFIJO +53 */
+    .input-prefijo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .prefijo {
+      background: #ffffff;
+      color: #000;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .input-prefijo input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* ✅ SELECTOR VISUAL DE NÚMEROS RECIENTES */
+    .modal-recientes {
+      margin-top: 12px;
+      text-align: left;
+    }
+
+    .modal-recientes-titulo {
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+
+    .modal-recientes-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .modal-recientes-item {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.12);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
   </style>
 </head>
 
@@ -272,12 +396,12 @@
 
     <!-- PESTAÑAS -->
     <div class="tabs">
-      <div class="tab active">CUBACEL</div>
-      <div class="tab">NAUTA</div>
+      <div class="tab active" data-tipo="cubacel">CUBACEL</div>
+      <div class="tab" data-tipo="nauta">NAUTA</div>
     </div>
 
-    <!-- TARJETAS DE OFERTAS -->
-    <section class="cards">
+    <!-- TARJETAS CUBACEL -->
+    <section class="cards cards-cubacel">
 
       <!-- OFERTA 1 -->
       <article class="card">
@@ -439,7 +563,114 @@
       </article>
 
     </section>
+
+    <!-- TARJETAS NAUTA -->
+    <section class="cards cards-nauta" style="display:none;">
+
+      <!-- NAUTA 1 -->
+      <article class="card">
+        <div class="card-header">
+          <span class="badge">Recarga NAUTA</span>
+          <span class="tag-operator">NAUTA · Cuba</span>
+        </div>
+
+        <div class="card-main">
+          <div class="price-block">
+            <div class="price">10,00 €</div>
+            <div class="price-label">Precio final</div>
+          </div>
+          <div class="receive-block">
+            <div class="receive-label">Recibe</div>
+            <div class="receive-main">Saldo NAUTA equivalente</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="extra-info">
+            Recarga básica para navegación NAUTA nacional e internacional.
+          </div>
+          <div class="validity">
+            Vigencia según condiciones de NAUTA.
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="fees">
+            Tasas e impuestos incluidos.
+          </div>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+      <!-- NAUTA 2 -->
+      <article class="card">
+        <div class="card-header">
+          <span class="badge promo">Pack NAUTA</span>
+          <span class="tag-operator">NAUTA · Cuba</span>
+        </div>
+
+        <div class="card-main">
+          <div class="price-block">
+            <div class="price">20,00 €</div>
+            <div class="price-label">Precio final</div>
+          </div>
+          <div class="receive-block">
+            <div class="receive-label">Recibe</div>
+            <div class="receive-main">Saldo NAUTA ampliado</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="extra-info">
+            Ideal para usuarios que se conectan con frecuencia desde zonas WiFi.
+          </div>
+          <div class="validity">
+            Vigencia según condiciones de NAUTA.
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <div class="fees">
+            Tasas incluidas. Oferta sujeta a cambios.
+          </div>
+          <button class="cta">Entrar para comprar</button>
+        </div>
+      </article>
+
+    </section>
+
   </main>
+
+  <!-- ✅ MODAL RECARGA -->
+  <div id="modal-bg-recarga" class="modal-bg-recarga">
+    <div class="modal-recarga">
+      <div class="modal-titulo">Confirma tu recarga</div>
+      <div id="modal-detalle-cobro" class="modal-linea"></div>
+      <div id="modal-detalle-recibe" class="modal-linea" style="margin-bottom:8px;"></div>
+
+      <div class="input-prefijo">
+        <span class="prefijo">+53</span>
+        <input id="modal-numero" type="tel" inputmode="numeric" placeholder="Número del móvil" />
+      </div>
+
+      <div class="input-prefijo">
+        <span class="prefijo">+53</span>
+        <input id="modal-numero2" type="tel" inputmode="numeric" placeholder="Repite el número" />
+      </div>
+
+      <!-- ✅ NUEVO: SELECTOR VISUAL DE NÚMEROS RECIENTES -->
+      <div id="modal-recientes" class="modal-recientes" style="display:none;">
+        <div class="modal-recientes-titulo">Últimos números usados</div>
+        <div id="modal-recientes-lista" class="modal-recientes-lista"></div>
+      </div>
+
+      <div class="modal-aviso">
+        Verifica el número, las recargas no se pueden revertir.
+      </div>
+
+      <button id="btnRealizarRecarga">Realizar recarga</button>
+    </div>
+  </div>
 
   <!-- BARRA INFERIOR -->
   <nav class="bottom" role="navigation" aria-label="Barra inferior">
@@ -458,6 +689,232 @@
       <div style="font-size:12px">Cuenta</div>
     </a>
   </nav>
+
+  <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES -->
+  <script>
+    window.addEventListener("load", () => {
+      // Anti-flash
+      document.documentElement.classList.add("loaded");
+
+      // ✅ Inicializar EmailJS
+      if (typeof emailjs !== "undefined") {
+        emailjs.init("flObIaDu0VCKDBP7i");
+      }
+
+      const datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
+
+      // =========================
+      // SISTEMA DE SALDO / HISTORIAL (FASE 2)
+      // =========================
+      function getSaldo() {
+        return parseFloat(localStorage.getItem("rpc_saldo")) || 0;
+      }
+
+      function setSaldo(nuevoSaldo) {
+        localStorage.setItem("rpc_saldo", nuevoSaldo.toFixed(2));
+      }
+
+      function getHistorial() {
+        return JSON.parse(localStorage.getItem("rpc_historial")) || [];
+      }
+
+      function guardarMovimiento(mov) {
+        const lista = getHistorial();
+        lista.unshift(mov);
+        localStorage.setItem("rpc_historial", JSON.stringify(lista));
+      }
+
+      // =========================
+      // NÚMEROS RECIENTES
+      // =========================
+      function getNumerosRecientes() {
+        return JSON.parse(localStorage.getItem("rpc_numeros_recientes") || "[]");
+      }
+
+      function guardarNumeroReciente(num) {
+        if (!num) return;
+        let lista = getNumerosRecientes().filter(n => n !== num);
+        lista.unshift(num);
+        if (lista.length > 5) {
+          lista = lista.slice(0, 5);
+        }
+        localStorage.setItem("rpc_numeros_recientes", JSON.stringify(lista));
+      }
+
+      function renderNumerosRecientes() {
+        const contenedor = document.getElementById("modal-recientes");
+        const listaEl = document.getElementById("modal-recientes-lista");
+        const inputNum1 = document.getElementById("modal-numero");
+        const inputNum2 = document.getElementById("modal-numero2");
+
+        if (!contenedor || !listaEl || !inputNum1 || !inputNum2) return;
+
+        const numeros = getNumerosRecientes();
+        listaEl.innerHTML = "";
+
+        if (!numeros.length) {
+          contenedor.style.display = "none";
+          return;
+        }
+
+        numeros.forEach(num => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "modal-recientes-item";
+          btn.textContent = num;
+          btn.addEventListener("click", () => {
+            inputNum1.value = num;
+            inputNum2.value = num;
+          });
+          listaEl.appendChild(btn);
+        });
+
+        contenedor.style.display = "block";
+      }
+
+      // Tabs Cubacel / Nauta
+      const tabs = document.querySelectorAll(".tabs .tab");
+      const cubacel = document.querySelector(".cards-cubacel");
+      const nauta = document.querySelector(".cards-nauta");
+
+      if (tabs.length === 2 && cubacel && nauta) {
+        const tabCubacel = tabs[0];
+        const tabNauta = tabs[1];
+
+        tabCubacel.addEventListener("click", () => {
+          tabCubacel.classList.add("active");
+          tabNauta.classList.remove("active");
+          cubacel.style.display = "flex";
+          nauta.style.display = "none";
+        });
+
+        tabNauta.addEventListener("click", () => {
+          tabNauta.classList.add("active");
+          tabCubacel.classList.remove("active");
+          cubacel.style.display = "none";
+          nauta.style.display = "flex";
+        });
+      }
+
+      // Modal Recarga
+      const modalBg = document.getElementById("modal-bg-recarga");
+      const modalCobro = document.getElementById("modal-detalle-cobro");
+      const modalRecibe = document.getElementById("modal-detalle-recibe");
+      const inputNum1 = document.getElementById("modal-numero");
+      const inputNum2 = document.getElementById("modal-numero2");
+      const btnRealizar = document.getElementById("btnRealizarRecarga");
+
+      let precioActual = 0;
+      let beneficioActual = "";
+
+      if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
+        const botonesCompra = document.querySelectorAll(".card .cta");
+
+        botonesCompra.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const card = btn.closest(".card");
+            if (!card) return;
+
+            const priceEl = card.querySelector(".price");
+            const recibeEl = card.querySelector(".receive-main");
+
+            const precioTxt = priceEl ? priceEl.textContent.trim() : "";
+            const recibeTxt = recibeEl ? recibeEl.textContent.trim() : "";
+
+            // Guardamos precio y beneficio para el movimiento
+            precioActual = parseFloat(precioTxt.replace(",", "."));
+            beneficioActual = recibeTxt;
+
+            modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
+            modalRecibe.textContent = `El móvil recibe: ${recibeTxt}`;
+
+            inputNum1.value = "";
+            inputNum2.value = "";
+
+            // ✅ Mostrar últimos números al abrir el modal
+            renderNumerosRecientes();
+
+            modalBg.style.display = "flex";
+          });
+        });
+
+        // Cerrar modal al tocar fuera
+        modalBg.addEventListener("click", (e) => {
+          if (e.target === modalBg) {
+            modalBg.style.display = "none";
+          }
+        });
+
+        // Botón Realizar recarga (FASE 2 + ID + EMAIL + RECIENTES)
+        btnRealizar.addEventListener("click", async () => {
+          const n1 = inputNum1.value.trim();
+          const n2 = inputNum2.value.trim();
+
+          if (!n1 || !n2) {
+            alert("Por favor, escribe el número en ambos campos.");
+            return;
+          }
+
+          if (n1 !== n2) {
+            alert("Los números no coinciden. Revísalos.");
+            return;
+          }
+
+          if (!precioActual || isNaN(precioActual)) {
+            alert("No se pudo leer el precio de la recarga.");
+            return;
+          }
+
+          const saldoActual = getSaldo();
+
+          if (saldoActual < precioActual) {
+            alert("Saldo insuficiente. Agrega saldo primero.");
+            return;
+          }
+
+          const nuevoSaldo = saldoActual - precioActual;
+          setSaldo(nuevoSaldo);
+
+          // ✅ ID de confirmación
+          const idConfirmacion = "RPC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+          const movimiento = {
+            tipo: "recarga",
+            numero: "+53" + n1,
+            importe: precioActual,
+            beneficio: beneficioActual,
+            fecha: new Date().toLocaleString(),
+            estado: "OK",
+            id: idConfirmacion
+          };
+
+          guardarMovimiento(movimiento);
+
+          // ✅ Guardar número reciente
+          guardarNumeroReciente(n1);
+
+          // ✅ Correo al cliente (EmailJS)
+          if (datosUsuario && datosUsuario.email && typeof emailjs !== "undefined") {
+            try {
+              await emailjs.send("service_ryvafj3", "template_k5t8asf", {
+                to_email: datosUsuario.email,
+                numero: movimiento.numero,
+                importe: movimiento.importe.toFixed(2) + " €",
+                beneficio: movimiento.beneficio,
+                fecha: movimiento.fecha,
+                id_confirmacion: idConfirmacion
+              });
+            } catch (err) {
+              console.error("Error enviando correo de recarga:", err);
+            }
+          }
+
+          alert("✅ Recarga registrada correctamente\nID: " + idConfirmacion);
+          modalBg.style.display = "none";
+        });
+      }
+    });
+  </script>
 
 </body>
 </html>
