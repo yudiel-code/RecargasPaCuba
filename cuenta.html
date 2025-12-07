@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Cuenta | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#28c6db">
+  <meta name="theme-color" content="#0a5fcb">
 
   <style>
     html, body {
@@ -32,13 +32,13 @@
     }
 
     body {
-      min-height: 100vh;
+      min-height: 100dvh;
       background: linear-gradient(135deg, #0a5fcb, #0db3da);
       color: #fff;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding-bottom: 150px;
+      padding: env(safe-area-inset-top) 0 calc(150px + env(safe-area-inset-bottom));
     }
 
     .app {
