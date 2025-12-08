@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Cuenta | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#0a5fcb">
+  <meta name="theme-color" content="#28c6db">
 
   <style>
     html, body {
@@ -16,272 +16,779 @@
   </style>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
-
-    :root{
-      --left:#0b63d1;
-      --right:#19c6c3;
-      --glass: rgba(255,255,255,0.18);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-    }
-
     body {
-      min-height: 100dvh;
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #ffffff;
       background: linear-gradient(135deg, #0a5fcb, #0db3da);
-      color: #fff;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: env(safe-area-inset-top) 0 calc(150px + env(safe-area-inset-bottom));
     }
 
     .app {
-      width: 100%;
-      max-width: 520px;
-      padding: 22px 18px 0;
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 22px;
-      position: relative; /* para el widget de monedas */
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 12px 14px 80px;
     }
 
-    .card {
-      background: var(--glass);
-      border-radius: 22px;
-      padding: 18px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.25);
-    }
-
-    .perfil {
+    .app-header {
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 6px;
-      position: relative;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin-bottom: 4px;
     }
 
-    .avatar {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.25);
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(9, 53, 118, 0.8);
+      color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      overflow: hidden;
       cursor: pointer;
     }
 
-    .avatar svg {
-      width: 50px;
-      height: 50px;
-      fill: #fff;
+    .header-title {
+      flex: 1;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .estado-online {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(4, 120, 87, 0.13);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #bbf7d0;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .estado-online span.dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background-color: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.28);
+    }
+
+    .app-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    .card {
+      background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
+      border-radius: 22px;
+      padding: 16px 16px 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: none;
+    }
+
+    .card::before {
+      content:"";
+      position:absolute;
+      inset:-40px;
+      background:radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%);
+      opacity:0.6;
+      pointer-events:none;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .card-tag {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(34, 211, 238, 0.16);
+      border: 1px solid rgba(125, 211, 252, 0.8);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-tag span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background-color: #22c55e;
+    }
+
+    .card-main {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mini-label {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .saldo-valor {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .ultima-linea {
+      margin-top: 6px;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .btn-small {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-small.primary {
+      background: linear-gradient(135deg, #fbbf24, #f97316);
+      color: #1f2933;
+    }
+
+    .btn-small.secondary {
+      background: rgba(15, 118, 178, 0.92);
+      color: #e0f2fe;
+    }
+
+    .btn-small svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .card-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill-info {
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .usuario-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 20% 0%, #fde68a, #f97316);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1f2937;
+      font-size: 22px;
+      font-weight: 800;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
     }
 
     .avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 50%;
+      display: none;
     }
 
-    /* 🔧 Punto verde recolocado */
-    .estado-online {
-  width: 14px;
-  height: 14px;
-  background: #3ddc97;
-  border-radius: 50%;
-  position: absolute;
-  bottom: -2px;
-  right: -2px;
-  border: 2px solid white;
-}
-
-    .user-name {
-      font-size: 18px;
-      font-weight: 800;
-      margin-top: 8px;
-    }
-
-    .user-status {
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
-    .verificacion {
-      text-align: center;
-      font-size: 14px;
-      font-weight: 700;
-      margin-top: 6px;
-      color: #3ddc97;
-    }
-
-    .saldo-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .saldo-title {
-      font-size: 15px;
-      opacity: 0.9;
-    }
-
-    .saldo {
-      font-size: 38px;
-      font-weight: 800;
-    }
-
-    .ultimo-mov {
-      margin-top: 10px;
-      font-size: 13px;
-      opacity: 0.9;
-    }
-
-    .ver-historial {
-      margin-top: 8px;
-      font-size: 13px;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    .acciones {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .btn {
-      width: 100%;
-      border: none;
-      border-radius: 26px;
-      padding: 16px;
-      font-size: 17px;
-      font-weight: 700;
-      background: linear-gradient(145deg, #ffae43, #ff941f);
-      color: #2e1200;
-      cursor: pointer;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    .avatar-letra {
+      position: absolute;
+      inset: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
     }
 
-    .soporte-btn {
-      margin-top: 6px;
-      background: linear-gradient(145deg, #4bbcff, #2ea5ff);
-      color: #00203d;
+    .avatar small {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      background: #10b981;
+      color: white;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.8);
     }
 
-    .legales {
-      margin-top: 8px;
-      text-align: center;
+    .usuario-datos {
+      flex: 1;
+    }
+
+    .usuario-datos .nombre {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .usuario-datos .correo {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .usuario-datos .tag {
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(15, 23, 42, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      cursor: pointer;
+    }
+
+    .btn-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .subgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sub-card {
+      background: rgba(15, 23, 42, 0.86);
+      border-radius: 16px;
+      padding: 10px 11px;
+      font-size: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    }
+
+    .sub-card span.label {
+      opacity: 0.7;
+      font-size: 10px;
+    }
+
+    .sub-card span.valor {
+      display: block;
+      margin-top: 3px;
+      font-weight: 600;
       font-size: 12px;
+    }
+
+    .sub-card .cta {
+      margin-top: 6px;
+      font-size: 10px;
       opacity: 0.85;
     }
 
-    .legales a {
-      color: white;
-      text-decoration: underline;
-      margin: 0 6px;
+    .sub-card .cta strong {
+      color: #fbbf24;
     }
 
-    /* Overlays de modales */
-    .modal-bg-saldo,
-    .modal-bg-metodo,
-    .modal-bg-cuenta {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-      backdrop-filter: blur(6px);
-    }
-
-    .modal {
-      background: rgba(255,255,255,0.10);
-      padding: 22px;
-      border-radius: 16px;
-      max-width: 85%;
-      text-align: center;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.25);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
-    }
-
-    .modal button {
-      margin-top: 16px;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      background: #ffb13b;
-      color: #2c1200;
+    .card-titulo-monedas {
       font-size: 15px;
       font-weight: 700;
-      cursor: pointer;
+      margin-bottom: 6px;
     }
 
-    .modal input {
-      width: 80%;
-      padding: 10px;
-      border-radius: 10px;
-      border: none;
-      margin-top: 12px;
-      font-size: 16px;
-      text-align: center;
+    .card-descripcion-monedas {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-bottom: 10px;
     }
 
-    /* Opciones de método de pago */
-    .metodo-lista {
+    .monedas-resumen {
       display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 12px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
     }
 
-    .metodo-opcion {
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.35);
-      background: rgba(0,0,0,0.15);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
+    .monedas-valores {
+      font-size: 13px;
+    }
+
+    .monedas-valores .principal {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .monedas-valores .secundario {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .monedas-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(30, 64, 175, 0.85);
+      border: 1px solid rgba(191, 219, 254, 0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .barra-progreso-wrap {
+      margin-bottom: 10px;
+    }
+
+    .barra-progreso-label {
+      font-size: 11px;
+      opacity: 0.9;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      margin-bottom: 4px;
     }
 
-    .metodo-opcion span.metodo-nombre {
+    .barra-progreso {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .barra-progreso-inner {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #a3e635);
+      width: 0%;
+      transition: width 0.4s ease-out;
+    }
+
+    .tabla-monedas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .tabla-monedas th,
+    .tabla-monedas td {
+      padding: 4px 3px;
       text-align: left;
     }
 
-    .metodo-opcion span.metodo-tag {
+    .tabla-monedas th {
+      font-weight: 600;
+      opacity: 0.9;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .tabla-monedas td {
+      opacity: 0.95;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.7);
+    }
+
+    .tabla-monedas tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tabla-monedas td span.destacado {
+      color: #facc15;
+      font-weight: 600;
+    }
+
+    .canje-wrap {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .canje-info {
       font-size: 11px;
+      opacity: 0.9;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .canje-info strong {
+      color: #bef264;
+    }
+
+    .btn-canje {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.7);
+      color: rgba(148, 163, 184, 0.9);
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+    }
+
+    .btn-canje.activo {
+      background: linear-gradient(135deg, #22c55e, #a3e635);
+      color: #052e16;
+      border-style: solid;
+    }
+
+    .card-lista {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .card-lista li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.85);
+    }
+
+    .app-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      padding: 8px 14px 14px;
+      box-sizing: border-box;
+      z-index: 50;
+    }
+
+    .nav-inner {
+      background: linear-gradient(135deg, #16a34a, #38bdf8);
+      border-radius: 999px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      box-shadow: 0 18px 35px rgba(0,0,0,0.45);
+      border: 1px solid rgba(187, 247, 208, 0.9);
+    }
+
+    .nav-btn {
+      border: none;
+      background: transparent;
+      color: #ecfdf5;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 0;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+
+    .nav-btn span {
+      font-size: 16px;
+    }
+
+    .nav-btn.active {
+      background: rgba(15, 23, 42, 0.25);
+      color: #f9fafb;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
+    }
+
+    .nav-btn.active span {
+      transform: translateY(-1px);
+    }
+
+    .nav-btn div {
+      font-weight: 600;
+    }
+
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 24px 12px;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 50%),
+                  rgba(15, 23, 42, 0.96);
+      border-radius: 24px;
+      padding: 16px 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      border-radius: 999px;
+      border: none;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .selector-banco {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .banco-pill {
+      flex: 1;
+      min-width: 110px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .banco-pill span.nombre {
+      font-weight: 600;
+    }
+
+    .banco-pill span.tag {
+      font-size: 10px;
       opacity: 0.85;
     }
 
-    .metodo-opcion:hover {
-      background: rgba(255,255,255,0.15);
+    .banco-pill.active {
+      border-color: rgba(56, 189, 248, 0.9);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.96));
     }
 
-    /* Campos de modal de cuenta */
+    .campo-saldo {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .campo-saldo input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      padding: 9px 12px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .campo-saldo span {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    .modal-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-footer .btn-secondary {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .modal-footer .btn-primary {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #22c55e, #a3e635);
+      color: #052e16;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .metodo-resumen {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .metodo-resumen strong {
+      color: #e5e7eb;
+    }
+
+    .metodo-cambiar {
+      border: none;
+      background: transparent;
+      color: #38bdf8;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px 6px;
+      border-radius: 999px;
+    }
+
+    .link-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      font-size: 13px;
+    }
+
+    .link-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+      cursor: pointer;
+    }
+
+    .link-list li:last-child {
+      border-bottom: none;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .link-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .link-text-main {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .link-text-sub {
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    .link-chevron {
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
     .cuenta-campos {
       margin-top: 10px;
       text-align: left;
@@ -300,331 +807,555 @@
     .campo input {
       width: 100%;
       margin-top: 4px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: none;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .campo .password-wrap {
+      margin-top: 4px;
+    }
+
+    .campo .password-wrap input {
+      padding-right: 38px;
+    }
+
+    .campo .ojo-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
       font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      color: #e5e7eb;
+    }
+
+    .modal-footer .alerta {
+      font-size: 11px;
+      opacity: 0.8;
+      flex: 1;
       text-align: left;
     }
 
-    .campo-password {
-      position: relative;
-    }
-
-    .campo-password input {
-      padding-right: 40px;
-    }
-
-    .ojo-toggle {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 16px;
-      cursor: pointer;
-      opacity: 0.85;
-    }
-
-    nav.bottom {
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 18px;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
+    .logout-btn {
+      width: 100%;
+      margin-top: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(239, 68, 68, 0.85);
+      background: rgba(127, 29, 29, 0.9);
+      color: #fecaca;
       padding: 10px 14px;
-      border-radius: 18px;
-      background: linear-gradient(90deg,var(--left),var(--right));
-      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
-      z-index: 2000;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.25);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
     }
 
-    nav.bottom .nav-btn {
+    .logout-btn span.icon {
+      font-size: 15px;
+    }
+
+    .seguridad-lista {
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: 0.9;
+      list-style: none;
+      padding: 0;
+    }
+
+    .seguridad-lista li {
       display: flex;
-      flex-direction: column;
       align-items: center;
       gap: 6px;
-      color: white;
-      font-weight: 800;
-      padding: 8px 12px;
-      border-radius: 10px;
-      text-decoration: none;
+      margin-bottom: 3px;
     }
 
-    nav.bottom .nav-btn.active {
-      transform: translateY(-6px);
-      background: rgba(255,255,255,0.12);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
-      border: 1px solid rgba(255,255,255,0.25);
+    .seguridad-lista span.bullet {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(190, 242, 100, 0.9);
     }
 
-    /* 💰 Widget monedas (solo icono + número) */
-    .coin-widget {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      font-size: 15px;
-      font-weight: 800;
-      cursor: pointer;
-      z-index: 500;
-    }
-
-    /* Modal específico para monedas */
-    .modal-bg-monedas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 3500;
-      backdrop-filter: blur(6px);
-    }
-
-    .modal-monedas {
-      background: rgba(255,255,255,0.10);
-      padding: 20px;
-      border-radius: 16px;
-      width: 85%;
-      max-width: 360px;
-      text-align: center;
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.25);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-      backdrop-filter: blur(12px);
-    }
-
-    .progress-bar {
-      margin-top: 12px;
-      height: 10px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 20px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg,#ffd36b,#ff9f00);
-    }
-
-    .btn-canje {
-      margin-top: 16px;
-      padding: 12px;
-      width: 100%;
-      border: none;
-      border-radius: 12px;
-      font-weight: 800;
-      background: #888;
-      color: #222;
-      cursor: not-allowed;
-      opacity: 0.6;
-    }
-
-    .btn-canje.activo {
-      background: linear-gradient(145deg, #ffae43, #ff941f);
-      cursor: pointer;
-      opacity: 1;
+    .monedas-icon {
+      width: 50px;
+      height: 50px;
+      fill: #fff;
     }
   </style>
 </head>
 
 <body>
-
-  <main class="app">
-
-    <!-- 🪙 Widget monedas arriba derecha -->
-    <div class="coin-widget" id="coinWidget">
-      🪙 <span id="coinTotal">0</span>
-    </div>
-
-    <div class="perfil">
-      <div class="avatar" id="avatarBox">
-        <img id="avatarImg" style="display:none;" alt="Avatar usuario">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-3.33 0-10 1.67-10 5v1h20v-1c0-3.33-6.67-5-10-5z"/>
-        </svg>
-        <div class="estado-online"></div>
+  <div class="app">
+    <header class="app-header">
+      <div>
+        <div class="header-title">Tu cuenta</div>
+        <div class="estado-online">
+          <span class="dot"></span>
+          <span>Servicio activo</span>
+        </div>
       </div>
-      <!-- input para subir avatar -->
-      <input type="file" id="inputAvatar" accept="image/*" hidden>
+    </header>
 
-      <div id="emailUsuario" class="user-name"></div>
-      <div class="user-status">Cuenta activa ✅</div>
-      <div class="verificacion">Usuario verificado ✅</div>
-    </div>
+    <div class="app-scroll">
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Saldo RecargasPaCuba</div>
+            <div class="card-sub">Controla tu saldo disponible y tus últimos movimientos</div>
+          </div>
+          <div class="card-tag">
+            <span class="dot"></span>
+            <span>Seguro y en España</span>
+          </div>
+        </div>
 
-    <div class="card saldo-box">
-      <div class="saldo-title">Saldo disponible</div>
-      <div id="saldo" class="saldo">0,00 €</div>
-      <div id="ultimoMovimiento" class="ultimo-mov">Último movimiento: sin actividad</div>
-      <div class="ver-historial" onclick="window.location.href='historial.html'">Ver historial</div>
-    </div>
+        <div class="card-main">
+          <div>
+            <div class="mini-label">Saldo disponible</div>
+            <div id="saldo" class="saldo-valor">0,00 €</div>
+            <div id="ultimoMovimiento" class="ultima-linea">Último movimiento: sin actividad</div>
+          </div>
+          <div>
+            <button id="addSaldoBtn" class="btn-small primary">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Añadir saldo
+            </button>
+          </div>
+        </div>
 
-    <div class="card acciones">
-      <button class="btn" id="addSaldoBtn">💰 Agregar saldo</button>
-      <button class="btn" id="btnMetodosPago">💳 Métodos de pago</button>
-      <button class="btn" id="btnDatosCuenta">👤 Datos de la cuenta</button>
-      <button class="btn soporte-btn" id="btnSoporte">🆘 Soporte</button>
-      <button class="btn" id="logoutBtn">🚪 Cerrar sesión</button>
+        <div class="card-footer">
+          <div class="pill-info">Tarifa sin permanencia</div>
+          <div class="pill-info">Registro en España</div>
+          <div class="pill-info">Historial accesible al instante</div>
+        </div>
+      </section>
 
-      <div class="legales">
-  <a href="terminos.html" target="_blank" rel="noopener">Términos</a> •
-  <a href="privacidad.html" target="_blank" rel="noopener">Privacidad</a> •
-  <a href="reembolsos.html" target="_blank" rel="noopener">Reembolsos</a>
-</div>
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Perfil de usuario</div>
+            <div class="card-sub">Gestiona tus datos principales y tu avatar</div>
+          </div>
+        </div>
 
+        <div class="usuario-box">
+          <div class="avatar" id="avatarBox">
+            <div class="avatar-letra" id="avatarLetra">Y</div>
+            <img id="avatarImg" alt="Avatar usuario">
+            <small>Editar</small>
+          </div>
+          <input id="inputAvatar" type="file" accept="image/*" style="display:none;" />
+          <div class="usuario-datos">
+            <div class="nombre" id="nombreUsuario">Usuario</div>
+            <div class="correo" id="correoUsuario">correo@ejemplo.com</div>
+            <div class="tag">Cuenta creada y gestionada desde España</div>
+          </div>
+          <button class="btn-icon" id="editarCuentaBtn" title="Editar datos de cuenta">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
 
-  </main>
+        <div class="subgrid">
+          <div class="sub-card">
+            <span class="label">Estado de la cuenta</span>
+            <span class="valor" id="estadoCuenta">Activa</span>
+            <div class="cta">
+              Verifica que tus datos estén siempre <strong>actualizados</strong>.
+            </div>
+          </div>
+          <div class="sub-card">
+            <span class="label">Contacto preferido</span>
+            <span class="valor">Correo electrónico</span>
+            <div class="cta">
+              Escríbenos siempre desde el email que usas en <strong>RecargasPaCuba</strong>.
+            </div>
+          </div>
+        </div>
 
-  <!-- MODAL: IMPORTE SALDO -->
-  <div id="modal-bg-saldo" class="modal-bg-saldo">
-    <div class="modal">
-      <div>Introduce la cantidad que deseas agregar (mínimo 10 €):</div>
-      <input id="saldoInput" type="number" min="10" />
-      <button id="btnAgregarSaldo">Agregar</button>
+        <button id="soporteBtn" class="btn-small secondary" style="margin-top:12px;">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3a9 9 0 0 0-9 9v3a3 3 0 0 0 3 3h1v-7H6a6 6 0 0 1 12 0h-1v7h1a3 3 0 0 0 3-3v-3a9 9 0 0 0-9-9z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Contactar soporte
+        </button>
+
+        <button id="logoutBtn" class="logout-btn">
+          <span class="icon">⏏</span>
+          <span>Cerrar sesión de forma segura</span>
+        </button>
+
+        <ul class="seguridad-lista">
+          <li>
+            <span class="bullet"></span>
+            <span>No compartas tu contraseña con nadie, ni siquiera con soporte.</span>
+          </li>
+          <li>
+            <span class="bullet"></span>
+            <span>Si detectas un acceso raro, cambia tu contraseña desde la app.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Programa de monedas</div>
+            <div class="card-sub">Gana recompensas con tus recargas recurrentes</div>
+          </div>
+          <svg class="monedas-icon" viewBox="0 0 64 64">
+            <circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="42" cy="32" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="26" cy="42" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+
+        <div class="card-main" style="align-items:flex-start;">
+          <div class="monedas-resumen">
+            <div class="monedas-valores">
+              <div class="principal"><span id="monedasActuales">0</span> monedas</div>
+              <div class="secundario">Recarga y acumula hasta llegar a tu recompensa</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="barra-progreso-wrap">
+          <div class="barra-progreso-label">
+            <span>Progreso hacia el canje</span>
+            <span id="monedasProgresoTexto">0 / 699</span>
+          </div>
+          <div class="barra-progreso">
+            <div id="barraProgresoInner" class="barra-progreso-inner"></div>
+          </div>
+        </div>
+
+        <table class="tabla-monedas">
+          <thead>
+            <tr>
+              <th>Recarga</th>
+              <th>Importe</th>
+              <th>Monedas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cubacel</td>
+              <td>10 €</td>
+              <td>13</td>
+            </tr>
+            <tr>
+              <td>Cubacel</td>
+              <td>20 €</td>
+              <td>27</td>
+            </tr>
+            <tr>
+              <td>Cubacel</td>
+              <td>30 €</td>
+              <td>41</td>
+            </tr>
+            <tr>
+              <td>Cubacel</td>
+              <td>50 €</td>
+              <td><span class="destacado">69</span></td>
+            </tr>
+            <tr>
+              <td>Nauta</td>
+              <td>Cualquier importe</td>
+              <td>5 (fijo)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ul class="card-lista">
+          <li>
+            <span class="bullet"></span>
+            <span>Las monedas se suman automáticamente cada vez que completas una recarga.</span>
+          </li>
+          <li>
+            <span class="bullet"></span>
+            <span>Al llegar a <strong>699 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
+          </li>
+          <li>
+            <span class="bullet"></span>
+            <span>Las monedas no son dinero real, son puntos promocionales internos.</span>
+          </li>
+        </ul>
+
+        <div class="canje-wrap">
+          <div class="canje-info">
+            <strong>Canje disponible a partir de 699 monedas.</strong><br>
+            Una vez canjeado, el saldo promocional se sumará a tu balance para futuras recargas.
+          </div>
+          <button id="btnCanje" class="btn-canje">
+            Canjear 699 monedas por 20 €
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Centro legal</div>
+            <div class="card-sub">Información legal y documentación de tu cuenta y la app</div>
+          </div>
+        </div>
+
+        <ul class="link-list">
+          <li>
+            <div class="link-item">
+              <div class="link-icon">📋</div>
+              <div>
+                <div class="link-text-main">Términos y condiciones</div>
+                <div class="link-text-sub">Información legal y condiciones de uso</div>
+              </div>
+            </div>
+            <div class="link-chevron">›</div>
+          </li>
+
+          <li>
+            <div class="link-item">
+              <div class="link-icon">🔐</div>
+              <div>
+                <div class="link-text-main">Política de privacidad</div>
+                <div class="link-text-sub">Datos tratados y cómo los protegemos</div>
+              </div>
+            </div>
+            <div class="link-chevron">›</div>
+          </li>
+
+          <li>
+            <div class="link-item">
+              <div class="link-icon">💳</div>
+              <div>
+                <div class="link-text-main">Política de reembolsos</div>
+                <div class="link-text-sub">Información clave sobre devoluciones</div>
+              </div>
+            </div>
+            <div class="link-chevron">›</div>
+          </li>
+        </ul>
+      </section>
     </div>
   </div>
 
-  <!-- MODAL: MÉTODO DE PAGO -->
-  <div id="modal-bg-metodo" class="modal-bg-metodo">
-    <div class="modal">
-      <div style="font-weight:700;">Selecciona tu método de pago</div>
-      <div style="font-size:12px;opacity:0.9;margin-top:4px;">
-        Podrás cambiarlo más adelante en “Métodos de pago”.
-      </div>
-
-      <div class="metodo-lista" id="listaMetodos">
-        <div class="metodo-opcion" data-metodo="Tarjeta (Visa/Mastercard)">
-          <span class="metodo-nombre">💳 Visa / Mastercard</span>
-          <span class="metodo-tag">Tarjeta</span>
-        </div>
-        <div class="metodo-opcion" data-metodo="PayPal">
-          <span class="metodo-nombre">🅿️ PayPal</span>
-          <span class="metodo-tag">Wallet</span>
-        </div>
-        <div class="metodo-opcion" data-metodo="Apple Pay">
-          <span class="metodo-nombre">🍏 Apple Pay</span>
-          <span class="metodo-tag">Móvil</span>
-        </div>
-        <div class="metodo-opcion" data-metodo="Google Pay">
-          <span class="metodo-nombre">🤖 Google Pay</span>
-          <span class="metodo-tag">Móvil</span>
-        </div>
-        <div class="metodo-opcion" data-metodo="Bizum">
-          <span class="metodo-nombre">📲 Bizum</span>
-          <span class="metodo-tag">España</span>
-        </div>
-      </div>
-
-      <button id="cerrarMetodo">Cerrar</button>
+  <nav class="app-nav">
+    <div class="nav-inner">
+      <a href="recargar.html" class="nav-btn">
+        <span>⚡️</span>
+        <div>Recargar</div>
+      </a>
+      <a href="historial.html" class="nav-btn">
+        <span>📜</span>
+        <div>Historial</div>
+      </a>
+      <a href="cuenta.html" class="nav-btn active">
+        <span>👤</span>
+        <div>Cuenta</div>
+      </a>
     </div>
-  </div>
-
-  <!-- MODAL: DATOS DE LA CUENTA -->
-  <div id="modal-bg-cuenta" class="modal-bg-cuenta">
-    <div class="modal">
-      <div style="font-weight:700; margin-bottom:6px;">Datos de tu cuenta</div>
-      <div style="font-size:12px; opacity:0.9;">
-        Podrás editar estos datos más adelante desde esta sección.
-      </div>
-
-      <div class="cuenta-campos">
-        <div class="campo">
-          <div class="campo-label">Nombre</div>
-          <input id="cuentaNombre" type="text" placeholder="Usuario">
-        </div>
-
-        <div class="campo">
-          <div class="campo-label">Correo</div>
-          <input id="cuentaCorreo" type="email" readonly>
-        </div>
-
-        <div class="campo campo-password">
-          <div class="campo-label">Contraseña</div>
-          <input id="cuentaPass" type="password" placeholder="••••••••">
-          <span id="togglePass" class="ojo-toggle">👁</span>
-        </div>
-
-        <div class="campo">
-          <div class="campo-label">Método de pago actual</div>
-          <input id="cuentaMetodo" type="text" readonly placeholder="Sin método guardado">
-        </div>
-      </div>
-
-      <button id="cerrarCuenta">Cerrar</button>
-    </div>
-  </div>
-
-  <!-- NUEVO MODAL: MONEDAS -->
-  <div id="modal-bg-monedas" class="modal-bg-monedas">
-    <div class="modal-monedas">
-      <div style="font-weight:700;">Sistema de recompensas</div>
-
-      <p style="font-size:13px;margin-top:8px;">
-        ✅ <b>Tus recargas te premian:</b> acumula <b>699 monedas</b> y canjéalas por <b>20 €</b>.
-      </p>
-
-      <p style="font-size:12px;opacity:0.9;margin-top:6px;">
-        Las monedas se generan automáticamente según el importe de cada recarga.
-      </p>
-
-      <div class="progress-bar">
-        <div class="progress-fill" id="barraProgreso"></div>
-      </div>
-
-      <div id="progresoTexto" style="margin-top:8px;font-size:13px;"></div>
-
-      <button id="btnCanje" class="btn-canje">Canjear 20 €</button>
-
-      <div style="font-size:11px;opacity:0.8;margin-top:10px;">
-        Las monedas solo son válidas dentro de la app.
-      </div>
-
-      <button id="cerrarMonedas" style="margin-top:12px;">Cerrar</button>
-    </div>
-  </div>
-
-  <nav class="bottom">
-    <a href="recargar.html" class="nav-btn">
-      <span>⚡</span>
-      <div>Recargar</div>
-    </a>
-    <a href="historial.html" class="nav-btn">
-      <span>📜</span>
-      <div>Historial</div>
-    </a>
-    <a href="cuenta.html" class="nav-btn active">
-      <span>👤</span>
-      <div>Cuenta</div>
-    </a>
   </nav>
 
+  <div id="modalMetodo" class="modal-bg">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Seleccionar método de pago</div>
+        <button class="modal-close" data-close="metodo">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Elige cómo quieres añadir saldo a tu monedero RecargasPaCuba.</p>
+        <div class="selector-banco">
+          <div class="banco-pill metodo-opcion" data-metodo="bizum">
+            <div>
+              <span class="nombre">Bizum</span><br>
+              <span class="tag">En segundos</span>
+            </div>
+            <div>📲</div>
+          </div>
+          <div class="banco-pill metodo-opcion" data-metodo="transferencia">
+            <div>
+              <span class="nombre">Transferencia</span><br>
+              <span class="tag">24-48 horas</span>
+            </div>
+            <div>🏦</div>
+          </div>
+          <div class="banco-pill metodo-opcion" data-metodo="paypal">
+            <div>
+              <span class="nombre">PayPal</span><br>
+              <span class="tag">Pago online</span>
+            </div>
+            <div>🅿️</div>
+          </div>
+          <div class="banco-pill metodo-opcion" data-metodo="tarjeta">
+            <div>
+              <span class="nombre">Visa &amp; Mastercard</span><br>
+              <span class="tag">Tarjeta bancaria</span>
+            </div>
+            <div>💳</div>
+          </div>
+        </div>
+        <p style="font-size:11px;opacity:0.85;">
+          Por ahora este panel es informativo. Más adelante, al activarlo, verás los datos
+          reales (Bizum, transferencia, PayPal o tarjeta) y las confirmaciones de pago dentro de la app.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="metodo">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalSaldo" class="modal-bg">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Añadir saldo manual</div>
+        <button class="modal-close" data-close="saldo">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Introduce el importe que quieres añadir a tu saldo una vez confirmado el pago.</p>
+        <div id="metodoResumen" class="metodo-resumen" style="display:none;">
+          <span>Método seleccionado: <strong id="metodoSeleccionadoTexto"></strong></span>
+          <button id="cambiarMetodoBtn" type="button" class="metodo-cambiar">Cambiar</button>
+        </div>
+        <div class="campo-saldo">
+          <input id="inputSaldo" type="number" min="0" step="1" placeholder="Ej: 20">
+          <span>€</span>
+        </div>
+        <p style="font-size:11px;opacity:0.85;margin-top:8px;">
+          Este panel está pensado para uso interno. Úsalo solo cuando hayas confirmado el pago
+          (Bizum, transferencia, PayPal o tarjeta).
+        </p>
+      </div>
+      <div class="modal-footer">
+        <span class="alerta">
+          Recuerda registrar los movimientos de saldo también en tu control interno.
+        </span>
+        <button class="btn-secondary" data-close="saldo">Cancelar</button>
+        <button id="confirmarSaldoBtn" class="btn-primary">Guardar saldo</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalCuenta" class="modal-bg">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Datos de tu cuenta</div>
+        <button class="modal-close" data-close="cuenta">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="cuenta-campos">
+          <div class="campo">
+            <div class="campo-label">Nombre completo</div>
+            <input id="cuentaNombre" type="text" placeholder="Tu nombre">
+          </div>
+          <div class="campo">
+            <div class="campo-label">Correo principal</div>
+            <input id="cuentaCorreo" type="email" placeholder="correo@ejemplo.com">
+          </div>
+          <div class="campo">
+            <div class="campo-label">Contraseña (solo para cambiarla)</div>
+            <div class="password-wrap" style="position:relative;">
+              <input id="cuentaPass" type="password" placeholder="Deja vacío si no quieres cambiarla">
+              <span id="togglePass" class="ojo-toggle">👁</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="alerta">
+          Estos cambios solo afectan a tu acceso y comunicación con RecargasPaCuba.
+        </span>
+        <button class="btn-secondary" data-close="cuenta">Cancelar</button>
+        <button id="guardarCuentaBtn" class="btn-primary">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT PRINCIPAL -->
   <script>
-    // Sesión y datos del usuario
-    const usuarioSesion     = localStorage.getItem("usuario");
-    const datosUsuario      = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
+    const usuarioSesion = localStorage.getItem("usuario");
+
+    let datosUsuario;
+    try {
+      datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
+    } catch (e) {
+      console.error("Error leyendo usuarioRegistrado, usando objeto vacío:", e);
+      datosUsuario = {};
+    }
 
     if (!usuarioSesion) {
       window.location.href = "index.html";
     }
 
-    // 👤 Mostrar NOMBRE bajo el avatar (no el correo)
     const nombreMostrar = datosUsuario.nombre || "Usuario";
-    document.getElementById("emailUsuario").textContent = nombreMostrar;
+    const nombreUsuarioEl = document.getElementById("nombreUsuario");
+    if (nombreUsuarioEl) nombreUsuarioEl.textContent = nombreMostrar;
+
+    const correoMostrar = datosUsuario.email || "correo@ejemplo.com";
+    const correoUsuarioEl = document.getElementById("correoUsuario");
+    if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
+
+    // ===== Capa de acceso a saldo / historial (preparada para backend) =====
+    function getSaldo() {
+      const raw = localStorage.getItem("rpc_saldo");
+      const valor = parseFloat(raw);
+      return isNaN(valor) ? 0 : valor;
+    }
+
+    function setSaldo(nuevoSaldo) {
+      const num = Number(nuevoSaldo) || 0;
+      localStorage.setItem("rpc_saldo", num.toFixed(2));
+    }
+
+    function getHistorial() {
+      try {
+        const h = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
+        return Array.isArray(h) ? h : [];
+      } catch (e) {
+        console.error("Error leyendo rpc_historial, usando lista vacía:", e);
+        return [];
+      }
+    }
+
+    function getHistorialSeguro() {
+      return getHistorial();
+    }
+
+    function guardarMovimientoSaldo(importe, metodo) {
+      const lista = getHistorial();
+      lista.unshift({
+        tipo: "saldo",
+        importe: Number(importe) || 0,
+        metodo: metodo || "manual",
+        fecha: new Date().toISOString()
+      });
+      localStorage.setItem("rpc_historial", JSON.stringify(lista));
+    }
 
     function cargarSaldo() {
-      let saldo = parseFloat(localStorage.getItem("rpc_saldo")) || 0;
-      document.getElementById("saldo").textContent = saldo.toFixed(2) + " €";
+      const saldo = getSaldo();
+      const saldoEl = document.getElementById("saldo");
+      if (saldoEl) {
+        saldoEl.textContent = saldo.toFixed(2) + " €";
+      }
     }
 
     function cargarUltimoMovimiento() {
       const cont = document.getElementById("ultimoMovimiento");
-      const historial = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
+      if (!cont) return;
+
+      const historial = getHistorialSeguro();
 
       if (!historial.length) {
         cont.textContent = "Último movimiento: sin actividad";
@@ -636,295 +1367,456 @@
       if (ultimo.tipo === "recarga") {
         cont.textContent =
           "Último movimiento: Recarga de " +
-          ultimo.importe.toFixed(2) + " € a " + (ultimo.numero || "");
+          Number(ultimo.importe || 0).toFixed(2) + " € a " + (ultimo.numero || "");
       } else if (ultimo.tipo === "saldo") {
         cont.textContent =
-          "Último movimiento: Saldo agregado +" +
-          ultimo.importe.toFixed(2) + " €";
+          "Último movimiento: Saldo añadido de " +
+          Number(ultimo.importe || 0).toFixed(2) + " €";
       } else {
-        cont.textContent = "Último movimiento: Movimiento registrado";
+        cont.textContent = "Último movimiento: " + (ultimo.descripcion || "sin descripción");
       }
     }
 
     function getMetodoPagoActual() {
-      return localStorage.getItem("rpc_metodo_pago") || null;
+      return localStorage.getItem("rpc_metodo_pago") || "";
     }
 
-    function abrirModalSaldo() {
-      document.getElementById("modal-bg-saldo").style.display = "flex";
-      document.getElementById("saldoInput").value = "";
+    function setMetodoPagoActual(metodo) {
+      localStorage.setItem("rpc_metodo_pago", metodo);
+      marcarMetodoActivo();
+      actualizarTextoMetodo();
     }
 
-    function cerrarModalSaldo() {
-      document.getElementById("modal-bg-saldo").style.display = "none";
+    const modalMetodo = document.getElementById("modalMetodo");
+    const modalSaldo  = document.getElementById("modalSaldo");
+    const modalCuenta = document.getElementById("modalCuenta");
+    const inputSaldo  = document.getElementById("inputSaldo");
+
+    function obtenerNombreMetodo(metodo) {
+      switch (metodo) {
+        case "bizum": return "Bizum";
+        case "transferencia": return "Transferencia";
+        case "paypal": return "PayPal";
+        case "tarjeta": return "Visa & Mastercard";
+        default: return "";
+      }
+    }
+
+    function actualizarTextoMetodo() {
+      const metodo = getMetodoPagoActual();
+      const contenedor = document.getElementById("metodoResumen");
+      const texto = document.getElementById("metodoSeleccionadoTexto");
+      if (!contenedor || !texto) return;
+
+      const nombre = obtenerNombreMetodo(metodo);
+      if (nombre) {
+        texto.textContent = nombre;
+        contenedor.style.display = "flex";
+      } else {
+        contenedor.style.display = "none";
+      }
+    }
+
+    function marcarMetodoActivo() {
+      const actual = getMetodoPagoActual();
+      document.querySelectorAll(".metodo-opcion").forEach(function(op) {
+        const metodo = op.getAttribute("data-metodo");
+        if (metodo === actual) {
+          op.classList.add("active");
+        } else {
+          op.classList.remove("active");
+        }
+      });
     }
 
     function abrirModalMetodo() {
-      document.getElementById("modal-bg-metodo").style.display = "flex";
+      if (modalMetodo) {
+        marcarMetodoActivo();
+        modalMetodo.style.display = "flex";
+      }
     }
 
     function cerrarModalMetodo() {
-      document.getElementById("modal-bg-metodo").style.display = "none";
+      if (modalMetodo) modalMetodo.style.display = "none";
+    }
+
+    function abrirModalSaldo() {
+      if (modalSaldo) {
+        actualizarTextoMetodo();
+        modalSaldo.style.display = "flex";
+      }
+    }
+
+    function cerrarModalSaldo() {
+      if (modalSaldo) modalSaldo.style.display = "none";
+      if (inputSaldo) inputSaldo.value = "";
     }
 
     function abrirModalCuenta() {
-      const modalBg    = document.getElementById("modal-bg-cuenta");
-      const inputNombre= document.getElementById("cuentaNombre");
-      const inputCorreo= document.getElementById("cuentaCorreo");
-      const inputPass  = document.getElementById("cuentaPass");
-      const inputMetodo= document.getElementById("cuentaMetodo");
+      if (!modalCuenta) return;
+      modalCuenta.style.display = "flex";
+      const nombreInput = document.getElementById("cuentaNombre");
+      const correoInput = document.getElementById("cuentaCorreo");
+      const passInput   = document.getElementById("cuentaPass");
 
-      // 🔄 Cargar datos reales del registro
-      const nombreGuardado = datosUsuario.nombre || "Usuario";
-      const correoGuardado = datosUsuario.email  || usuarioSesion || "";
-      const passGuardada   = datosUsuario.pass   || "";
-      const metodo         = getMetodoPagoActual() || "Sin método guardado";
-
-      inputNombre.value = nombreGuardado;
-      inputCorreo.value = correoGuardado;
-      inputPass.value   = passGuardada;
-      inputMetodo.value = metodo;
-
-      // Siempre iniciar en modo oculto
-      inputPass.type = "password";
-      document.getElementById("togglePass").textContent = "👁";
-
-      modalBg.style.display = "flex";
+      if (nombreInput) nombreInput.value = datosUsuario.nombre || "";
+      if (correoInput) correoInput.value = datosUsuario.email || "";
+      if (passInput)   passInput.value   = "";
     }
 
     function cerrarModalCuenta() {
-      document.getElementById("modal-bg-cuenta").style.display = "none";
+      if (modalCuenta) modalCuenta.style.display = "none";
     }
 
-    cargarSaldo();
-    cargarUltimoMovimiento();
-
-    // Agregar saldo
-    document.getElementById("addSaldoBtn").addEventListener("click", () => {
-      const metodo = getMetodoPagoActual();
-      if (!metodo) {
-        abrirModalMetodo();
-      } else {
-        abrirModalSaldo();
-      }
-    });
-
-    document.querySelectorAll(".metodo-opcion").forEach(op => {
-      op.addEventListener("click", () => {
-        const metodo = op.getAttribute("data-metodo");
-        if (!metodo) return;
-        localStorage.setItem("rpc_metodo_pago", metodo);
-        cerrarModalMetodo();
-        abrirModalSaldo();
+    document.querySelectorAll(".modal-close").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        const tipo = btn.getAttribute("data-close");
+        if (tipo === "metodo") cerrarModalMetodo();
+        if (tipo === "saldo") cerrarModalSaldo();
+        if (tipo === "cuenta") cerrarModalCuenta();
       });
     });
 
-    document.getElementById("cerrarMetodo").addEventListener("click", cerrarModalMetodo);
-
-    document.getElementById("modal-bg-metodo").addEventListener("click", (e) => {
-      if (e.target.id === "modal-bg-metodo") cerrarModalMetodo();
-    });
-
-    document.getElementById("modal-bg-saldo").addEventListener("click", (e) => {
-      if (e.target.id === "modal-bg-saldo") cerrarModalSaldo();
-    });
-
-    document.getElementById("btnAgregarSaldo").addEventListener("click", () => {
-      let cantidad = parseFloat(document.getElementById("saldoInput").value);
-
-      if (isNaN(cantidad) || cantidad < 10) {
-        alert("El importe mínimo para agregar saldo es de 10 €.");
-        return;
-      }
-
-      let saldoActual = parseFloat(localStorage.getItem("rpc_saldo")) || 0;
-      let nuevoSaldo = saldoActual + cantidad;
-      localStorage.setItem("rpc_saldo", nuevoSaldo);
-
-      let historial = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
-      const metodo = getMetodoPagoActual() || "Sin método";
-
-      historial.unshift({
-        tipo: "saldo",
-        importe: cantidad,
-        fecha: new Date().toLocaleString(),
-        metodo: metodo
+    document.querySelectorAll(".modal-bg").forEach(function(bg) {
+      bg.addEventListener("click", function(e) {
+        if (e.target !== bg) return;
+        if (bg.id === "modalMetodo") {
+          cerrarModalMetodo();
+        } else if (bg.id === "modalSaldo") {
+          cerrarModalSaldo();
+        } else if (bg.id === "modalCuenta") {
+          cerrarModalCuenta();
+        } else {
+          bg.style.display = "none";
+        }
       });
-      localStorage.setItem("rpc_historial", JSON.stringify(historial));
-
-      cerrarModalSaldo();
-      cargarSaldo();
-      cargarUltimoMovimiento();
     });
 
-    // Métodos de pago
-    const btnMetodosPago = document.getElementById("btnMetodosPago");
-    btnMetodosPago.addEventListener("click", () => {
-      const metodo = getMetodoPagoActual();
-      if (!metodo) {
-        const quiere = confirm(
-          "Aún no tienes ningún método de pago guardado.\n\n¿Quieres seleccionar uno ahora?"
-        );
-        if (quiere) abrirModalMetodo();
-      } else {
-        const quiere = confirm(
-          "Método de pago actual:\n\n" +
-          metodo +
-          "\n\n¿Quieres cambiarlo?"
-        );
-        if (quiere) abrirModalMetodo();
-      }
+    const editarCuentaBtn = document.getElementById("editarCuentaBtn");
+    if (editarCuentaBtn) {
+      editarCuentaBtn.addEventListener("click", abrirModalCuenta);
+    }
+
+    const guardarCuentaBtn = document.getElementById("guardarCuentaBtn");
+    if (guardarCuentaBtn) {
+      guardarCuentaBtn.addEventListener("click", function() {
+        const nombreInput = document.getElementById("cuentaNombre");
+        const correoInput = document.getElementById("cuentaCorreo");
+        const passInput   = document.getElementById("cuentaPass");
+
+        const nuevoNombre = (nombreInput && nombreInput.value ? nombreInput.value : "").trim();
+        const nuevoCorreo = (correoInput && correoInput.value ? correoInput.value : "").trim().toLowerCase();
+        const nuevaPass   = (passInput && passInput.value ? passInput.value : "").trim();
+
+        if (!nuevoNombre || !nuevoCorreo) {
+          alert("Nombre y correo no pueden estar vacíos.");
+          return;
+        }
+
+        datosUsuario.nombre = nuevoNombre;
+        datosUsuario.email  = nuevoCorreo;
+
+        if (nuevaPass) {
+          datosUsuario.pass = nuevaPass;
+        }
+
+        localStorage.setItem("usuarioRegistrado", JSON.stringify(datosUsuario));
+        localStorage.setItem("usuario", nuevoCorreo);
+
+        const nombreCab = document.getElementById("nombreUsuario");
+        const correoCab = document.getElementById("correoUsuario");
+
+        if (nombreCab) nombreCab.textContent = nuevoNombre;
+        if (correoCab) correoCab.textContent = nuevoCorreo;
+
+        alert("Datos de cuenta actualizados (a nivel interno de la app).");
+        cerrarModalCuenta();
+      });
+    }
+
+    const togglePass = document.getElementById("togglePass");
+    if (togglePass) {
+      togglePass.addEventListener("click", function() {
+        const input = document.getElementById("cuentaPass");
+        const icon  = document.getElementById("togglePass");
+        if (!input || !icon) return;
+
+        if (input.type === "password") {
+          input.type = "text";
+          icon.textContent = "🙈";
+        } else {
+          input.type = "password";
+          icon.textContent = "👁";
+        }
+      });
+    }
+
+    document.querySelectorAll(".link-list li").forEach(function(li) {
+      li.style.cursor = "pointer";
     });
 
-    // Datos de la cuenta
-    const btnDatosCuenta = document.getElementById("btnDatosCuenta");
-    btnDatosCuenta.addEventListener("click", abrirModalCuenta);
-
-    // 👁 Toggle ojito contraseña
-    document.getElementById("togglePass").addEventListener("click", () => {
-      const input = document.getElementById("cuentaPass");
-      const icono = document.getElementById("togglePass");
-      if (input.type === "password") {
-        input.type = "text";
-        icono.textContent = "🙈";
-      } else {
-        input.type = "password";
-        icono.textContent = "👁";
-      }
+    document.querySelectorAll(".link-list li").forEach(function(li, idx) {
+      li.addEventListener("click", function() {
+        if (idx === 0) {
+          window.location.href = "terminos.html";
+        } else if (idx === 1) {
+          window.location.href = "privacidad.html";
+        } else if (idx === 2) {
+          window.location.href = "reembolsos.html";
+        }
+      });
     });
 
-    document.getElementById("cerrarCuenta").addEventListener("click", cerrarModalCuenta);
+    const soporteBtn = document.getElementById("soporteBtn");
+    if (soporteBtn) {
+      soporteBtn.addEventListener("click", function() {
+        window.location.href =
+          "mailto:recargaspacubaapp@gmail.com" +
+          "?subject=Soporte%20RecargasPaCuba" +
+          "&body=Hola%20equipo%20RecargasPaCuba,%0D%0A%0D%0A";
+      });
+    }
 
-    document.getElementById("modal-bg-cuenta").addEventListener("click", (e) => {
-      if (e.target.id === "modal-bg-cuenta") cerrarModalCuenta();
-    });
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", function() {
+        localStorage.removeItem("usuario");
+        if (window.firebaseSignOut) {
+          window.firebaseSignOut().catch(function() {});
+        }
+        window.location.href = "index.html";
+      });
+    }
 
-    // Soporte
-    const btnSoporte = document.getElementById("btnSoporte");
-    btnSoporte.addEventListener("click", () => {
-      window.location.href =
-        "mailto:recargaspacubaapp@gmail.com" +
-        "?subject=Soporte%20RecargasPaCuba" +
-        "&body=Hola%20equipo%20RecargasPaCuba,%0D%0A%0D%0A";
-    });
-
-    // Logout
-    document.getElementById("logoutBtn").addEventListener("click", () => {
-      localStorage.removeItem("usuario");
-      window.location.href = "index.html";
-    });
-
-    // ✅ AVATAR: cargar/guardar foto en localStorage
     const avatarBox   = document.getElementById("avatarBox");
     const inputAvatar = document.getElementById("inputAvatar");
     const avatarImg   = document.getElementById("avatarImg");
-    const avatarIcon  = document.querySelector(".avatar svg");
+    const avatarLetra = document.getElementById("avatarLetra");
 
-    const avatarGuardado = localStorage.getItem("rpc_avatar");
-    if (avatarGuardado) {
-      avatarImg.src = avatarGuardado;
-      avatarImg.style.display = "block";
-      if (avatarIcon) avatarIcon.style.display = "none";
+    function inicializarAvatar() {
+      if (!avatarLetra || !avatarImg) return;
+      const avatarData = localStorage.getItem("rpc_avatar");
+      const inicial    = (nombreMostrar || "U").charAt(0).toUpperCase();
+      avatarLetra.textContent = inicial;
+
+      if (avatarData) {
+        avatarImg.src = avatarData;
+        avatarImg.style.display = "block";
+        avatarLetra.style.display = "none";
+      } else {
+        avatarImg.style.display = "none";
+        avatarLetra.style.display = "flex";
+      }
     }
 
-    if (avatarBox && inputAvatar && avatarImg) {
-      avatarBox.addEventListener("click", () => {
+    if (avatarBox && inputAvatar) {
+      avatarBox.addEventListener("click", function() {
         inputAvatar.click();
       });
 
-      inputAvatar.addEventListener("change", () => {
-        const file = inputAvatar.files[0];
-        if (!file) return;
+      inputAvatar.addEventListener("change", function(event) {
+        if (!event || !event.target) return;
+        var files = event.target.files ? event.target.files : null;
+        var file = (files && files.length > 0) ? files[0] : null;
+        if (!file || !avatarImg || !avatarLetra) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const dataUrl = e.target.result;
-          localStorage.setItem("rpc_avatar", dataUrl);
-          avatarImg.src = dataUrl;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var dataURL = e.target && e.target.result ? e.target.result : null;
+          if (!dataURL) return;
+          localStorage.setItem("rpc_avatar", dataURL);
+          avatarImg.src = dataURL;
           avatarImg.style.display = "block";
-          if (avatarIcon) avatarIcon.style.display = "none";
+          avatarLetra.style.display = "none";
         };
         reader.readAsDataURL(file);
       });
     }
 
-    /* ========= LÓGICA MONEDAS ========= */
+    function obtenerMonedasCubacel(importe) {
+      const packs = [
+        { ref: 10, coins: 13 },
+        { ref: 20, coins: 27 },
+        { ref: 30, coins: 41 },
+        { ref: 50, coins: 69 }
+      ];
 
-    function monedasPorImporte(importe){
-      if (importe >= 25) return 32;
-      if (importe >= 20) return 25;
-      if (importe >= 15) return 18;
-      if (importe >= 10) return 12;
-      if (importe >= 5)  return 5;
-      return 0;
+      let elegido = packs[0];
+      packs.forEach(function(p) {
+        if (Math.abs(importe - p.ref) < Math.abs(importe - elegido.ref)) {
+          elegido = p;
+        }
+      });
+      return elegido.coins;
     }
 
-    function calcularMonedas(){
-      const historial = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
-      let total = 0;
+    function calcularMonedas() {
+      const historial = getHistorialSeguro();
+      let totalMonedas = 0;
 
-      historial.forEach(mov => {
-        if (mov.tipo === "recarga") {
-          total += monedasPorImporte(mov.importe);
+      historial.forEach(function(item) {
+        if (item.tipo === "recarga") {
+          const imp = Number(item.importe) || 0;
+          const operador = item.operador || "";
+
+          if (operador === "Cubacel") {
+            totalMonedas += obtenerMonedasCubacel(imp);
+          } else if (operador === "Nauta") {
+            totalMonedas += 5;
+          } else {
+            if (imp > 0) {
+              totalMonedas += obtenerMonedasCubacel(imp);
+            }
+          }
         }
       });
 
-      localStorage.setItem("rpc_monedas", total);
+      localStorage.setItem("rpc_monedas", String(totalMonedas));
 
-      const coinSpan = document.getElementById("coinTotal");
-      if (coinSpan) coinSpan.textContent = total;
+      const monedasActualesEl     = document.getElementById("monedasActuales");
+      const monedasProgresoTexto  = document.getElementById("monedasProgresoTexto");
+      const barraProgresoInner    = document.getElementById("barraProgresoInner");
 
-      const progreso = Math.min((total / 699) * 100, 100);
-      const barra = document.getElementById("barraProgreso");
-      if (barra) barra.style.width = progreso + "%";
+      if (monedasActualesEl)    monedasActualesEl.textContent = totalMonedas;
+      const objetivo = 699;
+      const progreso = Math.min(100, (totalMonedas / objetivo) * 100);
 
-      const texto = document.getElementById("progresoTexto");
-      if (texto) texto.textContent = total + " / 699 monedas";
+      if (monedasProgresoTexto) {
+        monedasProgresoTexto.textContent = totalMonedas + " / " + objetivo;
+      }
+      if (barraProgresoInner) {
+        barraProgresoInner.style.width = progreso + "%";
+      }
 
-      const btnCanje = document.getElementById("btnCanje");
-      if (btnCanje) {
-        if (total >= 699) {
-          btnCanje.classList.add("activo");
-          btnCanje.disabled = false;
+      const btnCanjeLocal = document.getElementById("btnCanje");
+      if (btnCanjeLocal) {
+        if (totalMonedas >= objetivo) {
+          btnCanjeLocal.classList.add("activo");
+          btnCanjeLocal.textContent = "Canjear ahora 699 monedas por 20 €";
         } else {
-          btnCanje.classList.remove("activo");
-          btnCanje.disabled = true;
+          btnCanjeLocal.classList.remove("activo");
+          btnCanjeLocal.textContent = "Canjear 699 monedas por 20 €";
         }
       }
     }
 
-    const coinWidget = document.getElementById("coinWidget");
-    const modalMonedas = document.getElementById("modal-bg-monedas");
-    const cerrarMonedasBtn = document.getElementById("cerrarMonedas");
+    const confirmarSaldoBtn = document.getElementById("confirmarSaldoBtn");
+    if (confirmarSaldoBtn && inputSaldo) {
+      confirmarSaldoBtn.addEventListener("click", function() {
+        const valor = parseFloat(inputSaldo.value);
+        if (isNaN(valor) || valor <= 0) {
+          alert("Introduce un importe válido.");
+          return;
+        }
 
-    if (coinWidget && modalMonedas) {
-      coinWidget.addEventListener("click", () => {
-        modalMonedas.style.display = "flex";
+        const saldoActual = getSaldo();
+        const nuevoSaldo = saldoActual + valor;
+        setSaldo(nuevoSaldo);
+
+        const metodoActual = getMetodoPagoActual() || "manual";
+        guardarMovimientoSaldo(valor, metodoActual);
+
+        cargarSaldo();
+        cargarUltimoMovimiento();
+        calcularMonedas();
+        alert("Saldo actualizado correctamente.");
+        cerrarModalSaldo();
       });
+    }
 
-      modalMonedas.addEventListener("click", (e) => {
-        if (e.target.id === "modal-bg-monedas") {
-          modalMonedas.style.display = "none";
+    document.querySelectorAll(".metodo-opcion").forEach(function(op) {
+      op.addEventListener("click", function() {
+        const metodo = op.getAttribute("data-metodo");
+        if (!metodo) return;
+        setMetodoPagoActual(metodo);
+        cerrarModalMetodo();
+        abrirModalSaldo();
+      });
+    });
+
+    const addSaldoBtn = document.getElementById("addSaldoBtn");
+    if (addSaldoBtn) {
+      addSaldoBtn.addEventListener("click", function() {
+        const metodo = getMetodoPagoActual();
+        if (!metodo) {
+          abrirModalMetodo();
+        } else {
+          abrirModalSaldo();
         }
       });
     }
 
-    if (cerrarMonedasBtn) {
-      cerrarMonedasBtn.addEventListener("click", () => {
-        modalMonedas.style.display = "none";
+    const cambiarMetodoBtn = document.getElementById("cambiarMetodoBtn");
+    if (cambiarMetodoBtn) {
+      cambiarMetodoBtn.addEventListener("click", function() {
+        cerrarModalSaldo();
+        abrirModalMetodo();
       });
     }
 
     const btnCanje = document.getElementById("btnCanje");
     if (btnCanje) {
-      btnCanje.addEventListener("click", () => {
+      btnCanje.addEventListener("click", function() {
         if (!btnCanje.classList.contains("activo")) return;
         alert("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
-        // Más adelante: restar 699 monedas, sumar saldo, etc.
       });
     }
 
+    cargarSaldo();
+    cargarUltimoMovimiento();
+    inicializarAvatar();
     calcularMonedas();
+    marcarMetodoActivo();
+    actualizarTextoMetodo();
+  </script>
+
+  <!-- SCRIPT FIREBASE (NO TOCADO) -->
+  <script type="module">
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyALcmOgNzahL1bjGAXW-WakTpJRzUC8NVg",
+      authDomain: "recargaspacuba-7aaa8.firebaseapp.com",
+      projectId: "recargaspacuba-7aaa8",
+      storageBucket: "recargaspacuba-7aaa8.firebasestorage.app",
+      messagingSenderId: "863997764350",
+      appId: "1:863997764350:web:107ec17e826fe67acd3baf"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    window.firebaseSignOut = function() {
+      return signOut(auth);
+    };
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+
+      try {
+        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+        const datos = JSON.parse(raw);
+
+        const nuevo = {
+          ...datos,
+          nombre: datos.nombre || user.displayName || "Usuario",
+          email: (user.email || "").toLowerCase(),
+          activo: true
+        };
+
+        localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+        localStorage.setItem("usuario", (user.email || "").toLowerCase());
+
+        const nombreCab = document.getElementById("nombreUsuario");
+        const correoCab = document.getElementById("correoUsuario");
+
+        if (nombreCab)  nombreCab.textContent  = nuevo.nombre;
+        if (correoCab)  correoCab.textContent  = nuevo.email;
+      } catch (e) {
+        console.error("Error sincronizando cuenta con Firebase:", e);
+      }
+    });
   </script>
 
 </body>

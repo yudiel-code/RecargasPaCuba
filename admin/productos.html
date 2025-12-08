@@ -1,59 +1,312 @@
+<!-- productos.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Productos</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Productos | RecargasPaCuba</title>
 
-    <base href="/RecargasPaCuba/admin/">
+  <link rel="stylesheet" href="admin.css">
 
-    <link rel="stylesheet" href="admin.css">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#28c6db">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #0a5fcb, #0db3da);
+      color: #f9fafb;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .site-header {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(15, 23, 42, 0.92);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+      display: flex;
+      justify-content: center;
+    }
+
+    .site-header .brand {
+      max-width: 1080px;
+      width: 100%;
+      font-weight: 700;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .site-header .brand::before {
+      content: "📦";
+      font-size: 18px;
+    }
+
+    .layout {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 12px 10px 16px;
+    }
+
+    .layout-inner {
+      width: 100%;
+      max-width: 1080px;
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .sidebar {
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.16), transparent 55%),
+        rgba(15, 23, 42, 0.97);
+      border-radius: 20px;
+      padding: 14px 12px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.8;
+      margin-bottom: 6px;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      text-decoration: none;
+      font-size: 13px;
+      color: #e5e7eb;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+
+    .sidebar a span.icon {
+      font-size: 16px;
+    }
+
+    .sidebar a:hover {
+      background: rgba(15, 23, 42, 0.8);
+      border-color: rgba(148, 163, 184, 0.7);
+    }
+
+    .sidebar a.active {
+      background: linear-gradient(135deg, #22c55e, #38bdf8);
+      color: #022c22;
+      border-color: rgba(187, 247, 208, 0.9);
+      font-weight: 600;
+      box-shadow: 0 14px 30px rgba(15, 23, 42, 0.7);
+    }
+
+    .logout-btn {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.9);
+      background: rgba(127, 29, 29, 0.95);
+      color: #fee2e2;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .main {
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%),
+        rgba(15, 23, 42, 0.97);
+      border-radius: 24px;
+      padding: 16px 16px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+      padding-bottom: 10px;
+    }
+
+    .topbar h3 {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .topbar-sub {
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .badge-ambiente {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(30, 64, 175, 0.9);
+      border: 1px solid rgba(129, 140, 248, 0.9);
+    }
+
+    .table-wrap {
+      margin-top: 6px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.55);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(15, 23, 42, 0.95);
+      font-size: 12px;
+    }
+
+    .table thead {
+      background: rgba(30, 64, 175, 0.9);
+    }
+
+    .table th,
+    .table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.7);
+      text-align: left;
+    }
+
+    .table th {
+      font-weight: 600;
+    }
+
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table tbody tr:nth-child(even) {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .table tbody tr:nth-child(odd) {
+      background: rgba(15, 23, 42, 0.86);
+    }
+
+    .table-empty {
+      text-align: center;
+      padding: 18px;
+      opacity: 0.9;
+    }
+
+    @media (max-width: 800px) {
+      .layout-inner {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+      }
+      .sidebar-title {
+        width: 100%;
+        margin-bottom: 2px;
+      }
+      .logout-btn {
+        width: auto;
+        margin-top: 4px;
+        padding-inline: 12px;
+      }
+      .table {
+        font-size: 11px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
 <header class="site-header">
-    <span class="brand">📦 Productos</span>
+  <span class="brand">Panel de administración · RecargasPaCuba</span>
 </header>
 
 <div class="layout">
+  <div class="layout-inner">
 
     <aside class="sidebar">
-        <a href="dashboard.html">🏠 Inicio</a>
-        <a href="stats.html">📊 Estadísticas</a>
-        <a href="ventas.html">🛒 Ventas</a>
-        <a href="ganancias.html">💸 Ganancias</a>
-        <a href="productos.html" class="active">📦 Productos</a>
-        <br>
-        <button id="logout" class="logout-btn">Cerrar sesión</button>
+      <div class="sidebar-title">Navegación</div>
+      <a href="dashboard.html">
+        <span class="icon">🏠</span><span>Inicio</span>
+      </a>
+      <a href="stats.html">
+        <span class="icon">📊</span><span>Estadísticas</span>
+      </a>
+      <a href="ventas.html">
+        <span class="icon">🛒</span><span>Ventas</span>
+      </a>
+      <a href="ganancias.html">
+        <span class="icon">💸</span><span>Ganancias</span>
+      </a>
+      <a href="productos.html" class="active">
+        <span class="icon">📦</span><span>Productos</span>
+      </a>
+
+      <button id="logout" class="logout-btn">Cerrar sesión</button>
     </aside>
 
     <main class="main">
+      <div class="topbar">
+        <div>
+          <h3>Gestión de productos</h3>
+          <div class="topbar-sub">Lista de recargas y servicios que ofreces en la app.</div>
+        </div>
+        <div class="badge-ambiente">Entorno interno · Beta</div>
+      </div>
 
-        <div class="topbar"><h3>Gestión de productos</h3></div>
-
+      <div class="table-wrap">
         <table class="table">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Producto</th>
-                <th>Precio</th>
-                <th>Visible</th>
-            </tr>
-            </thead>
-
-            <tbody>
-                <tr>
-                    <td colspan="4" style="text-align:center;padding:18px;">Sin productos aún</td>
-                </tr>
-            </tbody>
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Visible</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td colspan="4" class="table-empty">Sin productos aún</td>
+          </tr>
+          </tbody>
         </table>
-
+      </div>
     </main>
 
+  </div>
 </div>
 
 <script src="admin.js"></script>
+<script>
+  window.history.scrollRestoration = "manual";
+  window.onload = () => window.scrollTo(0, 0);
+</script>
 
 </body>
 </html>

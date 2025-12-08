@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#2fb8d6">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+  <meta name="theme-color" content="#0b63d1">
 
   <title>RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
@@ -15,15 +17,13 @@
   <style>
     html, body {
       background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%) !important;
-      min-height: 100dvh;
-      padding-top: env(safe-area-inset-top);
     }
     * { margin:0; padding:0; box-sizing:border-box; animation:none !important; transition:none !important; }
   </style>
 
   <style>
     html,body{
-      min-height:100dvh;
+      height:100%;
       background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
     }
 
@@ -32,25 +32,22 @@
       color:white;
       display:flex;
       flex-direction:column;
-      min-height:100dvh;
-      }
+      min-height:100vh;
+    }
 
-   .app{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
-  background-color:#2fb8d6;
-}
-
+    .app{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+    }
 
     #screen-home {
       display:flex;
       align-items:flex-start;
       justify-content:center;
-      min-height:100dvh;
+      min-height:100vh;
       background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
-      padding-top:0;
+      padding-top:42px;
     }
 
     .login-wrap{
@@ -59,7 +56,6 @@
       text-align:center;
       color:#ffffff;
       padding:18px;
-      margin-top:42px;
     }
 
     .logo-big{
@@ -272,8 +268,16 @@
     return true;
   }
 
+  async function loginConFirebase(email, pass) {
+    if (!window.firebaseAuth || !window.firebaseSignIn) {
+      throw new Error("firebase-no-disponible");
+    }
+    const cred = await window.firebaseSignIn(window.firebaseAuth, email, pass);
+    return cred.user;
+  }
+
   // ✅ LOGIN
-  document.getElementById("btn-login-do").addEventListener("click", () => {
+  document.getElementById("btn-login-do").addEventListener("click", async () => {
 
     if(estaBloqueado()){
       const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
@@ -285,31 +289,66 @@
     const pass = document.getElementById("login-password").value.trim();
 
     const data = localStorage.getItem("usuarioRegistrado");
-    if (!data) {
-      alert("Debes registrarte primero.");
-      return;
-    }
 
-    const usuario = JSON.parse(data);
+    // Si hay registro local, usamos tu lógica actual
+    if (data) {
+      const usuario = JSON.parse(data);
 
-    const coincide =
-      (usuario.email && usuario.email.toLowerCase() === identifier) ||
-      (usuario.usuario && usuario.usuario.toLowerCase() === identifier);
+      const coincide =
+        (usuario.email && usuario.email.toLowerCase() === identifier) ||
+        (usuario.usuario && usuario.usuario.toLowerCase() === identifier);
 
-    if (coincide && usuario.pass === pass) {
+      if (coincide && usuario.pass === pass) {
 
-      if(usuario.forzarCambio){
+        if(usuario.forzarCambio){
+          localStorage.setItem("usuario", identifier);
+          window.location.href = "cambiar-password.html";
+          return;
+        }
+
+        localStorage.removeItem("login_intentos");
+        localStorage.removeItem("login_bloqueado_hasta");
         localStorage.setItem("usuario", identifier);
-        window.location.href = "cambiar-password.html";
+        window.location.href = "recargar.html";
+        return;
+
+      } else {
+        let intentos = Number(localStorage.getItem("login_intentos")) || 0;
+        intentos++;
+        localStorage.setItem("login_intentos", intentos);
+
+        if(intentos >= MAX_INTENTOS){
+          const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
+          localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
+          alert("🔒 Demasiados intentos. Bloqueado 10 minutos.");
+        } else {
+          alert(`Email, usuario o contraseña incorrectos.\nIntentos: ${intentos}/${MAX_INTENTOS}`);
+        }
         return;
       }
+    }
 
+    // Si no hay registro local, intentamos login contra Firebase
+    try {
+      const user = await loginConFirebase(identifier, pass);
+
+      // Reseteamos intentos
       localStorage.removeItem("login_intentos");
       localStorage.removeItem("login_bloqueado_hasta");
-      localStorage.setItem("usuario", identifier);
-      window.location.href = "recargar.html";
 
-    } else {
+      const usuarioMin = {
+        nombre: user.displayName || "",
+        email: (user.email || "").toLowerCase(),
+        pass: pass,
+        activo: true
+      };
+      localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
+      localStorage.setItem("usuario", (user.email || identifier).toLowerCase());
+
+      window.location.href = "recargar.html";
+    } catch (error) {
+      console.log("Error login Firebase:", error);
+
       let intentos = Number(localStorage.getItem("login_intentos")) || 0;
       intentos++;
       localStorage.setItem("login_intentos", intentos);
@@ -319,7 +358,15 @@
         localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
         alert("🔒 Demasiados intentos. Bloqueado 10 minutos.");
       } else {
-        alert(`Email, usuario o contraseña incorrectos.\nIntentos: ${intentos}/${MAX_INTENTOS}`);
+        let mensaje = "Email o contraseña incorrectos.";
+        if (error.code === "auth/user-not-found") {
+          mensaje = "No existe una cuenta con ese email.";
+        } else if (error.code === "auth/invalid-credential") {
+          mensaje = "Credenciales incorrectos.";
+        } else if (error.message === "firebase-no-disponible") {
+          mensaje = "Servicio de login no disponible. Inténtalo de nuevo en unos minutos.";
+        }
+        alert(`${mensaje}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
       }
     }
   });
@@ -412,6 +459,28 @@
     // Cerramos el modal
     document.getElementById("modal-recuperar").style.display = "none";
   };
+</script>
+
+<script type="module">
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyALcmOgNzahL1bjGAXW-WakTpJRzUC8NVg",
+    authDomain: "recargaspacuba-7aaa8.firebaseapp.com",
+    projectId: "recargaspacuba-7aaa8",
+    storageBucket: "recargaspacuba-7aaa8.firebasestorage.app",
+    messagingSenderId: "863997764350",
+    appId: "1:863997764350:web:107ec17e826fe67acd3baf"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  // Exponemos en window para que el otro script pueda usar Firebase
+  window.firebaseApp = app;
+  window.firebaseAuth = auth;
+  window.firebaseSignIn = signInWithEmailAndPassword;
 </script>
 
 </body>

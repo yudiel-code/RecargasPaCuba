@@ -1,179 +1,298 @@
 /* ======================================
-   PANEL ADMIN – ESTILO PREMIUM TROPICAL 
+   PANEL ADMIN – ESTILO ALINEADO APP
+   RecargasPaCuba
    ====================================== */
 
-:root{
-  --bg-light: #dff2ff; 
-  --bg-gradient: linear-gradient(180deg,#5cc2ff,#2b9bd4);
-  
-  --sidebar-bg: #083045dd; /* nav oscuro con transparencia */
-  --sidebar-item: rgba(255,255,255,0.12);
-  --sidebar-item-hover: rgba(255,255,255,0.20);
-  --sidebar-item-active: rgba(255,255,255,0.32);
-
-  --card-bg: #ffffff;
-  --card-radius: 22px;
-  --card-shadow: 0 10px 25px rgba(0,0,0,0.08);
-
-  --yellow: #ffbf38;
-  --yellow-dark: #e0a82d;
-  --turq: #7fe3e1;
-
-  --text-dark: #0f2e3d;
-  --text-muted: #7795a4;
-
-  --radius-md: 14px;
-  --radius-max: 40px;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-/* Fondo general */
-body{
-  margin:0;
-  background: var(--bg-light);
-  font-family: 'Inter', Arial;
-  color: var(--text-dark);
-  -webkit-font-smoothing: antialiased;
-}
-
-/* =============================== */
-/* HEADER */
-.site-header{
-  background: var(--bg-gradient);
-  color: white;
-  padding: 28px 0;
-  text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  border-bottom-left-radius: 35px;
-  border-bottom-right-radius: 35px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-}
-
-/* ================================= */
-/* MENÚ SUPERIOR (Horizontal) */
-.sidebar{
-  width: 100%;
+body {
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #0a5fcb, #0db3da);
+  color: #f9fafb;
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  background: var(--sidebar-bg);
-  padding: 14px 10px;
-  backdrop-filter: blur(4px);
+  flex-direction: column;
 }
 
-.sidebar a{
-  color: #fff;
-  text-decoration: none;
-  padding: 12px 18px;
-  border-radius: var(--radius-max);
-  font-size: 15px;
-  font-weight: 500;
+/* HEADER SUPERIOR */
+
+.site-header {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.92);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+  display: flex;
+  justify-content: center;
+}
+
+.site-header .brand {
+  max-width: 1080px;
+  width: 100%;
+  font-weight: 700;
+  font-size: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: 0.18s;
 }
 
-.sidebar a:hover{
-  background: var(--sidebar-item-hover);
+/* CONTENEDOR GENERAL */
+
+.layout {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 12px 10px 16px;
 }
 
-.sidebar a.active{
-  background: var(--sidebar-item-active);
-  font-weight: 700;
-  transform: scale(1.03);
-}
-
-/* ================================= */
-/* CONTENIDO */
-.main{
-  padding: 30px 22px;
-}
-
-.topbar h3{
-  margin: 0 0 22px;
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text-dark);
-}
-
-/* ================================= */
-/* TARJETAS */
-.card-grid{
+.layout-inner {
+  width: 100%;
+  max-width: 1080px;
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
-  gap: 26px;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 12px;
 }
 
-.card{
-  background: var(--card-bg);
-  padding: 26px;
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  transition: 0.2s;
+/* SIDEBAR / NAVEGACIÓN LATERAL */
+
+.sidebar {
+  background:
+    radial-gradient(circle at top left, rgba(255,255,255,0.16), transparent 55%),
+    rgba(15, 23, 42, 0.97);
+  border-radius: 20px;
+  padding: 14px 12px 12px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.card:hover{
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(0,0,0,0.11);
+.sidebar-title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+  margin-bottom: 6px;
 }
 
-.card h4{
-  margin: 0 0 10px;
-  font-size: 15px;
-  color: var(--text-muted);
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 13px;
+  color: #e5e7eb;
+  border: 1px solid transparent;
+  cursor: pointer;
 }
 
-.card .value{
-  font-size: 30px;
+.sidebar a span.icon {
+  font-size: 16px;
+}
+
+.sidebar a:hover {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(148, 163, 184, 0.7);
+}
+
+.sidebar a.active {
+  background: linear-gradient(135deg, #22c55e, #38bdf8);
+  color: #022c22;
+  border-color: rgba(187, 247, 208, 0.9);
+  font-weight: 600;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.7);
+}
+
+.sidebar a.active span.icon {
+  transform: translateY(-1px);
+}
+
+/* BOTÓN LOGOUT */
+
+.logout-btn {
+  margin-top: 10px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 113, 113, 0.9);
+  background: rgba(127, 29, 29, 0.95);
+  color: #fee2e2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* CONTENIDO PRINCIPAL */
+
+.main {
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 55%),
+    rgba(15, 23, 42, 0.97);
+  border-radius: 24px;
+  padding: 16px 16px 14px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* TOPBAR / CABECERA INTERIOR */
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  padding-bottom: 10px;
+}
+
+.topbar h3 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.topbar-sub {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.badge-ambiente {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: rgba(30, 64, 175, 0.9);
+  border: 1px solid rgba(129, 140, 248, 0.9);
+}
+
+/* GRID DE TARJETAS (STATS RÁPIDAS) */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.card {
+  background: rgba(15, 23, 42, 0.9);
+  border-radius: 18px;
+  padding: 10px 11px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.55);
+}
+
+.card h4 {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.card .value {
+  font-size: 18px;
   font-weight: 800;
-  color: var(--text-dark);
 }
 
-/* ================================= */
-/* TABLAS */
-.table{
+.card .tag {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.grid-footer {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.85;
+}
+
+/* TABLAS (VENTAS / PRODUCTOS) */
+
+.table-wrap {
+  margin-top: 6px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.55);
+}
+
+.table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border-radius: var(--card-radius);
-  overflow: hidden;
-  box-shadow: var(--card-shadow);
+  background: rgba(15, 23, 42, 0.95);
+  font-size: 12px;
 }
 
-.table th{
-  background: #f5fbff;
+.table thead {
+  background: rgba(30, 64, 175, 0.9);
+}
+
+.table th,
+.table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(30, 64, 175, 0.7);
+  text-align: left;
+}
+
+.table th {
+  font-weight: 600;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+.table tbody tr:nth-child(odd) {
+  background: rgba(15, 23, 42, 0.86);
+}
+
+.table-empty {
+  text-align: center;
   padding: 18px;
-  color: var(--text-muted);
-  font-size: 15px;
+  opacity: 0.9;
 }
 
-.table td{
-  padding: 18px;
-  border-bottom: 1px solid #eef4f7;
-  font-size: 15px;
-}
-
-/* ================================= */
-/* LOGOUT */
-.logout-btn{
-  background: var(--yellow);
-  border: none;
-  padding: 12px 18px;
-  border-radius: var(--radius-max);
-  color: #333;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-left: auto;
-}
-
-.logout-btn:hover{
-  background: var(--yellow-dark);
-}
-
-/* ================================= */
 /* RESPONSIVE */
-@media(max-width:600px){
-  .topbar h3{ text-align:center; }
+
+@media (max-width: 800px) {
+  .layout-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .sidebar-title {
+    width: 100%;
+    margin-bottom: 2px;
+  }
+
+  .logout-btn {
+    width: auto;
+    margin-top: 4px;
+    padding-inline: 12px;
+  }
+
+  .card-grid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .table {
+    font-size: 11px;
+  }
 }

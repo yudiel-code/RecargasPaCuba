@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="light">
-  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
+  <meta name="theme-color" content="#28c6db">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
   <title>Recargar | RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0b63d1">
+  <meta name="theme-color" content="#0b5bd3">
 
   <!-- ✅ EmailJS para correo de recarga -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -36,8 +36,8 @@
       font-family: 'Poppins', system-ui, sans-serif;
       background: linear-gradient(135deg, var(--left), var(--right));
       color: var(--text);
-      min-height: 100dvh;
-      padding: calc(18px + env(safe-area-inset-top)) 16px calc(110px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+      padding: 18px 16px 110px;
       display: flex;
       justify-content: center;
     }
@@ -92,17 +92,28 @@
       padding-bottom: 6px;
     }
 
-    /* Tarjeta de oferta */
+    /* Tarjeta de oferta – estilo unificado como CUENTA (sin sombras) */
     .card {
       display: flex;
       flex-direction: column;
       gap: 10px;
-      background: var(--glass-strong);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      padding: 14px 14px 12px;
-      backdrop-filter: blur(16px);
-      box-shadow: 0 18px 32px rgba(0,0,0,0.32);
+      background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
+      border-radius: 22px;
+      padding: 16px 16px 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+      box-shadow: none;
+    }
+
+    .card::before {
+      content:"";
+      position:absolute;
+      inset:-40px;
+      background:radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%);
+      opacity:0.6;
+      pointer-events:none;
     }
 
     .card-header {
@@ -110,6 +121,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 8px;
+      position: relative;
+      z-index: 1;
     }
 
     .badge {
@@ -138,6 +151,8 @@
       justify-content: space-between;
       align-items: center;
       gap: 10px;
+      position: relative;
+      z-index: 1;
     }
 
     .price-block {
@@ -176,6 +191,8 @@
       flex-direction: column;
       gap: 6px;
       font-size: 11px;
+      position: relative;
+      z-index: 1;
     }
 
     .benefits-row {
@@ -186,11 +203,11 @@
     }
 
     .benefit {
-      background: rgba(255,255,255,0.10);
+      background: rgba(15, 23, 42, 0.6);
       border-radius: 10px;
       padding: 6px 4px;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.18);
+      border: 1px solid rgba(148, 163, 184, 0.6);
     }
 
     .benefit strong {
@@ -215,6 +232,8 @@
       justify-content: space-between;
       align-items: center;
       margin-top: 4px;
+      position: relative;
+      z-index: 1;
     }
 
     .fees {
@@ -233,38 +252,6 @@
       cursor: pointer;
       box-shadow: 0 10px 24px rgba(0,0,0,0.30);
       white-space: nowrap;
-    }
-
-    /* Barra inferior */
-    nav.bottom {
-      position:fixed;left:12px;right:12px;bottom:calc(18px + env(safe-area-inset-bottom));
-      display:flex;justify-content:space-around;align-items:center;
-      padding:10px 14px;border-radius:18px;
-      background: linear-gradient(90deg,var(--left),var(--right));
-      box-shadow: 0 12px 30px rgba(8,20,40,0.32);
-      z-index:2000;
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.25);
-    }
-    nav.bottom .nav-btn{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:6px;
-      color:white;
-      font-weight:800;
-      padding:8px 12px;
-      border-radius:10px;
-      text-decoration:none;
-      box-shadow:none;
-      background:transparent;
-      font-size: 11px;
-    }
-    nav.bottom .nav-btn.active{
-      transform:translateY(-6px);
-      background:rgba(255,255,255,0.12);
-      box-shadow:0 8px 18px rgba(0,0,0,0.25);
-      border:1px solid rgba(255,255,255,0.25);
     }
 
     /* ✅ Anti-flash específico para esta página */
@@ -387,6 +374,61 @@
       white-space: nowrap;
     }
 
+    /* ✅ Barra inferior unificada (verde hoja + azul claro) */
+    .app-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      padding: 8px 14px 14px;
+      box-sizing: border-box;
+      z-index: 50;
+    }
+
+    .nav-inner {
+      background: linear-gradient(135deg, #16a34a, #38bdf8);
+      border-radius: 999px;
+      padding: 8px 10px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+      box-shadow: 0 18px 35px rgba(0,0,0,0.45);
+      border: 1px solid rgba(187, 247, 208, 0.9);
+    }
+
+    .nav-btn {
+      border: none;
+      background: transparent;
+      color: #ecfdf5;
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 6px 0;
+      border-radius: 999px;
+      text-decoration: none;
+    }
+
+    .nav-btn span {
+      font-size: 16px;
+    }
+
+    .nav-btn.active {
+      background: rgba(15, 23, 42, 0.25);
+      color: #f9fafb;
+      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
+    }
+
+    .nav-btn.active span {
+      transform: translateY(-1px);
+    }
+
+    .nav-btn div {
+      font-weight: 600;
+    }
   </style>
 </head>
 
@@ -672,29 +714,36 @@
     </div>
   </div>
 
-  <!-- BARRA INFERIOR -->
-  <nav class="bottom" role="navigation" aria-label="Barra inferior">
-    <a href="recargar.html" class="nav-btn active">
-      <span style="font-size:20px">⚡</span>
-      <div style="font-size:12px">Recargar</div>
-    </a>
-
-    <a href="historial.html" class="nav-btn">
-      <span style="font-size:20px">📜</span>
-      <div style="font-size:12px">Historial</div>
-    </a>
-
-    <a href="cuenta.html" class="nav-btn">
-      <span style="font-size:20px">👤</span>
-      <div style="font-size:12px">Cuenta</div>
-    </a>
+  <!-- Barra inferior unificada -->
+  <nav class="app-nav">
+    <div class="nav-inner">
+      <a href="recargar.html" class="nav-btn active">
+        <span>⚡️</span>
+        <div>Recargar</div>
+      </a>
+      <a href="historial.html" class="nav-btn">
+        <span>📜</span>
+        <div>Historial</div>
+      </a>
+      <a href="cuenta.html" class="nav-btn">
+        <span>👤</span>
+        <div>Cuenta</div>
+      </a>
+    </div>
   </nav>
 
-  <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES -->
+  <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN -->
   <script>
     window.addEventListener("load", () => {
       // Anti-flash
       document.documentElement.classList.add("loaded");
+
+      // ✅ Control de sesión: si no hay usuario logueado, volver al login
+      const usuarioSesion = localStorage.getItem("usuario");
+      if (!usuarioSesion) {
+        window.location.href = "index.html";
+        return;
+      }
 
       // ✅ Inicializar EmailJS
       if (typeof emailjs !== "undefined") {
@@ -715,13 +764,55 @@
       }
 
       function getHistorial() {
-        return JSON.parse(localStorage.getItem("rpc_historial")) || [];
+        return JSON.parse(localStorage.getItem("rpc_historial") || "[]");
       }
 
       function guardarMovimiento(mov) {
         const lista = getHistorial();
         lista.unshift(mov);
         localStorage.setItem("rpc_historial", JSON.stringify(lista));
+      }
+
+      // ✅ Capa de negocio de recarga (preparada para futuro backend)
+      async function procesarRecarga({ numero, importe, beneficio, operador }) {
+        const saldoActual = getSaldo();
+
+        if (saldoActual < importe) {
+          return {
+            success: false,
+            reason: "SALDO_INSUFICIENTE",
+            message: "Saldo insuficiente. Agrega saldo primero."
+          };
+        }
+
+        const nuevoSaldo = saldoActual - importe;
+        setSaldo(nuevoSaldo);
+
+        const idConfirmacion = "RPC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        const movimiento = {
+          tipo: "recarga",
+          numero,
+          importe,
+          beneficio,
+          fecha: new Date().toLocaleString(),
+          estado: "OK",
+          id: idConfirmacion,
+          operador: operador || "" // 🔹 clave para las monedas
+        };
+
+        guardarMovimiento(movimiento);
+
+        // Más adelante, aquí se podrá reemplazar esta lógica local
+        // por una llamada real al backend (API / Firebase Functions)
+        // y trabajar con la respuesta del servidor.
+
+        return {
+          success: true,
+          idConfirmacion,
+          movimiento,
+          nuevoSaldo
+        };
       }
 
       // =========================
@@ -806,6 +897,7 @@
 
       let precioActual = 0;
       let beneficioActual = "";
+      let operadorActual = "";
 
       if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
         const botonesCompra = document.querySelectorAll(".card .cta");
@@ -817,13 +909,23 @@
 
             const priceEl = card.querySelector(".price");
             const recibeEl = card.querySelector(".receive-main");
+            const opEl = card.querySelector(".tag-operator");
 
             const precioTxt = priceEl ? priceEl.textContent.trim() : "";
             const recibeTxt = recibeEl ? recibeEl.textContent.trim() : "";
+            const opTxt = opEl ? opEl.textContent.trim().toUpperCase() : "";
 
-            // Guardamos precio y beneficio para el movimiento
-            precioActual = parseFloat(precioTxt.replace(",", "."));
+            // Guardamos precio, beneficio y operador para el movimiento
+            precioActual = parseFloat(precioTxt.replace(",", ".").replace("€", "").trim());
             beneficioActual = recibeTxt;
+
+            if (opTxt.includes("NAUTA")) {
+              operadorActual = "Nauta";
+            } else if (opTxt.includes("CUBACEL")) {
+              operadorActual = "Cubacel";
+            } else {
+              operadorActual = "";
+            }
 
             modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
             modalRecibe.textContent = `El móvil recibe: ${recibeTxt}`;
@@ -865,30 +967,23 @@
             return;
           }
 
-          const saldoActual = getSaldo();
-
-          if (saldoActual < precioActual) {
-            alert("Saldo insuficiente. Agrega saldo primero.");
-            return;
-          }
-
-          const nuevoSaldo = saldoActual - precioActual;
-          setSaldo(nuevoSaldo);
-
-          // ✅ ID de confirmación
-          const idConfirmacion = "RPC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-          const movimiento = {
-            tipo: "recarga",
+          // ✅ Aquí ya usamos la capa de negocio, preparada para backend
+          const resultado = await procesarRecarga({
             numero: "+53" + n1,
             importe: precioActual,
             beneficio: beneficioActual,
-            fecha: new Date().toLocaleString(),
-            estado: "OK",
-            id: idConfirmacion
-          };
+            operador: operadorActual || ""
+          });
 
-          guardarMovimiento(movimiento);
+          if (!resultado || !resultado.success) {
+            const msg = resultado && resultado.message
+              ? resultado.message
+              : "No se pudo procesar la recarga. Inténtalo de nuevo.";
+            alert(msg);
+            return;
+          }
+
+          const { idConfirmacion, movimiento } = resultado;
 
           // ✅ Guardar número reciente
           guardarNumeroReciente(n1);
