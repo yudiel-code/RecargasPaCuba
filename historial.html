@@ -9,6 +9,9 @@
   <meta name="theme-color" content="#28c6db">
 
   <style>
+    /* Tipografía como Cuenta/Recargar */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
     :root{
       --left:#0b63d1;
       --right:#19c6c3;
@@ -22,13 +25,14 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: linear-gradient(135deg, var(--left), var(--right));
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       color: white;
-      padding-bottom: 120px;
+      /* ✅ menos espacio para que la última tarjeta llegue casi a la barra */
+      padding-bottom: 90px;
     }
 
     .historial-container {
@@ -38,43 +42,47 @@
       margin: 0 auto;
     }
 
-    /* Tarjeta estilo CUENTA (sin sombras) */
+    /* Tarjeta estilo CUENTA / RECARGAR (más glass y brillos) */
     .card {
       background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
       border-radius: 22px;
-      padding: 16px 16px 14px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
+      padding: 18px 18px 16px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255,255,255,0.16);
       position: relative;
       overflow: hidden;
-      box-shadow: none;
 
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       cursor: pointer;
-      min-height: 82px;
+      /* ✅ todas las tarjetas con la misma altura mínima */
+      min-height: 110px;
+
+      box-shadow: 0 18px 32px rgba(0,0,0,0.40);
     }
 
     .card::before {
       content:"";
       position:absolute;
       inset:-40px;
-      background:radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%);
-      opacity:0.6;
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(8, 145, 178, 0.25), transparent 55%);
+      opacity:0.75;
       pointer-events:none;
     }
 
     .icono {
-      min-width: 42px;
-      min-height: 42px;
-      border-radius: 14px;
-      background: rgba(15, 23, 42, 0.65);
+      min-width: 46px;
+      min-height: 46px;
+      border-radius: 16px;
+      background: rgba(15, 23, 42, 0.75);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.35);
+      font-size: 22px;
+      box-shadow: 0 12px 26px rgba(0,0,0,0.45);
       position: relative;
       z-index: 1;
     }
@@ -89,38 +97,38 @@
     }
 
     .titulo {
-      font-size: 15px;
-      font-weight: bold;
+      font-size: 16px;
+      font-weight: 700;
     }
 
     .descripcion {
       font-size: 13px;
-      opacity: 0.9;
-      margin-top: 1px;
+      opacity: 0.92;
+      margin-top: 2px;
     }
 
     .fecha {
       font-size: 12px;
-      opacity: 0.7;
-      margin-top: 2px;
+      opacity: 0.78;
+      margin-top: 4px;
     }
 
     .estado {
       font-size: 12px;
-      font-weight: bold;
-      padding: 6px 10px;
-      border-radius: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      border-radius: 999px;
       white-space: nowrap;
-      border: 1px solid rgba(0,0,0,0.12);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+      border: 1px solid rgba(15,23,42,0.28);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.40);
       position: relative;
       z-index: 1;
     }
 
-    .verde    { background: #3ddc97; color: #000; }
-    .azul     { background: #4bbcff; color: #000; }
-    .rojo     { background: #ff6b6b; color: #000; }
-    .amarillo { background: #ffd966; color:#000; }
+    .verde    { background: #3ddc97; color: #022c22; }
+    .azul     { background: #4bbcff; color: #082f49; }
+    .rojo     { background: #ff6b6b; color: #450a0a; }
+    .amarillo { background: #ffd966; color:#422006; }
 
     .modal-bg {
       position: fixed;
@@ -131,29 +139,32 @@
       align-items: center;
       z-index: 3000;
       backdrop-filter: blur(6px);
+      padding: 20px 14px;
     }
 
     .modal {
-      background: rgba(255,255,255,0.10);
-      padding: 20px;
-      border-radius: 16px;
-      max-width: 90%;
-      width: 360px;
-      border: 1px solid rgba(255,255,255,0.25);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
+                  rgba(15, 23, 42, 0.96);
+      padding: 20px 18px 18px;
+      border-radius: 20px;
+      max-width: 420px;
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      box-shadow: 0 18px 35px rgba(0,0,0,0.55);
       color: #fff;
     }
 
     .modal h3 {
-      margin: 0 0 10px;
+      margin: 0 0 12px;
       text-align: center;
       font-size: 16px;
+      font-weight: 700;
     }
 
     .modal-item {
       font-size: 13px;
       padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(148,163,184,0.45);
     }
 
     .modal-item:last-child {
@@ -161,16 +172,17 @@
     }
 
     .cerrar {
-      margin-top: 12px;
+      margin-top: 14px;
       width: 100%;
       padding: 10px;
-      border-radius: 10px;
+      border-radius: 12px;
       border: none;
-      font-weight: bold;
+      font-weight: 700;
       background: #ffb13b;
       color: #2c1200;
       cursor: pointer;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.40);
+      font-size: 14px;
     }
 
     /* ✅ Barra inferior unificada (verde hoja + azul claro) */
