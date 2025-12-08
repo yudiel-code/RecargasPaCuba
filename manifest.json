@@ -4,7 +4,7 @@
   "description": "Recargas móviles y servicios para Cuba de forma rápida y segura.",
   "start_url": "./?source=pwa",
   "scope": "./",
-  "display": "fullscreen",
+  "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#2fb8d6",
   "theme_color": "#2fb8d6",
