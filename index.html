@@ -224,7 +224,7 @@
   <div class="modal-recuperar">
     <h2>Recuperar contraseña</h2>
     <input id="recuperar-email" type="email" class="input-pill" placeholder="Correo registrado" />
-    <button id="btn-enviar-recuperar" class="btn-primary-big" type="button">Generar contraseña</button>
+    <button id="btn-enviar-recuperar" class="btn-primary-big" type="button">Enviar enlace</button>
 
     <div id="temp-pass-box" class="temp-pass-box"></div>
     <button id="btn-copiar-pass" class="btn-secondary" type="button" style="display:none;">
@@ -235,32 +235,42 @@
   </div>
 </div>
 
-<script>
-  // ✅ EmailJS
+<!-- SCRIPT PRINCIPAL LOGIN + RECUPERAR -->
+<script type="module">
+  // EmailJS (se deja inicializado por si se usa en otros flujos)
   emailjs.init("flObIaDu0VCKDBP7i");
 
-  // Si ya hay sesión iniciada, ir a recargar
-  if (localStorage.getItem("usuario")) {
-    window.location.href = "recargar.html";
-  }
-
-  // ✅ Generar contraseña temporal
-  function generarPasswordTemporal(){
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let pass = "";
-    for(let i=0;i<8;i++){
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  // B1.2: limpiar restos de contraseña / forzarCambio en localStorage
+  (function limpiarSensibles() {
+    try {
+      const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+      const datos = JSON.parse(raw);
+      if (datos && typeof datos === "object") {
+        let cambiado = false;
+        if (datos.pass) {
+          delete datos.pass;
+          cambiado = true;
+        }
+        if (datos.forzarCambio) {
+          delete datos.forzarCambio;
+          cambiado = true;
+        }
+        if (cambiado) {
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(datos));
+        }
+      }
+    } catch (e) {
+      console.error("Error limpiando usuarioRegistrado:", e);
     }
-    return pass;
-  }
+  })();
 
   const MAX_INTENTOS = 5;
   const BLOQUEO_TIEMPO = 10 * 60 * 1000;
 
-  function estaBloqueado(){
+  function estaBloqueado() {
     const bloqueo = localStorage.getItem("login_bloqueado_hasta");
-    if(!bloqueo) return false;
-    if(Date.now() > Number(bloqueo)){
+    if (!bloqueo) return false;
+    if (Date.now() > Number(bloqueo)) {
       localStorage.removeItem("login_bloqueado_hasta");
       localStorage.removeItem("login_intentos");
       return false;
@@ -276,211 +286,208 @@
     return cred.user;
   }
 
-  // ✅ LOGIN
-  document.getElementById("btn-login-do").addEventListener("click", async () => {
+  // LOGIN
+  const btnLogin = document.getElementById("btn-login-do");
+  if (btnLogin) {
+    btnLogin.addEventListener("click", async () => {
+      if (estaBloqueado()) {
+        const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
+        alert("🔒 Login bloqueado hasta: " + hasta.toLocaleTimeString());
+        return;
+      }
 
-    if(estaBloqueado()){
-      const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
-      alert("🔒 Login bloqueado hasta: " + hasta.toLocaleTimeString());
-      return;
-    }
+      const identifierRaw = document.getElementById("login-identifier").value.trim();
+      const pass = document.getElementById("login-password").value.trim();
 
-    const identifier = document.getElementById("login-identifier").value.trim().toLowerCase();
-    const pass = document.getElementById("login-password").value.trim();
+      if (!identifierRaw || !pass) {
+        alert("Introduce email/usuario y contraseña.");
+        return;
+      }
 
-    const data = localStorage.getItem("usuarioRegistrado");
+      let identifier = identifierRaw.toLowerCase();
 
-    // Si hay registro local, usamos tu lógica actual
-    if (data) {
-      const usuario = JSON.parse(data);
-
-      const coincide =
-        (usuario.email && usuario.email.toLowerCase() === identifier) ||
-        (usuario.usuario && usuario.usuario.toLowerCase() === identifier);
-
-      if (coincide && usuario.pass === pass) {
-
-        if(usuario.forzarCambio){
-          localStorage.setItem("usuario", identifier);
-          window.location.href = "cambiar-password.html";
-          return;
+      // Mapear usuario → email si hace falta
+      let emailLogin = identifier;
+      if (!identifier.includes("@")) {
+        try {
+          const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+          const datos = JSON.parse(raw);
+          if (datos && datos.usuario && datos.usuario.toLowerCase() === identifier) {
+            emailLogin = (datos.email || "").toLowerCase();
+          }
+        } catch (e) {
+          console.error("Error leyendo usuarioRegistrado para mapear usuario→email:", e);
         }
+      }
 
+      try {
+        const user = await loginConFirebase(emailLogin, pass);
+
+        // Reseteo de intentos
         localStorage.removeItem("login_intentos");
         localStorage.removeItem("login_bloqueado_hasta");
-        localStorage.setItem("usuario", identifier);
-        window.location.href = "recargar.html";
-        return;
 
-      } else {
+        // Sincronizar usuarioRegistrado SIN contraseña ni forzarCambio
+        try {
+          const rawPrev = localStorage.getItem("usuarioRegistrado") || "{}";
+          let prev = {};
+          try { prev = JSON.parse(rawPrev); } catch (e) { prev = {}; }
+          if (!prev || typeof prev !== "object") prev = {};
+
+          delete prev.pass;
+          delete prev.forzarCambio;
+
+          const usuarioMin = {
+            ...prev,
+            nombre: user.displayName || prev.nombre || "",
+            email: (user.email || emailLogin).toLowerCase(),
+            activo: true
+          };
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
+        } catch (e) {
+          console.error("Error sincronizando datos locales tras login:", e);
+        }
+
+        localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
+        window.location.href = "recargar.html";
+      } catch (error) {
+        console.log("Error login Firebase:", error);
+
         let intentos = Number(localStorage.getItem("login_intentos")) || 0;
         intentos++;
         localStorage.setItem("login_intentos", intentos);
 
-        if(intentos >= MAX_INTENTOS){
+        if (intentos >= MAX_INTENTOS) {
           const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
           localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
           alert("🔒 Demasiados intentos. Bloqueado 10 minutos.");
         } else {
-          alert(`Email, usuario o contraseña incorrectos.\nIntentos: ${intentos}/${MAX_INTENTOS}`);
+          let mensaje = "Email o contraseña incorrectos.";
+          if (error.code === "auth/user-not-found") {
+            mensaje = "No existe una cuenta con ese email.";
+          } else if (error.code === "auth/invalid-credential") {
+            mensaje = "Credenciales incorrectas.";
+          } else if (error.message === "firebase-no-disponible") {
+            mensaje = "Servicio de login no disponible. Inténtalo de nuevo en unos minutos.";
+          }
+          alert(`${mensaje}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
         }
+      }
+    });
+  }
+
+  // Ojito contraseña login
+  const togglePass = document.getElementById("toggle-pass");
+  if (togglePass) {
+    togglePass.addEventListener("click", () => {
+      const input = document.getElementById("login-password");
+      const icon = document.getElementById("toggle-pass");
+      if (!input || !icon) return;
+
+      if (input.type === "password") {
+        input.type = "text";
+        icon.textContent = "🙈";
+      } else {
+        input.type = "password";
+        icon.textContent = "👁";
+      }
+    });
+  }
+
+  // Abrir / cerrar modal recuperar
+  const btnForgot = document.getElementById("btn-forgot");
+  const modalRec = document.getElementById("modal-recuperar");
+  const btnCerrarRec = document.getElementById("btn-cerrar-recuperar");
+
+  if (btnForgot && modalRec) {
+    btnForgot.onclick = () => {
+      modalRec.style.display = "flex";
+      const box = document.getElementById("temp-pass-box");
+      const btnCopiar = document.getElementById("btn-copiar-pass");
+      if (box) box.style.display = "none";
+      if (btnCopiar) btnCopiar.style.display = "none";
+    };
+  }
+
+  if (btnCerrarRec && modalRec) {
+    btnCerrarRec.onclick = () => {
+      modalRec.style.display = "none";
+    };
+  }
+
+  // Recuperar contraseña con Firebase (sendPasswordResetEmail)
+  const btnEnviarRec = document.getElementById("btn-enviar-recuperar");
+  if (btnEnviarRec) {
+    btnEnviarRec.onclick = async () => {
+      const email = document.getElementById("recuperar-email").value.trim().toLowerCase();
+      if (!email) {
+        alert("Introduce el correo que usas en RecargasPaCuba.");
         return;
       }
-    }
 
-    // Si no hay registro local, intentamos login contra Firebase
-    try {
-      const user = await loginConFirebase(identifier, pass);
+      try {
+        const firebaseModule = await import("./js/firebase.js");
+        const auth = firebaseModule.auth || window.firebaseAuth || null;
+        const sendPasswordResetEmail =
+          firebaseModule.sendPasswordResetEmail ||
+          firebaseModule.sendPasswordReset ||
+          firebaseModule._sendPasswordResetEmail ||
+          null;
 
-      // Reseteamos intentos
-      localStorage.removeItem("login_intentos");
-      localStorage.removeItem("login_bloqueado_hasta");
-
-      const usuarioMin = {
-        nombre: user.displayName || "",
-        email: (user.email || "").toLowerCase(),
-        pass: pass,
-        activo: true
-      };
-      localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
-      localStorage.setItem("usuario", (user.email || identifier).toLowerCase());
-
-      window.location.href = "recargar.html";
-    } catch (error) {
-      console.log("Error login Firebase:", error);
-
-      let intentos = Number(localStorage.getItem("login_intentos")) || 0;
-      intentos++;
-      localStorage.setItem("login_intentos", intentos);
-
-      if(intentos >= MAX_INTENTOS){
-        const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
-        localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
-        alert("🔒 Demasiados intentos. Bloqueado 10 minutos.");
-      } else {
-        let mensaje = "Email o contraseña incorrectos.";
-        if (error.code === "auth/user-not-found") {
-          mensaje = "No existe una cuenta con ese email.";
-        } else if (error.code === "auth/invalid-credential") {
-          mensaje = "Credenciales incorrectos.";
-        } else if (error.message === "firebase-no-disponible") {
-          mensaje = "Servicio de login no disponible. Inténtalo de nuevo en unos minutos.";
+        if (!auth || !sendPasswordResetEmail) {
+          alert("De momento la recuperación por email aún no está configurada. Contacta con soporte.");
+          return;
         }
-        alert(`${mensaje}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
+
+        await sendPasswordResetEmail(auth, email);
+        alert("Si el correo está registrado, recibirás un email para restablecer tu contraseña.");
+        if (modalRec) modalRec.style.display = "none";
+      } catch (error) {
+        console.error("Error al iniciar recuperación de contraseña:", error);
+        let mensaje = "Error al iniciar la recuperación.";
+        if (error.code === "auth/user-not-found") {
+          mensaje = "No existe una cuenta con ese correo.";
+        }
+        alert(mensaje);
       }
-    }
-  });
+    };
+  }
 
-  // ✅ Ojito contraseña login
-  document.getElementById("toggle-pass").addEventListener("click", () => {
-    const input = document.getElementById("login-password");
-    const icon = document.getElementById("toggle-pass");
-    if (input.type === "password") {
-      input.type = "text";
-      icon.textContent = "🙈";
-    } else {
-      input.type = "password";
-      icon.textContent = "👁";
-    }
-  });
-
-  // ✅ Abrir / cerrar modal recuperar
-  document.getElementById("btn-forgot").onclick = () => {
-    document.getElementById("modal-recuperar").style.display = "flex";
-    document.getElementById("temp-pass-box").style.display = "none";
-    document.getElementById("btn-copiar-pass").style.display = "none";
-  };
-
-  document.getElementById("btn-cerrar-recuperar").onclick = () => {
-    document.getElementById("modal-recuperar").style.display = "none";
-  };
-
-  // ✅ Generar contraseña temporal + enviar email + mostrar
-  document.getElementById("btn-enviar-recuperar").onclick = () => {
-    const email = document.getElementById("recuperar-email").value.trim().toLowerCase();
-    const data = localStorage.getItem("usuarioRegistrado");
-
-    if (!data) {
-      alert("No hay usuario registrado.");
-      return;
-    }
-
-    const usuario = JSON.parse(data);
-
-    if (usuario.email !== email) {
-      alert("Ese correo no está registrado.");
-      return;
-    }
-
-    const nuevaPass = generarPasswordTemporal();
-    usuario.pass = nuevaPass;
-    usuario.forzarCambio = true;
-
-    localStorage.setItem("usuarioRegistrado", JSON.stringify(usuario));
-
-    const box = document.getElementById("temp-pass-box");
-    box.style.display = "block";
-    box.textContent = "Contraseña temporal: " + nuevaPass;
-
-    document.getElementById("btn-copiar-pass").style.display = "inline-block";
-
-    // ✅ Mandamos varias variables por si el template usa nombres distintos
-    emailjs.send(
-      "service_ryvafj3",
-      "template_jd0km4e",
-      {
-        to_email: usuario.email,
-        email: usuario.email,
-        temp_pass: nuevaPass,
-        new_password: nuevaPass,
-        nombre: usuario.nombre || usuario.usuario || ""
-      },
-      "flObIaDu0VCKDBP7i"
-    ).then(function() {
-      console.log("Email de recuperación enviado");
-    }, function(error) {
-      console.log("Error envío EmailJS:", error);
-    });
-  };
-
-  // ✅ Copiar Y PEGAR automático en el login
-  document.getElementById("btn-copiar-pass").onclick = () => {
-    const texto = document.getElementById("temp-pass-box")
-      .textContent.replace("Contraseña temporal: ", "").trim();
-
-    // Pegamos en el input de login SIEMPRE
-    document.getElementById("login-password").value = texto;
-
-    // Intentamos copiar al portapapeles (si el navegador lo permite)
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(texto).catch(() => {});
-    }
-
-    // Cerramos el modal
-    document.getElementById("modal-recuperar").style.display = "none";
-  };
+  // El botón "copiar y usar" se deja sin comportamiento en el nuevo flujo
 </script>
 
+<!-- ✅ Firebase centralizado en js/firebase.js -->
+<script type="module" src="js/firebase.js"></script>
+
+<!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
 <script type="module">
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+  import { auth, onAuthStateChanged } from "./js/firebase.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyALcmOgNzahL1bjGAXW-WakTpJRzUC8NVg",
-    authDomain: "recargaspacuba-7aaa8.firebaseapp.com",
-    projectId: "recargaspacuba-7aaa8",
-    storageBucket: "recargaspacuba-7aaa8.firebasestorage.app",
-    messagingSenderId: "863997764350",
-    appId: "1:863997764350:web:107ec17e826fe67acd3baf"
-  };
+  onAuthStateChanged(auth, (user) => {
+    if (!user) return;
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+    try {
+      const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+      const datos = JSON.parse(raw);
 
-  // Exponemos en window para que el otro script pueda usar Firebase
-  window.firebaseApp = app;
-  window.firebaseAuth = auth;
-  window.firebaseSignIn = signInWithEmailAndPassword;
+      const { pass, forzarCambio, ...resto } = (datos && typeof datos === "object") ? datos : {};
+
+      const nuevo = {
+        ...resto,
+        nombre: resto.nombre || user.displayName || "",
+        email: (user.email || "").toLowerCase(),
+        activo: true
+      };
+
+      localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+      localStorage.setItem("usuario", (user.email || "").toLowerCase());
+
+      // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
+      window.location.href = "recargar.html";
+    } catch (e) {
+      console.error("Error sincronizando sesión en login:", e);
+    }
+  });
 </script>
 
 </body>

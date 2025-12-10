@@ -494,7 +494,7 @@
           <div class="fees">
             Tasas e impuestos incluidos.
           </div>
-          <button class="cta">Entrar para comprar</button>
+          <button class="cta" data-product-id="cubacel-10">Entrar para comprar</button>
         </div>
       </article>
 
@@ -547,7 +547,7 @@
           <div class="fees">
             Oferta sujeta a calendario de promociones.
           </div>
-          <button class="cta">Entrar para comprar</button>
+          <button class="cta" data-product-id="cubacel-20">Entrar para comprar</button>
         </div>
       </article>
 
@@ -600,7 +600,7 @@
           <div class="fees">
             Tasas incluidas. Oferta de corta duración.
           </div>
-          <button class="cta">Entrar para comprar</button>
+          <button class="cta" data-product-id="cubacel-25">Entrar para comprar</button>
         </div>
       </article>
 
@@ -640,7 +640,7 @@
           <div class="fees">
             Tasas e impuestos incluidos.
           </div>
-          <button class="cta">Entrar para comprar</button>
+          <button class="cta" data-product-id="nauta-10">Entrar para comprar</button>
         </div>
       </article>
 
@@ -675,7 +675,7 @@
           <div class="fees">
             Tasas incluidas. Oferta sujeta a cambios.
           </div>
-          <button class="cta">Entrar para comprar</button>
+          <button class="cta" data-product-id="nauta-20">Entrar para comprar</button>
         </div>
       </article>
 
@@ -692,12 +692,12 @@
 
       <div class="input-prefijo">
         <span class="prefijo">+53</span>
-        <input id="modal-numero" type="tel" inputmode="numeric" placeholder="Número del móvil" />
+        <input id="modal-numero" type="tel" inputmode="numeric" maxlength="8" placeholder="Número del móvil" />
       </div>
 
       <div class="input-prefijo">
         <span class="prefijo">+53</span>
-        <input id="modal-numero2" type="tel" inputmode="numeric" placeholder="Repite el número" />
+        <input id="modal-numero2" type="tel" inputmode="numeric" maxlength="8" placeholder="Repite el número" />
       </div>
 
       <!-- ✅ NUEVO: SELECTOR VISUAL DE NÚMEROS RECIENTES -->
@@ -732,7 +732,11 @@
     </div>
   </nav>
 
-  <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN -->
+  <!-- ✅ Data local centralizada + tabla de productos -->
+  <script src="js/products.js"></script>
+  <script src="js/userData.js"></script>
+
+  <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN + UserData -->
   <script>
     window.addEventListener("load", () => {
       // Anti-flash
@@ -753,28 +757,66 @@
       const datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
 
       // =========================
-      // SISTEMA DE SALDO / HISTORIAL (FASE 2)
+      // SISTEMA DE SALDO / HISTORIAL CENTRALIZADO EN UserData
       // =========================
+      if (!window.UserData) {
+        console.warn("UserData no disponible; usando fallback mínimo.");
+      }
+
       function getSaldo() {
-        return parseFloat(localStorage.getItem("rpc_saldo")) || 0;
+        if (window.UserData && typeof window.UserData.getSaldo === "function") {
+          return window.UserData.getSaldo();
+        }
+        const raw = localStorage.getItem("rpc_saldo");
+        const n = parseFloat(raw);
+        return isNaN(n) ? 0 : n;
       }
 
       function setSaldo(nuevoSaldo) {
-        localStorage.setItem("rpc_saldo", nuevoSaldo.toFixed(2));
+        if (window.UserData && typeof window.UserData.setSaldo === "function") {
+          window.UserData.setSaldo(nuevoSaldo);
+        } else {
+          const num = Number(nuevoSaldo) || 0;
+          localStorage.setItem("rpc_saldo", num.toFixed(2));
+        }
       }
 
-      function getHistorial() {
-        return JSON.parse(localStorage.getItem("rpc_historial") || "[]");
-      }
+      function registrarRecargaEnHistorial(payload) {
+        if (window.UserData && typeof window.UserData.addMovimientoRecarga === "function") {
+          // Estructura estándar para el motor de monedas
+          return window.UserData.addMovimientoRecarga(payload);
+        }
 
-      function guardarMovimiento(mov) {
-        const lista = getHistorial();
-        lista.unshift(mov);
+        // Fallback por si falla UserData
+        const raw = localStorage.getItem("rpc_historial") || "[]";
+        let lista;
+        try {
+          lista = JSON.parse(raw);
+          if (!Array.isArray(lista)) lista = [];
+        } catch (e) {
+          lista = [];
+        }
+
+        const item = {
+          fecha: new Date().toISOString(),
+          tipo: "recarga",
+          ...payload
+        };
+
+        lista.unshift(item);
         localStorage.setItem("rpc_historial", JSON.stringify(lista));
+        return item;
+      }
+
+      function recalcularMonedas() {
+        if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
+          return window.UserData.recalcularMonedas();
+        }
+        return 0;
       }
 
       // ✅ Capa de negocio de recarga (preparada para futuro backend)
-      async function procesarRecarga({ numero, importe, beneficio, operador }) {
+      async function procesarRecarga({ numero, importe, beneficio, operador, productoId }) {
         const saldoActual = getSaldo();
 
         if (saldoActual < importe) {
@@ -790,22 +832,22 @@
 
         const idConfirmacion = "RPC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
 
-        const movimiento = {
-          tipo: "recarga",
-          numero,
+        // Registrar en historial usando la capa centralizada
+        const movimiento = registrarRecargaEnHistorial({
           importe,
-          beneficio,
-          fecha: new Date().toLocaleString(),
-          estado: "OK",
-          id: idConfirmacion,
-          operador: operador || "" // 🔹 clave para las monedas
-        };
+          numero,
+          operador: operador || "",
+          productoId: productoId || "",
+          descripcion: beneficio || "",
+          extra: {
+            beneficio: beneficio || "",
+            estado: "OK",
+            id: idConfirmacion
+          }
+        });
 
-        guardarMovimiento(movimiento);
-
-        // Más adelante, aquí se podrá reemplazar esta lógica local
-        // por una llamada real al backend (API / Firebase Functions)
-        // y trabajar con la respuesta del servidor.
+        // Recalcular monedas después de la recarga
+        recalcularMonedas();
 
         return {
           success: true,
@@ -898,33 +940,60 @@
       let precioActual = 0;
       let beneficioActual = "";
       let operadorActual = "";
+      let productoActual = null;
 
       if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
         const botonesCompra = document.querySelectorAll(".card .cta");
 
         botonesCompra.forEach((btn) => {
           btn.addEventListener("click", () => {
-            const card = btn.closest(".card");
-            if (!card) return;
+            const productId = btn.getAttribute("data-product-id");
+            productoActual = null;
+            precioActual = 0;
+            beneficioActual = "";
+            operadorActual = "";
 
-            const priceEl = card.querySelector(".price");
-            const recibeEl = card.querySelector(".receive-main");
-            const opEl = card.querySelector(".tag-operator");
+            let precioTxt = "";
+            let recibeTxt = "";
+            let operadorTxt = "";
 
-            const precioTxt = priceEl ? priceEl.textContent.trim() : "";
-            const recibeTxt = recibeEl ? recibeEl.textContent.trim() : "";
-            const opTxt = opEl ? opEl.textContent.trim().toUpperCase() : "";
+            if (productId && window.Products && typeof window.Products.getById === "function") {
+              const producto = window.Products.getById(productId);
+              if (!producto) {
+                alert("No se encontró la oferta seleccionada. Inténtalo de nuevo.");
+                return;
+              }
 
-            // Guardamos precio, beneficio y operador para el movimiento
-            precioActual = parseFloat(precioTxt.replace(",", ".").replace("€", "").trim());
-            beneficioActual = recibeTxt;
+              productoActual = producto;
+              precioActual = Number(producto.importe) || 0;
+              beneficioActual = producto.recibe || producto.descripcion || "";
+              operadorActual = producto.operador || "";
 
-            if (opTxt.includes("NAUTA")) {
-              operadorActual = "Nauta";
-            } else if (opTxt.includes("CUBACEL")) {
-              operadorActual = "Cubacel";
+              precioTxt = producto.precioTexto || (precioActual.toFixed(2) + " €");
+              recibeTxt = producto.recibe || beneficioActual;
+              operadorTxt = (producto.operador || "").toUpperCase();
             } else {
-              operadorActual = "";
+              const card = btn.closest(".card");
+              if (!card) return;
+
+              const priceEl = card.querySelector(".price");
+              const recibeEl = card.querySelector(".receive-main");
+              const opEl = card.querySelector(".tag-operator");
+
+              precioTxt = priceEl ? priceEl.textContent.trim() : "";
+              recibeTxt = recibeEl ? recibeEl.textContent.trim() : "";
+              operadorTxt = opEl ? opEl.textContent.trim().toUpperCase() : "";
+
+              precioActual = parseFloat(precioTxt.replace(",", ".").replace("€", "").trim());
+              beneficioActual = recibeTxt;
+
+              if (operadorTxt.includes("NAUTA")) {
+                operadorActual = "Nauta";
+              } else if (operadorTxt.includes("CUBACEL")) {
+                operadorActual = "Cubacel";
+              } else {
+                operadorActual = "";
+              }
             }
 
             modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
@@ -947,10 +1016,11 @@
           }
         });
 
-        // Botón Realizar recarga (FASE 2 + ID + EMAIL + RECIENTES)
+        // Botón Realizar recarga (UserData + Email + recientes + VALIDACIÓN CUBACEL)
         btnRealizar.addEventListener("click", async () => {
-          const n1 = inputNum1.value.trim();
-          const n2 = inputNum2.value.trim();
+          // limpiamos espacios por si acaso
+          const n1 = inputNum1.value.replace(/\s+/g, "").trim();
+          const n2 = inputNum2.value.replace(/\s+/g, "").trim();
 
           if (!n1 || !n2) {
             alert("Por favor, escribe el número en ambos campos.");
@@ -962,17 +1032,27 @@
             return;
           }
 
+          // ✅ Validación formato móvil Cuba: +53 5XXXXXXX
+          const regexCubano = /^5\d{7}$/;
+          if (!regexCubano.test(n1)) {
+            alert("El número debe ser un móvil cubano válido (+53 5XXXXXXX).");
+            return;
+          }
+
           if (!precioActual || isNaN(precioActual)) {
             alert("No se pudo leer el precio de la recarga.");
             return;
           }
 
-          // ✅ Aquí ya usamos la capa de negocio, preparada para backend
+          const productoId = productoActual ? productoActual.id : null;
+
+          // ✅ Usamos la capa de negocio centralizada
           const resultado = await procesarRecarga({
             numero: "+53" + n1,
             importe: precioActual,
             beneficio: beneficioActual,
-            operador: operadorActual || ""
+            operador: operadorActual || "",
+            productoId
           });
 
           if (!resultado || !resultado.success) {
@@ -994,9 +1074,9 @@
               await emailjs.send("service_ryvafj3", "template_k5t8asf", {
                 to_email: datosUsuario.email,
                 numero: movimiento.numero,
-                importe: movimiento.importe.toFixed(2) + " €",
-                beneficio: movimiento.beneficio,
-                fecha: movimiento.fecha,
+                importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
+                beneficio: movimiento.beneficio || beneficioActual,
+                fecha: movimiento.fecha || new Date().toLocaleString(),
                 id_confirmacion: idConfirmacion
               });
             } catch (err) {
@@ -1007,6 +1087,37 @@
           alert("✅ Recarga registrada correctamente\nID: " + idConfirmacion);
           modalBg.style.display = "none";
         });
+      }
+    });
+  </script>
+
+  <!-- ✅ B1.3: onAuthStateChanged para sincronizar sesión con Firebase en RECARGAR -->
+  <script type="module">
+    import { auth, onAuthStateChanged } from "./js/firebase.js";
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // Si Firebase no tiene sesión, limpiamos y mandamos al login
+        localStorage.removeItem("usuario");
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+        const datos = JSON.parse(raw);
+
+        const nuevo = {
+          ...datos,
+          nombre: datos.nombre || user.displayName || "",
+          email: (user.email || "").toLowerCase(),
+          activo: true
+        };
+
+        localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+        localStorage.setItem("usuario", (user.email || "").toLowerCase());
+      } catch (e) {
+        console.error("Error sincronizando sesión en recargar:", e);
       }
     });
   </script>

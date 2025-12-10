@@ -302,7 +302,10 @@
   </div>
 </div>
 
-<script src="admin.js"></script>
+<!-- Firebase + protección admin -->
+<script type="module" src="../js/firebase.js"></script>
+<script src="admin.js" defer></script>
+
 <script>
   window.history.scrollRestoration = "manual";
   window.onload = () => window.scrollTo(0, 0);

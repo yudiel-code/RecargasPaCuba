@@ -126,27 +126,13 @@
 
   </div>
 
-  <!-- Firebase + lógica de registro -->
+  <!-- Firebase + lógica de registro (usa firebase centralizado) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
-    import { 
-      getAuth, 
-      createUserWithEmailAndPassword, 
-      updateProfile 
+    import { auth } from "./js/firebase.js";
+    import {
+      createUserWithEmailAndPassword,
+      updateProfile
     } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-
-    // MISMA CONFIG QUE index.html
-    const firebaseConfig = {
-      apiKey: "AIzaSyALcmOgNzahL1bjGAXW-WakTpJRzUC8NVg",
-      authDomain: "recargaspacuba-7aaa8.firebaseapp.com",
-      projectId: "recargaspacuba-7aaa8",
-      storageBucket: "recargaspacuba-7aaa8.firebasestorage.app",
-      messagingSenderId: "863997764350",
-      appId: "1:863997764350:web:107ec17e826fe67acd3baf"
-    };
-
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
 
     const $ = (id) => document.getElementById(id);
 
@@ -197,7 +183,7 @@
       btnRegister.disabled = true;
 
       try {
-        // Crear usuario en Firebase
+        // Crear usuario en Firebase usando auth centralizado
         const cred = await createUserWithEmailAndPassword(auth, email, pass);
 
         try {
@@ -206,20 +192,23 @@
           // si falla el displayName no rompemos nada
         }
 
-        // Guardar también en localStorage para el login actual y cuenta.html
+        // Guardar también en localStorage para la capa actual (SIN contraseña)
         const usuario = {
           nombre,
           email,
-          pass,
           activo: true
         };
         localStorage.setItem("usuarioRegistrado", JSON.stringify(usuario));
 
-        msgBox.textContent = "Registro correcto. Volviendo al login...";
+        // LOGIN AUTOMÁTICO de este usuario en la app local
+        localStorage.setItem("usuario", email);
 
+        msgBox.textContent = "Registro correcto. Entrando en la app...";
+
+        // Ir directo a recargar
         setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1200);
+          window.location.href = "recargar.html";
+        }, 1000);
 
       } catch (error) {
         console.error("Error registro Firebase:", error);

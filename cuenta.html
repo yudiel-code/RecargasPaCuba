@@ -1282,6 +1282,9 @@
     </div>
   </div>
 
+  <!-- DATA LOCAL CENTRALIZADA -->
+  <script src="js/userData.js"></script>
+
   <!-- SCRIPT PRINCIPAL -->
   <script>
     const usuarioSesion = localStorage.getItem("usuario");
@@ -1292,6 +1295,12 @@
     } catch (e) {
       console.error("Error leyendo usuarioRegistrado, usando objeto vacío:", e);
       datosUsuario = {};
+    }
+
+    // B1.2: asegurarnos de que no quede contraseña guardada en localStorage
+    if (datosUsuario && datosUsuario.pass) {
+      delete datosUsuario.pass;
+      localStorage.setItem("usuarioRegistrado", JSON.stringify(datosUsuario));
     }
 
     if (!usuarioSesion) {
@@ -1306,41 +1315,41 @@
     const correoUsuarioEl = document.getElementById("correoUsuario");
     if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
 
-    // ===== Capa de acceso a saldo / historial (preparada para backend) =====
+    // ===== Capa de acceso a saldo / historial vía UserData (preparada para backend) =====
     function getSaldo() {
-      const raw = localStorage.getItem("rpc_saldo");
-      const valor = parseFloat(raw);
-      return isNaN(valor) ? 0 : valor;
+      if (window.UserData && typeof window.UserData.getSaldo === "function") {
+        return window.UserData.getSaldo();
+      }
+      console.warn("UserData.getSaldo no disponible; devolviendo 0.");
+      return 0;
     }
 
     function setSaldo(nuevoSaldo) {
-      const num = Number(nuevoSaldo) || 0;
-      localStorage.setItem("rpc_saldo", num.toFixed(2));
-    }
-
-    function getHistorial() {
-      try {
-        const h = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
-        return Array.isArray(h) ? h : [];
-      } catch (e) {
-        console.error("Error leyendo rpc_historial, usando lista vacía:", e);
-        return [];
+      if (window.UserData && typeof window.UserData.setSaldo === "function") {
+        window.UserData.setSaldo(nuevoSaldo);
+        return;
       }
+      console.warn("UserData.setSaldo no disponible; saldo no persistido.");
     }
 
     function getHistorialSeguro() {
-      return getHistorial();
+      if (window.UserData && typeof window.UserData.getHistorial === "function") {
+        const lista = window.UserData.getHistorial();
+        return Array.isArray(lista) ? lista : [];
+      }
+      console.warn("UserData.getHistorial no disponible; usando lista vacía.");
+      return [];
     }
 
     function guardarMovimientoSaldo(importe, metodo) {
-      const lista = getHistorial();
-      lista.unshift({
-        tipo: "saldo",
-        importe: Number(importe) || 0,
-        metodo: metodo || "manual",
-        fecha: new Date().toISOString()
-      });
-      localStorage.setItem("rpc_historial", JSON.stringify(lista));
+      if (window.UserData && typeof window.UserData.addMovimientoSaldo === "function") {
+        window.UserData.addMovimientoSaldo(importe, metodo || "manual");
+        if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
+          window.UserData.recalcularMonedas();
+        }
+        return;
+      }
+      console.warn("UserData.addMovimientoSaldo no disponible; movimiento no guardado.");
     }
 
     function cargarSaldo() {
@@ -1516,8 +1525,12 @@
         datosUsuario.nombre = nuevoNombre;
         datosUsuario.email  = nuevoCorreo;
 
+        // B1.2: NO guardamos contraseña en localStorage
+        if (datosUsuario && datosUsuario.pass) {
+          delete datosUsuario.pass;
+        }
         if (nuevaPass) {
-          datosUsuario.pass = nuevaPass;
+          // Se ignorará hasta conectar con el flujo real de cambio de contraseña (B1.4)
         }
 
         localStorage.setItem("usuarioRegistrado", JSON.stringify(datosUsuario));
@@ -1595,8 +1608,15 @@
 
     function inicializarAvatar() {
       if (!avatarLetra || !avatarImg) return;
-      const avatarData = localStorage.getItem("rpc_avatar");
-      const inicial    = (nombreMostrar || "U").charAt(0).toUpperCase();
+      let avatarData = "";
+
+      if (window.UserData && typeof window.UserData.getAvatar === "function") {
+        avatarData = window.UserData.getAvatar();
+      } else {
+        console.warn("UserData.getAvatar no disponible; usando avatar por defecto.");
+      }
+
+      const inicial = (nombreMostrar || "U").charAt(0).toUpperCase();
       avatarLetra.textContent = inicial;
 
       if (avatarData) {
@@ -1624,7 +1644,13 @@
         reader.onload = function(e) {
           var dataURL = e.target && e.target.result ? e.target.result : null;
           if (!dataURL) return;
-          localStorage.setItem("rpc_avatar", dataURL);
+
+          if (window.UserData && typeof window.UserData.setAvatar === "function") {
+            window.UserData.setAvatar(dataURL);
+          } else {
+            console.warn("UserData.setAvatar no disponible; avatar solo en memoria.");
+          }
+
           avatarImg.src = dataURL;
           avatarImg.style.display = "block";
           avatarLetra.style.display = "none";
@@ -1650,29 +1676,7 @@
       return elegido.coins;
     }
 
-    function calcularMonedas() {
-      const historial = getHistorialSeguro();
-      let totalMonedas = 0;
-
-      historial.forEach(function(item) {
-        if (item.tipo === "recarga") {
-          const imp = Number(item.importe) || 0;
-          const operador = item.operador || "";
-
-          if (operador === "Cubacel") {
-            totalMonedas += obtenerMonedasCubacel(imp);
-          } else if (operador === "Nauta") {
-            totalMonedas += 5;
-          } else {
-            if (imp > 0) {
-              totalMonedas += obtenerMonedasCubacel(imp);
-            }
-          }
-        }
-      });
-
-      localStorage.setItem("rpc_monedas", String(totalMonedas));
-
+    function actualizarUIConMonedas(totalMonedas) {
       const monedasActualesEl     = document.getElementById("monedasActuales");
       const monedasProgresoTexto  = document.getElementById("monedasProgresoTexto");
       const barraProgresoInner    = document.getElementById("barraProgresoInner");
@@ -1698,6 +1702,34 @@
           btnCanjeLocal.textContent = "Canjear 699 monedas por 20 €";
         }
       }
+    }
+
+    function calcularMonedas() {
+      let totalMonedas = 0;
+
+      if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
+        totalMonedas = window.UserData.recalcularMonedas();
+      } else {
+        const historial = getHistorialSeguro();
+        historial.forEach(function(item) {
+          if (item.tipo === "recarga") {
+            const imp = Number(item.importe) || 0;
+            const operador = item.operador || "";
+
+            if (operador === "Cubacel") {
+              totalMonedas += obtenerMonedasCubacel(imp);
+            } else if (operador === "Nauta") {
+              totalMonedas += 5;
+            } else {
+              if (imp > 0) {
+                totalMonedas += obtenerMonedasCubacel(imp);
+              }
+            }
+          }
+        });
+      }
+
+      actualizarUIConMonedas(totalMonedas);
     }
 
     const confirmarSaldoBtn = document.getElementById("confirmarSaldoBtn");
@@ -1770,37 +1802,32 @@
     actualizarTextoMetodo();
   </script>
 
-  <!-- SCRIPT FIREBASE (NO TOCADO) -->
+  <!-- SCRIPT FIREBASE (centralizado con js/firebase.js) -->
   <script type="module">
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+    import { auth, onAuthStateChanged, signOut } from "./js/firebase.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyALcmOgNzahL1bjGAXW-WakTpJRzUC8NVg",
-      authDomain: "recargaspacuba-7aaa8.firebaseapp.com",
-      projectId: "recargaspacuba-7aaa8",
-      storageBucket: "recargaspacuba-7aaa8.firebasestorage.app",
-      messagingSenderId: "863997764350",
-      appId: "1:863997764350:web:107ec17e826fe67acd3baf"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
+    // Exponemos un signOut ya vinculado a este auth para el script no-módulo
     window.firebaseSignOut = function() {
       return signOut(auth);
     };
 
     onAuthStateChanged(auth, (user) => {
-      if (!user) return;
+      if (!user) {
+        localStorage.removeItem("usuario");
+        window.location.href = "index.html";
+        return;
+      }
 
       try {
         const raw = localStorage.getItem("usuarioRegistrado") || "{}";
         const datos = JSON.parse(raw);
 
+        // B1.2: limpiamos cualquier rastro de pass al sincronizar
+        const { pass, ...resto } = datos || {};
+
         const nuevo = {
-          ...datos,
-          nombre: datos.nombre || user.displayName || "Usuario",
+          ...resto,
+          nombre: (datos && datos.nombre) || user.displayName || "Usuario",
           email: (user.email || "").toLowerCase(),
           activo: true
         };

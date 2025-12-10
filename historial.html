@@ -31,7 +31,7 @@
       display: flex;
       flex-direction: column;
       color: white;
-      /* ✅ menos espacio para que la última tarjeta llegue casi a la barra */
+      /* menos espacio para que la última tarjeta llegue casi a la barra */
       padding-bottom: 90px;
     }
 
@@ -42,7 +42,7 @@
       margin: 0 auto;
     }
 
-    /* Tarjeta estilo CUENTA / RECARGAR (más glass y brillos) */
+    /* Tarjeta estilo CUENTA / RECARGAR */
     .card {
       background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
       border-radius: 22px;
@@ -56,7 +56,7 @@
       align-items: center;
       gap: 14px;
       cursor: pointer;
-      /* ✅ todas las tarjetas con la misma altura mínima */
+      /* todas las tarjetas con la misma altura mínima */
       min-height: 110px;
 
       box-shadow: 0 18px 32px rgba(0,0,0,0.40);
@@ -130,6 +130,7 @@
     .rojo     { background: #ff6b6b; color: #450a0a; }
     .amarillo { background: #ffd966; color:#422006; }
 
+    /* MODAL */
     .modal-bg {
       position: fixed;
       inset: 0;
@@ -185,7 +186,7 @@
       font-size: 14px;
     }
 
-    /* ✅ Barra inferior unificada (verde hoja + azul claro) */
+    /* Barra inferior unificada (verde hoja + azul claro) */
     .app-nav {
       position: fixed;
       bottom: 0;
@@ -299,6 +300,7 @@
 
   </div>
 
+  <!-- MODAL -->
   <div class="modal-bg" id="modal-bg">
     <div class="modal">
       <h3 id="modal-titulo"></h3>
@@ -325,45 +327,41 @@
     </div>
   </nav>
 
+  <!-- Capa de datos unificada -->
+  <script src="js/userData.js"></script>
+
   <script>
     window.addEventListener("load", () => {
-
-      // ✅ Control de sesión: si no hay usuario logueado, volver al login
+      // Control de sesión
       const usuarioSesion = localStorage.getItem("usuario");
       if (!usuarioSesion) {
         window.location.href = "index.html";
         return;
       }
+      const emailUsuario = usuarioSesion || "";
 
-      // =========================
-      // Capa de acceso a historial (preparada para backend)
-      // =========================
-      function getHistorialLocal() {
-        let lista;
-        try {
-          lista = JSON.parse(localStorage.getItem("rpc_historial") || "[]");
-        } catch (e) {
-          lista = [];
+      // Historial desde UserData (centralizado)
+      function getHistorial() {
+        if (window.UserData && typeof window.UserData.getHistorial === "function") {
+          return window.UserData.getHistorial();
         }
-        if (!Array.isArray(lista)) lista = [];
-        return lista;
-      }
-
-      async function obtenerHistorial() {
-        // En el futuro, aquí se podrá llamar a un backend/API:
-        // const resp = await fetch("https://api.recargaspacuba.com/historial", { ... });
-        // return await resp.json();
-        return getHistorialLocal();
+        try {
+          const raw = localStorage.getItem("rpc_historial") || "[]";
+          const lista = JSON.parse(raw);
+          return Array.isArray(lista) ? lista : [];
+        } catch (e) {
+          console.error("Error leyendo historial, devolviendo lista vacía:", e);
+          return [];
+        }
       }
 
       (async () => {
-        const lista = await obtenerHistorial();
-        const emailUsuario = usuarioSesion || "";
+        const lista = getHistorial();
 
         const recargas = lista.filter(m => m && m.tipo === "recarga");
         const saldos   = lista.filter(m => m && m.tipo === "saldo");
 
-        // ---- Tarjeta Recarga ----
+        // Tarjeta Recarga
         if (recargas.length) {
           const u = recargas[0];
           const descR   = document.getElementById("recarga-desc");
@@ -380,7 +378,7 @@
             estadoR.className = "estado rojo";
           }
 
-          // ---- Tarjeta Correo recibido (última recarga) ----
+          // Tarjeta Correo recibido (última recarga)
           const correoDesc   = document.getElementById("correo-desc");
           const correoFecha  = document.getElementById("correo-fecha");
           const correoEstado = document.getElementById("correo-estado");
@@ -388,9 +386,8 @@
           if (correoDesc && correoFecha && correoEstado) {
             const idTxt      = u.id || "Sin ID";
             const emailTxt   = emailUsuario || "Sin correo registrado";
-            const estadoBase = u.estado || ""; // en recargar.html ahora mismo es "OK"
+            const estadoBase = u.estado || "";
             const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
-
             const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
 
             correoDesc.textContent  = `${emailTxt} | ${importeTxt} | ID: ${idTxt}`;
@@ -405,7 +402,7 @@
           }
         }
 
-        // ---- Tarjeta Saldo ----
+        // Tarjeta Saldo
         if (saldos.length) {
           const u = saldos[0];
           const descS   = document.getElementById("saldo-desc");
@@ -423,7 +420,7 @@
           }
         }
 
-        // ---- Modal genérico (recargas / saldos) ----
+        // Modal genérico (recargas / saldos)
         const modalBg    = document.getElementById("modal-bg");
         const modalLista = document.getElementById("modal-lista");
         const modalTitulo= document.getElementById("modal-titulo");
@@ -505,6 +502,36 @@
           modalBg.onclick = e => e.target === modalBg && (modalBg.style.display = "none");
         }
       })();
+    });
+  </script>
+
+  <!-- B1.3: onAuthStateChanged para sincronizar sesión con Firebase en HISTORIAL -->
+  <script type="module">
+    import { auth, onAuthStateChanged } from "./js/firebase.js";
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        localStorage.removeItem("usuario");
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+        const datos = JSON.parse(raw);
+
+        const nuevo = {
+          ...(datos || {}),
+          nombre: (datos && datos.nombre) || user.displayName || "",
+          email: (user.email || "").toLowerCase(),
+          activo: true
+        };
+
+        localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+        localStorage.setItem("usuario", (user.email || "").toLowerCase());
+      } catch (e) {
+        console.error("Error sincronizando sesión en historial:", e);
+      }
     });
   </script>
 

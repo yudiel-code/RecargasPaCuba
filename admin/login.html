@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Admin</title>
 
-    <!-- base relativo para que funcione en local y en GitHub -->
-
-
     <link rel="stylesheet" href="admin.css">
 </head>
 
@@ -17,18 +14,34 @@
     <h2>Acceso Admin</h2>
 
     <form id="admin-login">
-        <input type="text" id="usuario" placeholder="Usuario" required
-               style="width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;">
-        <input type="password" id="clave" placeholder="Contraseña" required
-               style="width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;">
+        <input
+            type="email"
+            id="usuario"
+            placeholder="Correo admin"
+            required
+            style="width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;"
+        >
+        <input
+            type="password"
+            id="clave"
+            placeholder="Contraseña"
+            required
+            style="width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;"
+        >
 
-        <button type="submit"
-                style="width:100%;padding:10px;margin-top:15px;border:none;border-radius:6px;background:#ffcc00;font-weight:bold;cursor:pointer;">
+        <button
+            type="submit"
+            style="width:100%;padding:10px;margin-top:15px;border:none;border-radius:6px;background:#ffcc00;font-weight:bold;cursor:pointer;"
+        >
             Entrar
         </button>
     </form>
 </div>
 
+<!-- Carga Firebase (centralizado) para tener window.firebaseAuth, etc. -->
+<script type="module" src="../js/firebase.js"></script>
+
+<!-- Lógica de login admin + protección común -->
 <script src="login.js"></script>
 <script src="admin.js"></script>
 
