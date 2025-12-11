@@ -15,12 +15,12 @@
     const pass  = (document.getElementById("clave")?.value || "").trim();
 
     if (!email || !pass) {
-      alert("Introduce correo y contraseña.");
+      showToastError("Introduce correo y contraseña.");
       return;
     }
 
     if (!window.firebaseAuth || !window.firebaseSignIn) {
-      alert("Servicio de login de administrador no disponible. Inténtalo de nuevo en unos minutos.");
+      showToastError("Servicio de login de administrador no disponible. Inténtalo de nuevo en unos minutos.");
       return;
     }
 
@@ -39,7 +39,7 @@
         }
         localStorage.removeItem("adminLogged");
         localStorage.removeItem("adminEmail");
-        alert("No tienes permisos de administrador.");
+        showToastError("No tienes permisos de administrador.");
         return;
       }
 
@@ -61,7 +61,7 @@
         mensaje = "Demasiados intentos. Inténtalo de nuevo más tarde.";
       }
 
-      alert(mensaje);
+      showToastError(mensaje);
     }
   });
 })();

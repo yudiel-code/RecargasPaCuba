@@ -1,7 +1,8 @@
-/* ===== BASE GLOBAL – RecargasPaCuba ===== */
+/* ===== BASE GLOBAL ƒ?" RecargasPaCuba ===== */
 
-/* Fuente global */
+/* Fuentes globales */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
 :root {
   --left: #0b63d1;
@@ -15,26 +16,43 @@
   --text-muted: #e0f3ff;
   --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.25);
   --radius-xl: 22px;
+  --bg-top: #2fb8d6;
+  --bg-mid: #2ba6d0;
+  --bg-bottom: #1aa0c3;
 }
 
-/* Reset básico */
+/* Reset bÇ­sico + anti-flash */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  animation: none !important;
+  transition: none !important;
 }
 
-html, body {
-  height: 100%;
+html {
+  position: relative;
+  min-height: 100%;
+  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 35%, var(--bg-bottom) 70%);
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+html::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: inherit;
 }
 
 body {
-  font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: linear-gradient(135deg, var(--left), var(--right));
+  font-family: "Inter", system-ui, Arial, sans-serif;
   color: var(--text-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: inherit;
 }
 
 /* Contenedor base de la app */
@@ -42,12 +60,9 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 18px 16px 110px;
 }
 
-/* Tarjetas genéricas */
+/* Tarjetas genÇ¸ricas */
 .card {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -94,6 +109,18 @@ body {
   box-shadow: none;
 }
 
+.btn-lg {
+  padding: 14px 18px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.btn-accent {
+  background: linear-gradient(135deg, #ffe176, #ffb13b);
+  color: #321800;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+}
+
 /* Inputs base */
 .input-group {
   display: flex;
@@ -129,7 +156,7 @@ body {
   font-size: 0.8rem;
 }
 
-/* Estado online genérico */
+/* Estado online genÇ¸rico */
 .estado-online {
   display: inline-flex;
   align-items: center;
@@ -169,4 +196,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.mt-3 {
+  margin-top: 20px;
 }

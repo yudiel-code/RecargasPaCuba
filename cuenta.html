@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+﻿<!DOCTYPE html> 
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -7,10 +7,16 @@
 
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#28c6db">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/app.css">
+  <script src="js/ui.js"></script>
 
   <style>
     html, body {
       background: linear-gradient(135deg, #0a5fcb, #0db3da) !important;
+      background-repeat: no-repeat;
+      background-size: cover;
+      min-height: 100%;
     }
     * { animation: none !important; transition: none !important; }
   </style>
@@ -20,7 +26,7 @@
       margin: 0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: #ffffff;
-      background: linear-gradient(135deg, #0a5fcb, #0db3da);
+      background: inherit;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -32,7 +38,7 @@
       flex-direction: column;
       max-width: 480px;
       margin: 0 auto;
-      padding: 12px 14px 80px;
+      padding: 12px 14px 110px;
     }
 
     .app-header {
@@ -87,26 +93,6 @@
       overflow-y: auto;
       padding-top: 10px;
       padding-bottom: 20px;
-    }
-
-    .card {
-      background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
-      border-radius: 22px;
-      padding: 16px 16px 14px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      position: relative;
-      overflow: hidden;
-      box-shadow: none;
-    }
-
-    .card::before {
-      content:"";
-      position:absolute;
-      inset:-40px;
-      background:radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%);
-      opacity:0.6;
-      pointer-events:none;
     }
 
     .card-header {
@@ -515,60 +501,6 @@
       background: rgba(248, 250, 252, 0.85);
     }
 
-    .app-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      padding: 8px 14px 14px;
-      box-sizing: border-box;
-      z-index: 50;
-    }
-
-    .nav-inner {
-      background: linear-gradient(135deg, #16a34a, #38bdf8);
-      border-radius: 999px;
-      padding: 8px 10px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      box-shadow: 0 18px 35px rgba(0,0,0,0.45);
-      border: 1px solid rgba(187, 247, 208, 0.9);
-    }
-
-    .nav-btn {
-      border: none;
-      background: transparent;
-      color: #ecfdf5;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 6px 0;
-      border-radius: 999px;
-      text-decoration: none;
-    }
-
-    .nav-btn span {
-      font-size: 16px;
-    }
-
-    .nav-btn.active {
-      background: rgba(15, 23, 42, 0.25);
-      color: #f9fafb;
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
-    }
-
-    .nav-btn.active span {
-      transform: translateY(-1px);
-    }
-
-    .nav-btn div {
-      font-weight: 600;
-    }
 
     .modal-bg {
       position: fixed;
@@ -906,7 +838,7 @@
     </header>
 
     <div class="app-scroll">
-      <section class="card">
+      <section class="card card--gradient">
         <div class="card-header">
           <div>
             <div class="card-title">Saldo RecargasPaCuba</div>
@@ -941,7 +873,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card card--gradient">
         <div class="card-header">
           <div>
             <div class="card-title">Perfil de usuario</div>
@@ -1009,7 +941,7 @@
         </ul>
       </section>
 
-      <section class="card">
+      <section class="card card--gradient">
         <div class="card-header">
           <div>
             <div class="card-title">Programa de monedas</div>
@@ -1104,7 +1036,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card card--gradient">
         <div class="card-header">
           <div>
             <div class="card-title">Centro legal</div>
@@ -1518,7 +1450,7 @@
         const nuevaPass   = (passInput && passInput.value ? passInput.value : "").trim();
 
         if (!nuevoNombre || !nuevoCorreo) {
-          alert("Nombre y correo no pueden estar vacíos.");
+          showToastError("Nombre y correo no pueden estar vacíos.");
           return;
         }
 
@@ -1542,7 +1474,7 @@
         if (nombreCab) nombreCab.textContent = nuevoNombre;
         if (correoCab) correoCab.textContent = nuevoCorreo;
 
-        alert("Datos de cuenta actualizados (a nivel interno de la app).");
+        showToastSuccess("Datos de cuenta actualizados (a nivel interno de la app).");
         cerrarModalCuenta();
       });
     }
@@ -1736,8 +1668,13 @@
     if (confirmarSaldoBtn && inputSaldo) {
       confirmarSaldoBtn.addEventListener("click", function() {
         const valor = parseFloat(inputSaldo.value);
-        if (isNaN(valor) || valor <= 0) {
-          alert("Introduce un importe válido.");
+        if (isNaN(valor)) {
+          showToastError("Introduce un importe válido.");
+          return;
+        }
+
+        if (valor < 10) {
+          showToastError("El importe mínimo para agregar saldo es de 10 €.");
           return;
         }
 
@@ -1751,7 +1688,7 @@
         cargarSaldo();
         cargarUltimoMovimiento();
         calcularMonedas();
-        alert("Saldo actualizado correctamente.");
+        showToastSuccess("Saldo actualizado correctamente.");
         cerrarModalSaldo();
       });
     }
@@ -1790,7 +1727,7 @@
     if (btnCanje) {
       btnCanje.addEventListener("click", function() {
         if (!btnCanje.classList.contains("activo")) return;
-        alert("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
+        showToastSuccess("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
       });
     }
 
@@ -1846,5 +1783,10 @@
     });
   </script>
 
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
+
+
+

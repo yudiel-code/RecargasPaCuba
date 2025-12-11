@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -8,10 +8,13 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
   <title>Recargar | RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/app.css">
   <meta name="theme-color" content="#0b5bd3">
 
   <!-- ✅ EmailJS para correo de recarga -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/ui.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -32,14 +35,22 @@
       padding: 0;
     }
 
+    html {
+      background: linear-gradient(135deg, var(--left), var(--right));
+      background-repeat: no-repeat;
+      background-size: cover;
+      min-height: 100%;
+    }
+
     body {
       font-family: 'Poppins', system-ui, sans-serif;
-      background: linear-gradient(135deg, var(--left), var(--right));
+      background: inherit;
       color: var(--text);
       min-height: 100vh;
-      padding: 18px 16px 110px;
+      padding: 18px 16px 90px;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
     }
 
     .app {
@@ -47,7 +58,21 @@
       max-width: 520px;
       display: flex;
       flex-direction: column;
+      margin: 0 auto;
       gap: 18px;
+      flex: 1;
+    }
+
+    .app-content {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+      width: 100%;
+    }
+
+    .legal-links--sticky {
+      margin-top: auto;
     }
 
     /* Pestañas CUBACEL / NAUTA */
@@ -90,30 +115,6 @@
       gap: 14px;
       margin-top: 4px;
       padding-bottom: 6px;
-    }
-
-    /* Tarjeta de oferta – estilo unificado como CUENTA (sin sombras) */
-    .card {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
-      border-radius: 22px;
-      padding: 16px 16px 14px;
-      margin-bottom: 12px;
-      border: 1px solid rgba(255,255,255,0.1);
-      position: relative;
-      overflow: hidden;
-      box-shadow: none;
-    }
-
-    .card::before {
-      content:"";
-      position:absolute;
-      inset:-40px;
-      background:radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%);
-      opacity:0.6;
-      pointer-events:none;
     }
 
     .card-header {
@@ -375,66 +376,13 @@
     }
 
     /* ✅ Barra inferior unificada (verde hoja + azul claro) */
-    .app-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      padding: 8px 14px 14px;
-      box-sizing: border-box;
-      z-index: 50;
-    }
-
-    .nav-inner {
-      background: linear-gradient(135deg, #16a34a, #38bdf8);
-      border-radius: 999px;
-      padding: 8px 10px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      box-shadow: 0 18px 35px rgba(0,0,0,0.45);
-      border: 1px solid rgba(187, 247, 208, 0.9);
-    }
-
-    .nav-btn {
-      border: none;
-      background: transparent;
-      color: #ecfdf5;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 6px 0;
-      border-radius: 999px;
-      text-decoration: none;
-    }
-
-    .nav-btn span {
-      font-size: 16px;
-    }
-
-    .nav-btn.active {
-      background: rgba(15, 23, 42, 0.25);
-      color: #f9fafb;
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
-    }
-
-    .nav-btn.active span {
-      transform: translateY(-1px);
-    }
-
-    .nav-btn div {
-      font-weight: 600;
-    }
   </style>
 </head>
 
 <body>
 
   <main class="app">
+    <div class="app-content">
 
     <!-- PESTAÑAS -->
     <div class="tabs">
@@ -446,7 +394,7 @@
     <section class="cards cards-cubacel">
 
       <!-- OFERTA 1 -->
-      <article class="card">
+      <article class="card card--gradient">
         <div class="card-header">
           <span class="badge">Recarga normal</span>
           <span class="tag-operator">CUBACEL · Cuba</span>
@@ -499,7 +447,7 @@
       </article>
 
       <!-- OFERTA 2 -->
-      <article class="card">
+      <article class="card card--gradient">
         <div class="card-header">
           <span class="badge promo">Promo especial</span>
           <span class="tag-operator">CUBACEL · Cuba</span>
@@ -552,7 +500,7 @@
       </article>
 
       <!-- OFERTA 3 -->
-      <article class="card">
+      <article class="card card--gradient">
         <div class="card-header">
           <span class="badge promo">Promo limitada</span>
           <span class="tag-operator">CUBACEL · Cuba</span>
@@ -610,7 +558,7 @@
     <section class="cards cards-nauta" style="display:none;">
 
       <!-- NAUTA 1 -->
-      <article class="card">
+      <article class="card card--gradient">
         <div class="card-header">
           <span class="badge">Recarga NAUTA</span>
           <span class="tag-operator">NAUTA · Cuba</span>
@@ -645,7 +593,7 @@
       </article>
 
       <!-- NAUTA 2 -->
-      <article class="card">
+      <article class="card card--gradient">
         <div class="card-header">
           <span class="badge promo">Pack NAUTA</span>
           <span class="tag-operator">NAUTA · Cuba</span>
@@ -680,6 +628,17 @@
       </article>
 
     </section>
+
+    </div>
+
+    <div class="legal-links legal-links--sticky" style="text-align:center;margin-top:12px;">
+      <small>
+        <a href="terminos.html">Términos</a> ·
+        <a href="privacidad.html">Privacidad</a> ·
+        <a href="reembolsos.html">Reembolsos</a> ·
+        <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
+      </small>
+    </div>
 
   </main>
 
@@ -960,7 +919,7 @@
             if (productId && window.Products && typeof window.Products.getById === "function") {
               const producto = window.Products.getById(productId);
               if (!producto) {
-                alert("No se encontró la oferta seleccionada. Inténtalo de nuevo.");
+                showToastError("No se encontró la oferta seleccionada. Inténtalo de nuevo.");
                 return;
               }
 
@@ -1023,24 +982,24 @@
           const n2 = inputNum2.value.replace(/\s+/g, "").trim();
 
           if (!n1 || !n2) {
-            alert("Por favor, escribe el número en ambos campos.");
+            showToastError("Por favor, escribe el número en ambos campos.");
             return;
           }
 
           if (n1 !== n2) {
-            alert("Los números no coinciden. Revísalos.");
+            showToastError("Los números no coinciden. Revísalos.");
             return;
           }
 
           // ✅ Validación formato móvil Cuba: +53 5XXXXXXX
           const regexCubano = /^5\d{7}$/;
           if (!regexCubano.test(n1)) {
-            alert("El número debe ser un móvil cubano válido (+53 5XXXXXXX).");
+            showToastError("El número debe ser un móvil cubano válido (+53 5XXXXXXX).");
             return;
           }
 
           if (!precioActual || isNaN(precioActual)) {
-            alert("No se pudo leer el precio de la recarga.");
+            showToastError("No se pudo leer el precio de la recarga.");
             return;
           }
 
@@ -1059,7 +1018,7 @@
             const msg = resultado && resultado.message
               ? resultado.message
               : "No se pudo procesar la recarga. Inténtalo de nuevo.";
-            alert(msg);
+            showToastError(msg);
             return;
           }
 
@@ -1084,7 +1043,7 @@
             }
           }
 
-          alert("✅ Recarga registrada correctamente\nID: " + idConfirmacion);
+          showToastSuccess("✅ Recarga registrada correctamente\\nID: " + idConfirmacion);
           modalBg.style.display = "none";
         });
       }
@@ -1122,5 +1081,8 @@
     });
   </script>
 
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
+

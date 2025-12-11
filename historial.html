@@ -7,6 +7,9 @@
 
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#28c6db">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/app.css">
+  <script src="js/ui.js"></script>
 
   <style>
     /* Tipografía como Cuenta/Recargar */
@@ -40,37 +43,6 @@
       padding: 20px 16px 10px;
       max-width: 520px;
       margin: 0 auto;
-    }
-
-    /* Tarjeta estilo CUENTA / RECARGAR */
-    .card {
-      background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
-      border-radius: 22px;
-      padding: 18px 18px 16px;
-      margin-bottom: 14px;
-      border: 1px solid rgba(255,255,255,0.16);
-      position: relative;
-      overflow: hidden;
-
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      cursor: pointer;
-      /* todas las tarjetas con la misma altura mínima */
-      min-height: 110px;
-
-      box-shadow: 0 18px 32px rgba(0,0,0,0.40);
-    }
-
-    .card::before {
-      content:"";
-      position:absolute;
-      inset:-40px;
-      background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.22), transparent 55%),
-        radial-gradient(circle at bottom right, rgba(8, 145, 178, 0.25), transparent 55%);
-      opacity:0.75;
-      pointer-events:none;
     }
 
     .icono {
@@ -187,60 +159,6 @@
     }
 
     /* Barra inferior unificada (verde hoja + azul claro) */
-    .app-nav {
-      position: fixed;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      max-width: 480px;
-      padding: 8px 14px 14px;
-      box-sizing: border-box;
-      z-index: 50;
-    }
-
-    .nav-inner {
-      background: linear-gradient(135deg, #16a34a, #38bdf8);
-      border-radius: 999px;
-      padding: 8px 10px;
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      box-shadow: 0 18px 35px rgba(0,0,0,0.45);
-      border: 1px solid rgba(187, 247, 208, 0.9);
-    }
-
-    .nav-btn {
-      border: none;
-      background: transparent;
-      color: #ecfdf5;
-      font-size: 11px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 6px 0;
-      border-radius: 999px;
-      text-decoration: none;
-    }
-
-    .nav-btn span {
-      font-size: 16px;
-    }
-
-    .nav-btn.active {
-      background: rgba(15, 23, 42, 0.25);
-      color: #f9fafb;
-      box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
-    }
-
-    .nav-btn.active span {
-      transform: translateY(-1px);
-    }
-
-    .nav-btn div {
-      font-weight: 600;
-    }
   </style>
 </head>
 
@@ -248,7 +166,7 @@
 
   <div class="historial-container">
 
-    <div class="card" id="card-recarga">
+    <div class="card card--gradient" id="card-recarga">
       <div class="icono">⚡</div>
       <div class="contenido">
         <div class="titulo">Recarga realizada</div>
@@ -258,7 +176,7 @@
       <div class="estado verde" id="recarga-estado">Sin datos</div>
     </div>
 
-    <div class="card" id="card-saldo">
+    <div class="card card--gradient" id="card-saldo">
       <div class="icono">💳</div>
       <div class="contenido">
         <div class="titulo">Saldo agregado</div>
@@ -268,7 +186,7 @@
       <div class="estado verde" id="saldo-estado">Sin datos</div>
     </div>
 
-    <div class="card" id="card-correo">
+    <div class="card card--gradient" id="card-correo">
       <div class="icono">📩</div>
       <div class="contenido">
         <div class="titulo">Correo recibido</div>
@@ -278,7 +196,7 @@
       <div class="estado azul" id="correo-estado">Sin datos</div>
     </div>
 
-    <div class="card">
+    <div class="card card--gradient">
       <div class="icono">🎁</div>
       <div class="contenido">
         <div class="titulo">Nueva oferta</div>
@@ -288,7 +206,7 @@
       <div class="estado azul">Sin datos</div>
     </div>
 
-    <div class="card">
+    <div class="card card--gradient">
       <div class="icono">⚠️</div>
       <div class="contenido">
         <div class="titulo">Error de operación</div>
@@ -307,6 +225,15 @@
       <div id="modal-lista"></div>
       <button class="cerrar" id="cerrarModal">Cerrar</button>
     </div>
+  </div>
+
+  <div class="legal-links" style="text-align:center;margin-top:12px;">
+    <small>
+      <a href="terminos.html">Términos</a> ·
+      <a href="privacidad.html">Privacidad</a> ·
+      <a href="reembolsos.html">Reembolsos</a> ·
+      <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
+    </small>
   </div>
 
   <!-- Barra inferior unificada -->
@@ -535,5 +462,6 @@
     });
   </script>
 
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

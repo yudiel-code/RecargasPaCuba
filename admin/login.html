@@ -5,12 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Admin</title>
 
+    <link rel="stylesheet" href="../styles/base.css">
+    <link rel="stylesheet" href="../styles/app.css">
     <link rel="stylesheet" href="admin.css">
 </head>
 
-<body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#f1f1f1">
+<body class="admin-login page-auth">
 
-<div style="background:white;padding:30px;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.1);width:300px;text-align:center;">
+<div class="card card--gradient login-card">
     <h2>Acceso Admin</h2>
 
     <form id="admin-login">
@@ -19,19 +21,17 @@
             id="usuario"
             placeholder="Correo admin"
             required
-            style="width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;"
         >
         <input
             type="password"
             id="clave"
             placeholder="Contraseña"
             required
-            style="width:100%;padding:10px;margin-top:10px;border-radius:6px;border:1px solid #ccc;"
         >
 
         <button
             type="submit"
-            style="width:100%;padding:10px;margin-top:15px;border:none;border-radius:6px;background:#ffcc00;font-weight:bold;cursor:pointer;"
+            class="btn btn-primary btn-lg btn-full"
         >
             Entrar
         </button>
@@ -40,6 +40,7 @@
 
 <!-- Carga Firebase (centralizado) para tener window.firebaseAuth, etc. -->
 <script type="module" src="../js/firebase.js"></script>
+<script src="../js/ui.js"></script>
 
 <!-- Lógica de login admin + protección común -->
 <script src="login.js"></script>

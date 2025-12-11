@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -89,39 +89,40 @@
 
   <div class="wrap">
 
-    <div class="title">Crear cuenta</div>
+    <div class="title">Crea tu cuenta</div>
     <div class="sub">
-      Completa tus datos para registrarte (m&iacute;nimo 8 caracteres, 1 may&uacute;scula y 1 n&uacute;mero)
+      Registra tus datos para empezar a usar RecargasPaCuba.
     </div>
 
-    <input id="reg-nombre" class="input-pill" type="text" placeholder="Nombre completo">
-    <input id="reg-email" class="input-pill" type="email" placeholder="Email">
+    <input id="reg-nombre" class="input-pill" type="text" placeholder="Nombre o usuario">
+    <input id="reg-email" class="input-pill" type="email" placeholder="Correo electronico">
 
     <div class="password-wrap">
-      <input id="new-pass" class="input-pill" type="password" placeholder="Contrase&ntilde;a">
-      <span id="toggle-pass-1" class="toggle-pass">👁</span>
+      <input id="new-pass" class="input-pill" type="password" placeholder="Contrasena (8+, 1 mayuscula, 1 numero)">
+      <span id="toggle-pass-1" class="toggle-pass">??</span>
     </div>
 
     <div class="password-wrap">
-      <input id="new-pass2" class="input-pill" type="password" placeholder="Repetir contrase&ntilde;a">
-      <span id="toggle-pass-2" class="toggle-pass">👁</span>
+      <input id="new-pass2" class="input-pill" type="password" placeholder="Repetir contrasena">
+      <span id="toggle-pass-2" class="toggle-pass">??</span>
     </div>
 
-    <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
+    <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Crear cuenta</button>
 
     <div id="msg" class="msg"></div>
 
     <p class="register-login-back">
-      <a href="index.html">&larr; Volver al login</a>
+      �Ya tienes cuenta?
+      <a href="index.html">Inicia sesi�n</a>
     </p>
 
   </div>
 
   <div class="legal-links" style="text-align:center;margin-top:12px;">
     <small>
-      <a href="terminos.html">Terminos</a> ·
-      <a href="privacidad.html">Privacidad</a> ·
-      <a href="reembolsos.html">Reembolsos</a> ·
+      <a href="terminos.html">Terminos</a> �
+      <a href="privacidad.html">Privacidad</a> �
+      <a href="reembolsos.html">Reembolsos</a> �
       <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
     </small>
   </div>
@@ -216,10 +217,10 @@
       const icon = document.getElementById("toggle-pass-1");
       if (input.type === "password") {
         input.type = "text";
-        icon.textContent = "🙈";
+        icon.textContent = "??";
       } else {
         input.type = "password";
-        icon.textContent = "👁";
+        icon.textContent = "??";
       }
     });
 
@@ -229,10 +230,10 @@
       const icon = document.getElementById("toggle-pass-2");
       if (input.type === "password") {
         input.type = "text";
-        icon.textContent = "🙈";
+        icon.textContent = "??";
       } else {
         input.type = "password";
-        icon.textContent = "👁";
+        icon.textContent = "??";
       }
     });
   </script>
@@ -240,3 +241,4 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
+

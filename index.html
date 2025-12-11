@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -11,179 +11,10 @@
 
   <title>RecargasPaCuba</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/app.css">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-  <!-- Anti-flash global -->
-  <style>
-    html, body {
-      background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%) !important;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; animation:none !important; transition:none !important; }
-  </style>
-
-  <style>
-    html,body{
-      height:100%;
-      background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
-    }
-
-    body{
-      font-family: Inter, system-ui, Arial, sans-serif;
-      color:white;
-      display:flex;
-      flex-direction:column;
-      min-height:100vh;
-    }
-
-    .app{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-    }
-
-    #screen-home {
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-      min-height:100vh;
-      background: linear-gradient(180deg,#2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
-      padding-top:42px;
-    }
-
-    .login-wrap{
-      width:100%;
-      max-width:420px;
-      text-align:center;
-      color:#ffffff;
-      padding:18px;
-    }
-
-    .logo-big{
-      width:220px;
-      height:220px;
-      margin:0 auto 8px;
-      border-radius:50%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-
-    .logo-big img{
-      width:90%;
-      height:auto;
-      border-radius:50%;
-    }
-
-    .login-title{
-      font-size:40px;
-      font-weight:800;
-      margin-top:8px;
-      color:#ffffff;
-    }
-
-    .login-sub{
-      color:#e7f7fb;
-      margin-top:8px;
-      font-size:16px;
-    }
-
-    .input-pill{
-      width:100%;
-      border-radius:999px;
-      padding:14px 18px;
-      border:none;
-      margin-top:18px;
-      font-size:15px;
-      outline:none;
-      box-shadow:0 10px 26px rgba(0,0,0,0.22);
-      color:#0f172a;
-    }
-
-    .password-wrap {
-      position: relative;
-      width: 100%;
-    }
-
-    .password-wrap .input-pill {
-      padding-right: 46px;
-    }
-
-    .toggle-pass {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-size: 18px;
-      color: #0f172a;
-      user-select: none;
-    }
-
-    .btn-primary-big{
-      width:100%;
-      margin-top:20px;
-      border-radius:999px;
-      padding:14px 16px;
-      border:none;
-      font-size:16px;
-      font-weight:700;
-      background:linear-gradient(135deg,#fed34c,#ffb13b);
-      color:#0f172a;
-      cursor:pointer;
-      box-shadow:0 12px 28px rgba(0,0,0,0.28);
-    }
-
-    .link-forgot{
-      background:none;
-      border:none;
-      color:#fff7b8;
-      font-size:13px;
-      text-decoration:underline;
-      cursor:pointer;
-      padding:0;
-      margin-top:12px;
-    }
-
-    .modal-bg-recuperar {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-    }
-
-    .modal-recuperar {
-      background: rgba(11, 76, 129, 0.96);
-      padding: 22px 20px;
-      border-radius: 20px;
-      width: 360px;
-      text-align: center;
-      color: #ffffff;
-    }
-
-    .btn-secondary {
-      margin-top: 10px;
-      padding: 10px 18px;
-      border-radius: 999px;
-      border: none;
-      background: rgba(15,118,178,0.9);
-      color: #e4f7ff;
-      font-size: 14px;
-      cursor: pointer;
-    }
-
-    .temp-pass-box{
-      margin-top:12px;
-      background:#0f345a;
-      padding:10px;
-      border-radius:12px;
-      font-size:14px;
-      display:none;
-      word-break:break-all;
-    }
-  </style>
+  <script src="js/ui.js"></script>
 </head>
 
 <body>
@@ -200,7 +31,7 @@
 
       <div class="login-sub">
         ¿Eres nuevo?
-        <a href="registro.html" target="_blank" style="color:#fff7b8;font-weight:800;">
+        <a id="link-register" href="registro.html" style="color:#fff7b8;font-weight:800;">
           Regístrate aquí
         </a>
       </div>
@@ -212,10 +43,19 @@
         <span id="toggle-pass" class="toggle-pass">👁</span>
       </div>
 
-      <button id="btn-login-do" class="btn-primary-big">Continuar</button>
+      <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
 
       <button id="btn-forgot" class="link-forgot">¿Olvidaste tu contraseña?</button>
 
+    </div>
+
+    <div class="legal-links legal-links--sticky" style="text-align:center;margin-top:12px;">
+      <small>
+        <a href="terminos.html">Términos</a> ·
+        <a href="privacidad.html">Privacidad</a> ·
+        <a href="reembolsos.html">Reembolsos</a> ·
+        <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
+      </small>
     </div>
   </section>
 </main>
@@ -224,7 +64,7 @@
   <div class="modal-recuperar">
     <h2>Recuperar contraseña</h2>
     <input id="recuperar-email" type="email" class="input-pill" placeholder="Correo registrado" />
-    <button id="btn-enviar-recuperar" class="btn-primary-big" type="button">Enviar enlace</button>
+    <button id="btn-enviar-recuperar" class="btn btn-primary btn-lg btn-full" type="button">Enviar enlace</button>
 
     <div id="temp-pass-box" class="temp-pass-box"></div>
     <button id="btn-copiar-pass" class="btn-secondary" type="button" style="display:none;">
@@ -292,7 +132,7 @@
     btnLogin.addEventListener("click", async () => {
       if (estaBloqueado()) {
         const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
-        alert("🔒 Login bloqueado hasta: " + hasta.toLocaleTimeString());
+        showToastError("🔒 Login bloqueado hasta: " + hasta.toLocaleTimeString());
         return;
       }
 
@@ -300,7 +140,7 @@
       const pass = document.getElementById("login-password").value.trim();
 
       if (!identifierRaw || !pass) {
-        alert("Introduce email/usuario y contraseña.");
+        showToastError("Introduce email/usuario y contraseña.");
         return;
       }
 
@@ -360,7 +200,7 @@
         if (intentos >= MAX_INTENTOS) {
           const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
           localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
-          alert("🔒 Demasiados intentos. Bloqueado 10 minutos.");
+          showToastError("🔒 Demasiados intentos. Bloqueado 10 minutos.");
         } else {
           let mensaje = "Email o contraseña incorrectos.";
           if (error.code === "auth/user-not-found") {
@@ -370,7 +210,7 @@
           } else if (error.message === "firebase-no-disponible") {
             mensaje = "Servicio de login no disponible. Inténtalo de nuevo en unos minutos.";
           }
-          alert(`${mensaje}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
+          showToastError(`${mensaje}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
         }
       }
     });
@@ -421,7 +261,7 @@
     btnEnviarRec.onclick = async () => {
       const email = document.getElementById("recuperar-email").value.trim().toLowerCase();
       if (!email) {
-        alert("Introduce el correo que usas en RecargasPaCuba.");
+        showToastError("Introduce el correo que usas en RecargasPaCuba.");
         return;
       }
 
@@ -435,12 +275,12 @@
           null;
 
         if (!auth || !sendPasswordResetEmail) {
-          alert("De momento la recuperación por email aún no está configurada. Contacta con soporte.");
+          showToastError("De momento la recuperación por email aún no está configurada. Contacta con soporte.");
           return;
         }
 
         await sendPasswordResetEmail(auth, email);
-        alert("Si el correo está registrado, recibirás un email para restablecer tu contraseña.");
+        showToastSuccess("Si el correo está registrado, recibirás un email para restablecer tu contraseña.");
         if (modalRec) modalRec.style.display = "none";
       } catch (error) {
         console.error("Error al iniciar recuperación de contraseña:", error);
@@ -448,7 +288,7 @@
         if (error.code === "auth/user-not-found") {
           mensaje = "No existe una cuenta con ese correo.";
         }
-        alert(mensaje);
+        showToastError(mensaje);
       }
     };
   }
@@ -489,6 +329,14 @@
     }
   });
 </script>
-
+<script>
+  const linkRegister = document.getElementById('link-register');
+  if (linkRegister) {
+    linkRegister.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.location.href = 'registro.html';
+    });
+  }
+</script>
 </body>
 </html>
