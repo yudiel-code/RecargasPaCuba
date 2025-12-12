@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/app.css">
   <script src="js/ui.js"></script>
+  <script src="js/validators.js"></script>
 
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
@@ -109,7 +110,7 @@
 
     <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
 
-    <div id="msg" class="msg"></div>
+    <div id="msg" class="msg" style="display:none;"></div>
 
     <p class="register-login-back">
       <a href="index.html">&larr; Volver al login</a>
@@ -141,7 +142,9 @@
 
     // Solo redirigimos si ya hay usuario y NO necesita cambio/registro
     const tieneUsuarioPrevio = usuario && (usuario.email || usuario.usuario);
-    if (tieneUsuarioPrevio && usuario.forzarCambio === false) {
+    const authInicial = window.firebaseAuth || null;
+    const userInicial = authInicial && authInicial.currentUser;
+    if (userInicial && tieneUsuarioPrevio && usuario.forzarCambio === false) {
       window.location.href = "recargar.html";
     }
 
@@ -152,23 +155,24 @@
       const pass1 = document.getElementById("new-pass").value.trim();
       const pass2 = document.getElementById("new-pass2").value.trim();
       const msg = document.getElementById("msg");
-
-      msg.textContent = "";
+      if (msg) msg.style.display = "none";
 
       if (!nombre || !email || !pass1 || !pass2) {
-        msg.textContent = "Completa todos los campos.";
+        showToastError("Completa todos los campos.");
         return;
       }
 
-      // Misma regla de seguridad que en registro
-      const passSegura = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
-      if (!passSegura.test(pass1)) {
-        msg.textContent = "La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.";
+      const strongPass = (window.Validators && typeof window.Validators.isStrongPassword === "function")
+        ? window.Validators.isStrongPassword
+        : (p) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(p);
+
+      if (!strongPass(pass1)) {
+        showToastError("La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.");
         return;
       }
 
       if (pass1 !== pass2) {
-        msg.textContent = "Las contrasenas no coinciden.";
+        showToastError("Las contrasenas no coinciden.");
         return;
       }
 
@@ -177,7 +181,7 @@
       const auth = window.firebaseAuth;
 
       if (!createUser || !updateProfile || !auth) {
-        msg.textContent = "Servicio de registro no disponible. Intentalo de nuevo en unos minutos.";
+        showToastError("Servicio de registro no disponible. Intentalo de nuevo en unos minutos.");
         return;
       }
 
@@ -195,7 +199,18 @@
         localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
         localStorage.setItem("usuario", email);
 
-        window.location.href = "recargar.html";
+        showToastSuccess("Registro completado. Redirigiendo...");
+        try {
+          const signOut = window.firebaseSignOut || (window.firebaseAuth && window.firebaseAuth.signOut);
+          if (typeof signOut === "function") {
+            await Promise.resolve(signOut()).catch(() => {});
+          }
+        } catch (e) {
+          console.warn("No se pudo cerrar sesión tras registro:", e);
+        }
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("usuarioRegistrado");
+        window.location.href = "index.html";
       } catch (error) {
         console.error("Error en registro:", error);
         let mensaje = "No se pudo completar el registro.";
@@ -206,7 +221,7 @@
         } else if (error.code === "auth/weak-password") {
           mensaje = "La contrasena es muy debil.";
         }
-        msg.textContent = mensaje;
+        showToastError(mensaje);
       }
     });
 

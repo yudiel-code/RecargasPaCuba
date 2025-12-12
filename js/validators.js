@@ -57,10 +57,16 @@
     return { ok: true, sanitized: { numero: "+53" + normalized1 } };
   }
 
+  function isStrongPassword(password) {
+    const pass = String(password || "");
+    return /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(pass);
+  }
+
   global.Validators = {
     isCubacelNumber,
     isMatchingNumbers,
     isNautaEmail,
-    validarRecargaEntrada
+    validarRecargaEntrada,
+    isStrongPassword
   };
 })(typeof window !== "undefined" ? window : this);

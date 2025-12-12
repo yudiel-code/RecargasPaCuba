@@ -315,6 +315,10 @@
   onAuthStateChanged(auth, (user) => {
     if (!user) return;
 
+    if (!localStorage.getItem("usuario")) {
+      return;
+    }
+
     try {
       const raw = localStorage.getItem("usuarioRegistrado") || "{}";
       const datos = JSON.parse(raw);
