@@ -173,6 +173,9 @@ body.page-historial {
   font-family: "Poppins", system-ui, sans-serif;
   color: #ffffff;
 }
+.page-historial .card--gradient {
+  min-height: 150px;
+}
 
 body.page-cuenta {
   padding: 12px 14px 110px;
