@@ -963,6 +963,15 @@
 
         // Botón Realizar recarga (UserData + Email + recientes + VALIDACIÓN)
         btnRealizar.addEventListener("click", async () => {
+          if (navigator.onLine === false) {
+            if (typeof showToastError === 'function') {
+              showToastError('No tienes conexión, no puedes realizar recargas ahora.');
+            } else {
+              alert('No tienes conexión, no puedes realizar recargas ahora.');
+            }
+            return;
+          }
+
           const n1 = inputNum1.value || "";
           const n2 = inputNum2.value || "";
 
@@ -1082,6 +1091,5 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
-
 
 
