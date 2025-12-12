@@ -8,45 +8,45 @@ const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
 
 // Archivos que SÃ existen en tu proyecto segÃºn el Ã¡rbol de VS Code
 const CORE_ASSETS = [
-  '/',
-  '/index.html',
-  '/registro.html',
-  '/recargar.html',
-  '/historial.html',
-  '/cuenta.html',
-  '/cambiar-password.html',
-  '/terminos.html',
-  '/privacidad.html',
-  '/reembolsos.html',
-  '/offline.html',
+  './',
+  './index.html',
+  './registro.html',
+  './recargar.html',
+  './historial.html',
+  './cuenta.html',
+  './cambiar-password.html',
+  './terminos.html',
+  './privacidad.html',
+  './reembolsos.html',
+  './offline.html',
 
-  '/manifest.json',
-  '/favicon.ico',
+  './manifest.json',
+  './favicon.ico',
 
   // JS core (carpeta /js que se ve en el explorador)
-  '/js/firebase.js',
-  '/js/userData.js',
-  '/js/products.js',
-  '/js/app.js',
-  '/js/ui.js',
-  '/js/validators.js',
+  './js/firebase.js',
+  './js/userData.js',
+  './js/products.js',
+  './js/app.js',
+  './js/ui.js',
+  './js/validators.js',
 
   // CSS base de la app
-  '/styles/base.css',
-  '/styles/app.css',
+  './styles/base.css',
+  './styles/app.css',
 
   // Iconos PWA que tienes en la raíz
-  '/app-icon-96.png',
-  '/app-icon-128.png',
-  '/app-icon-144.png',
-  '/app-icon-152.png',
-  '/app-icon-192.png',
-  '/app-icon-256.png',
-  '/app-icon-384.png',
-  '/app-icon-512.png',
-  '/app-icon-1024.png',
-  '/icon-256.png',
-  '/google.png'
+  './app-icon-96.png',
+  './app-icon-128.png',
+  './app-icon-144.png',
+  './app-icon-152.png',
+  './app-icon-192.png',
+  './app-icon-256.png',
+  './app-icon-384.png',
+  './app-icon-512.png',
+  './app-icon-1024.png',
+  './icon-256.png',
+  './google.png'
 ];
 
 // Install: cache de HTML principal, JS e iconos
@@ -124,3 +124,4 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
