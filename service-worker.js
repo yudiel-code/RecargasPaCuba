@@ -3,7 +3,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
 
 // Archivos que SÃ existen en tu proyecto segÃºn el Ã¡rbol de VS Code
@@ -18,6 +18,7 @@ const CORE_ASSETS = [
   '/terminos.html',
   '/privacidad.html',
   '/reembolsos.html',
+  '/offline.html',
 
   '/manifest.json',
   '/favicon.ico',
@@ -100,7 +101,7 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           return caches.match(request)
-            .then(match => match || caches.match('/index.html'));
+            .then(match => match || caches.match('/offline.html') || caches.match('/index.html'));
         })
     );
     return;
@@ -123,4 +124,3 @@ self.addEventListener('fetch', event => {
     })
   );
 });
-

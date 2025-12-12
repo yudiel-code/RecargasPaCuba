@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sin conexión | RecargasPaCuba</title>
+  <style>
+    :root {
+      --left: #0b63d1;
+      --right: #19c6c3;
+      --text: #ffffff;
+      --card: rgba(255, 255, 255, 0.14);
+      --border: rgba(255, 255, 255, 0.28);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', system-ui, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--left), var(--right));
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+    }
+    .logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 14px;
+      background: #fff;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 2px solid var(--border);
+    }
+    .logo img { width: 80px; height: 80px; object-fit: contain; }
+    h1 {
+      font-size: 22px;
+      margin-bottom: 10px;
+      font-weight: 800;
+    }
+    p {
+      font-size: 14px;
+      line-height: 1.5;
+      opacity: 0.92;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <img src="app-icon-192.png" alt="RecargasPaCuba logo">
+    </div>
+    <h1>Sin conexión</h1>
+    <p>No hay Internet en este momento. Revisa tu conexión y vuelve a intentarlo cuando estés en línea.</p>
+  </div>
+</body>
+</html>
