@@ -303,6 +303,10 @@ body.page-legal li {
   font-size: 16px;
 }
 
+.nav-icon {
+  font-family: "Poppins", "Inter", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif;
+}
+
 .nav-btn.active {
   background: rgba(15, 23, 42, 0.25);
   color: #f9fafb;

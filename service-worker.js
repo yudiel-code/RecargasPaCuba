@@ -1,12 +1,12 @@
-// service-worker.js
-// REcargasPaCuba – B4.1 PWA & rendimiento
+﻿// service-worker.js
+// REcargasPaCuba â€“ B4.1 PWA & rendimiento
 
 'use strict';
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
 
-// Archivos que SÍ existen en tu proyecto según el árbol de VS Code
+// Archivos que SÃ existen en tu proyecto segÃºn el Ã¡rbol de VS Code
 const CORE_ASSETS = [
   '/',
   '/index.html',
@@ -26,10 +26,26 @@ const CORE_ASSETS = [
   '/js/firebase.js',
   '/js/userData.js',
   '/js/products.js',
+  '/js/app.js',
+  '/js/ui.js',
+  '/js/validators.js',
+
+  // CSS base de la app
+  '/styles/base.css',
+  '/styles/app.css',
 
   // Iconos PWA que tienes en la raíz
+  '/app-icon-96.png',
+  '/app-icon-128.png',
+  '/app-icon-144.png',
+  '/app-icon-152.png',
   '/app-icon-192.png',
-  '/app-icon-512.png'
+  '/app-icon-256.png',
+  '/app-icon-384.png',
+  '/app-icon-512.png',
+  '/app-icon-1024.png',
+  '/icon-256.png',
+  '/google.png'
 ];
 
 // Install: cache de HTML principal, JS e iconos
@@ -57,15 +73,15 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Detectar si la petición es HTML/navegación
+// Detectar si la peticiÃ³n es HTML/navegaciÃ³n
 function isHtmlRequest(request) {
   return request.mode === 'navigate' ||
     (request.headers.get('accept') || '').includes('text/html');
 }
 
 // Fetch:
-// - HTML → network-first (frescura, fallback a cache).
-// - Estáticos → cache-first (rendimiento).
+// - HTML â†’ network-first (frescura, fallback a cache).
+// - EstÃ¡ticos â†’ cache-first (rendimiento).
 self.addEventListener('fetch', event => {
   const { request } = event;
 
@@ -90,7 +106,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Estáticos: cache-first
+  // EstÃ¡ticos: cache-first
   event.respondWith(
     caches.match(request).then(cacheResponse => {
       if (cacheResponse) return cacheResponse;
@@ -107,3 +123,4 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
