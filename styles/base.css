@@ -71,6 +71,10 @@ body {
   padding: 16px 18px;
   backdrop-filter: blur(16px);
 }
+.historial-container .card--gradient {
+  width: 100%;
+  box-sizing: border-box;
+}
 
 /* Botones */
 .btn {
