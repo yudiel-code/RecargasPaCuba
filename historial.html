@@ -170,50 +170,50 @@
       <div class="icono">⚡</div>
       <div class="contenido">
         <div class="titulo">Recarga realizada</div>
-        <div class="descripcion" id="recarga-desc">Todavia no tienes movimientos en esta seccion</div>
+        <div class="descripcion" id="recarga-desc">Aún no tienes movimientos</div>
         <div class="fecha" id="recarga-fecha"></div>
       </div>
-      <div class="estado verde" id="recarga-estado">Sin movimientos</div>
+      <div class="estado verde" id="recarga-estado">Sin movimientos registrados</div>
     </div>
 
     <div class="card card--gradient" id="card-saldo">
       <div class="icono">💰</div>
       <div class="contenido">
         <div class="titulo">Saldo agregado</div>
-        <div class="descripcion" id="saldo-desc">Todavia no tienes movimientos en esta seccion</div>
+        <div class="descripcion" id="saldo-desc">Aún no tienes movimientos</div>
         <div class="fecha" id="saldo-fecha"></div>
       </div>
-      <div class="estado verde" id="saldo-estado">Sin movimientos</div>
+      <div class="estado verde" id="saldo-estado">Sin movimientos registrados</div>
     </div>
 
     <div class="card card--gradient" id="card-correo">
       <div class="icono">📧</div>
       <div class="contenido">
         <div class="titulo">Correo recibido</div>
-        <div class="descripcion" id="correo-desc">Todavia no tienes movimientos en esta seccion</div>
+        <div class="descripcion" id="correo-desc">Aún no tienes movimientos</div>
         <div class="fecha" id="correo-fecha"></div>
       </div>
-      <div class="estado azul" id="correo-estado">Sin movimientos</div>
+      <div class="estado azul" id="correo-estado">Sin movimientos registrados</div>
     </div>
 
     <div class="card card--gradient">
       <div class="icono">🎁</div>
       <div class="contenido">
         <div class="titulo">Nueva oferta</div>
-        <div class="descripcion">Todavia no tienes movimientos en esta seccion</div>
+        <div class="descripcion">Aún no tienes movimientos</div>
         <div class="fecha"></div>
       </div>
-      <div class="estado azul">Sin movimientos</div>
+      <div class="estado azul">Sin movimientos registrados</div>
     </div>
 
     <div class="card card--gradient">
       <div class="icono">⚠️</div>
       <div class="contenido">
         <div class="titulo">Error de operación</div>
-        <div class="descripcion">Todavia no tienes movimientos en esta seccion</div>
+        <div class="descripcion">Aún no tienes movimientos</div>
         <div class="fecha"></div>
       </div>
-      <div class="estado rojo">Sin movimientos</div>
+      <div class="estado rojo">Sin movimientos registrados</div>
     </div>
 
   </div>
@@ -362,7 +362,7 @@
           const datos = lista.filter(m => m && m.tipo === tipo);
 
           if (!datos.length) {
-            modalLista.innerHTML = '<div class="modal-item">Sin movimientos</div>';
+            modalLista.innerHTML = '<div class="modal-item">Sin movimientos registrados</div>';
           } else {
             datos.forEach(m => {
               const importe = Number(m.importe);
@@ -387,7 +387,7 @@
           const recargasLocal = lista.filter(m => m && m.tipo === "recarga");
 
           if (!recargasLocal.length) {
-            modalLista.innerHTML = '<div class="modal-item">Sin correos enviados</div>';
+            modalLista.innerHTML = '<div class="modal-item">No hay correos enviados</div>';
           } else {
             recargasLocal.forEach(m => {
               const idTxt      = m.id || "Sin ID";
@@ -465,6 +465,7 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
 
 
 
