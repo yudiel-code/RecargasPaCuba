@@ -3,7 +3,7 @@
 
 'use strict';
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
 
 // Archivos que SÃ existen en tu proyecto segÃºn el Ã¡rbol de VS Code
@@ -107,6 +107,24 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // CSS: stale-while-revalidate para evitar CSS obsoleto
+  if (request.destination === 'style' || request.url.endsWith('.css')) {
+    event.respondWith(
+      caches.match(request).then(cacheResponse => {
+        const fetchPromise = fetch(request)
+          .then(networkResponse => {
+            caches.open(CACHE_NAME).then(cache => cache.put(request, networkResponse.clone()));
+            return networkResponse;
+          })
+          .catch(() => null);
+
+        // Devuelve cache si existe, sino espera red
+        return cacheResponse || fetchPromise.then(resp => resp || new Response('', { status: 503, statusText: 'Service Unavailable' }));
+      })
+    );
+    return;
+  }
+
   // EstÃ¡ticos: cache-first
   event.respondWith(
     caches.match(request).then(cacheResponse => {
@@ -124,4 +142,3 @@ self.addEventListener('fetch', event => {
     })
   );
 });
-
