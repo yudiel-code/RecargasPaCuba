@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -34,7 +34,7 @@
       display: flex;
       flex-direction: column;
       color: white;
-      /* menos espacio para que la última tarjeta llegue casi a la barra */
+      /* menos espacio para que la Última tarjeta llegue casi a la barra */
       padding-bottom: 90px;
     }
 
@@ -177,7 +177,7 @@
     </div>
 
     <div class="card card--gradient" id="card-saldo">
-      <div class="icono">💳</div>
+      <div class="icono">💰</div>
       <div class="contenido">
         <div class="titulo">Saldo agregado</div>
         <div class="descripcion" id="saldo-desc">Todavia no tienes movimientos en esta seccion</div>
@@ -187,7 +187,7 @@
     </div>
 
     <div class="card card--gradient" id="card-correo">
-      <div class="icono">📩</div>
+      <div class="icono">📧</div>
       <div class="contenido">
         <div class="titulo">Correo recibido</div>
         <div class="descripcion" id="correo-desc">Todavia no tienes movimientos en esta seccion</div>
@@ -228,10 +228,10 @@
   </div>
 
   <div class="legal-links" style="text-align:center;margin-top:12px;">
-    <small>
-      <a href="terminos.html">Términos</a> ·
-      <a href="privacidad.html">Privacidad</a> ·
-      <a href="reembolsos.html">Reembolsos</a> ·
+        <small>
+      <a href="terminos.html">Términos</a> |
+      <a href="privacidad.html">Privacidad</a> |
+      <a href="reembolsos.html">Reembolsos</a> |
       <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
     </small>
   </div>
@@ -240,11 +240,11 @@
   <nav class="app-nav">
     <div class="nav-inner">
       <a href="recargar.html" class="nav-btn">
-        <span>⚡️</span>
+        <span>⚡</span>
         <div>Recargar</div>
       </a>
       <a href="historial.html" class="nav-btn active">
-        <span>📜</span>
+        <span>🕑</span>
         <div>Historial</div>
       </a>
       <a href="cuenta.html" class="nav-btn">
@@ -305,7 +305,7 @@
             estadoR.className = "estado rojo";
           }
 
-          // Tarjeta Correo recibido (última recarga)
+          // Tarjeta Correo recibido (Última recarga)
           const correoDesc   = document.getElementById("correo-desc");
           const correoFecha  = document.getElementById("correo-fecha");
           const correoEstado = document.getElementById("correo-estado");
@@ -370,7 +370,7 @@
               const impTxt  = isNaN(importe) ? "" : `${signo}${importe.toFixed(2)} €`;
               const fila = document.createElement("div");
               fila.className = "modal-item";
-              fila.textContent = `${m.fecha || ""} · ${impTxt}`;
+              fila.textContent = `${m.fecha || ""} | ${impTxt}`;
               modalLista.appendChild(fila);
             });
           }
@@ -400,7 +400,7 @@
               const fila = document.createElement("div");
               fila.className = "modal-item";
               fila.textContent =
-                `${m.fecha || ""} · ${emailTxt} · ${importeTxt} · ${m.numero || ""} · ${estadoTxt} · ID: ${idTxt}`;
+                `${m.fecha || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | ID: ${idTxt}`;
               modalLista.appendChild(fila);
             });
           }
@@ -465,3 +465,10 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+

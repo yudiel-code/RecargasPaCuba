@@ -49,7 +49,20 @@
 
       <div class="password-wrap">
         <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
-        <span id="toggle-pass" class="toggle-pass">👁</span>
+        <span
+          id="toggle-pass"
+          class="toggle-pass"
+          role="button"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+          </svg>
+          <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+            <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+          </svg>
+        </span>
       </div>
 
       <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
@@ -141,7 +154,7 @@
     btnLogin.addEventListener("click", async () => {
       if (estaBloqueado()) {
         const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
-        showToastError("🔒 Login bloqueado hasta: " + hasta.toLocaleTimeString());
+        showToastError("Aviso: login bloqueado hasta: " + hasta.toLocaleTimeString());
         return;
       }
 
@@ -209,7 +222,7 @@
         if (intentos >= MAX_INTENTOS) {
           const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
           localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
-          showToastError("🔒 Demasiados intentos. Bloqueado 10 minutos.");
+          showToastError("Aviso: demasiados intentos. Bloqueado 10 minutos.");
         } else {
           let mensaje = "Email o contraseña incorrectos.";
           if (error.code === "auth/user-not-found") {
@@ -233,12 +246,26 @@
       const icon = document.getElementById("toggle-pass");
       if (!input || !icon) return;
 
-      if (input.type === "password") {
+            if (input.type === "password") {
         input.type = "text";
-        icon.textContent = "🙈";
+        const eye = icon.querySelector(".icon-eye");
+        const eyeOff = icon.querySelector(".icon-eye-off");
+        icon.setAttribute("aria-label", "Ocultar contraseña");
+        icon.setAttribute("aria-pressed", "true");
+        if (eye && eyeOff) {
+          eye.style.display = "none";
+          eyeOff.style.display = "inline";
+        }
       } else {
         input.type = "password";
-        icon.textContent = "👁";
+        const eye = icon.querySelector(".icon-eye");
+        const eyeOff = icon.querySelector(".icon-eye-off");
+        icon.setAttribute("aria-label", "Mostrar contraseña");
+        icon.setAttribute("aria-pressed", "false");
+        if (eye && eyeOff) {
+          eye.style.display = "inline";
+          eyeOff.style.display = "none";
+        }
       }
     });
   }
@@ -353,3 +380,7 @@
 </script>
 </body>
 </html>
+
+
+
+
