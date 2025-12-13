@@ -206,6 +206,16 @@ body.page-legal p,
 body.page-legal li {
   margin-bottom: 12px;
 }
+.legal-links {
+  position: static;
+  width: 100%;
+  max-width: 520px;
+  margin: 12px auto 0;
+  padding: 0;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0.85;
+}
 
 .page-recargar .app {
   width: 100%;
