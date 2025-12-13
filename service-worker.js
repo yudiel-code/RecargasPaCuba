@@ -113,7 +113,11 @@ self.addEventListener('fetch', event => {
       caches.match(request).then(cacheResponse => {
         const fetchPromise = fetch(request)
           .then(networkResponse => {
-            caches.open(CACHE_NAME).then(cache => cache.put(request, networkResponse.clone()));
+            if (!networkResponse || !networkResponse.ok || networkResponse.type === 'opaque') {
+              return networkResponse;
+            }
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
             return networkResponse;
           })
           .catch(() => null);
