@@ -1,7 +1,20 @@
 (function (global) {
+  function normalizeCubacel(num) {
+    const cleaned = (num || "").replace(/\s+/g, "");
+    if (/^\+53/.test(cleaned)) {
+      return cleaned.replace(/^\+53/, "");
+    }
+
+    if (/^53/.test(cleaned) && cleaned.replace(/\D/g, "").length > 8) {
+      return cleaned.replace(/^53/, "");
+    }
+
+    return cleaned;
+  }
+
   function isCubacelNumber(num) {
-    const cleaned = (num || "").replace(/\s+/g, "").replace(/^\+?53/, "");
-    return /^5\d{7}$/.test(cleaned);
+    const normalized = normalizeCubacel(num);
+    return /^5\d{7}$/.test(normalized);
   }
 
   function isMatchingNumbers(n1, n2) {
@@ -39,8 +52,8 @@
       return { ok: true, sanitized: { email: correoFinal, numero: correoFinal } };
     }
 
-    const normalized1 = n1.replace(/^\+?53/, "");
-    const normalized2 = n2.replace(/^\+?53/, "");
+    const normalized1 = normalizeCubacel(n1);
+    const normalized2 = normalizeCubacel(n2);
 
     if (!normalized1 || !normalized2) {
       return { ok: false, error: "Por favor, escribe el número en ambos campos." };

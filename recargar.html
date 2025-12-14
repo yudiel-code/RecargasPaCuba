@@ -1,4 +1,4 @@
-﻿<!doctype html>
+﻿﻿<!doctype html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -933,7 +933,7 @@
               recibeTxt = producto.recibe || beneficioActual;
               operadorTxt = (producto.operador || "").toUpperCase();
             } else {
-              showToastError("No se encontr¢ el producto seleccionado. Int‚ntalo de nuevo.");
+              showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
               return;
             }
 
@@ -1036,7 +1036,7 @@
               await emailjs.send("service_ryvafj3", "template_k5t8asf", {
                 to_email: datosUsuario.email,
                 numero: numeroFinal || movimiento.numero,
-                importe: Number(movimiento.importe || precioActual).toFixed(2) + " ?",
+                importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
                 beneficio: movimiento.beneficio || beneficioActual,
                 fecha: movimiento.fecha || new Date().toLocaleString(),
                 id_confirmacion: idConfirmacion
@@ -1046,7 +1046,7 @@
             }
           }
 
-          showToastSuccess("? Recarga registrada correctamente\nID: " + idConfirmacion);
+          showToastSuccess("¡ Recarga registrada correctamente\nID: " + idConfirmacion);
           modalBg.style.display = "none";
         });
       }
@@ -1087,3 +1087,23 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

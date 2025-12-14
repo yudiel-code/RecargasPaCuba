@@ -6,6 +6,10 @@
 const CACHE_VERSION = 'v4';
 const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
 
+function scopedUrl(path) {
+  return new URL(path, self.registration.scope).toString();
+}
+
 // Archivos que SÃ existen en tu proyecto segÃºn el Ã¡rbol de VS Code
 const CORE_ASSETS = [
   './',
@@ -53,7 +57,16 @@ const CORE_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(CORE_ASSETS))
+      .then(cache => {
+        const scopedAssets = CORE_ASSETS.map(scopedUrl);
+        return Promise.allSettled(
+          scopedAssets.map(url =>
+            cache.add(url).catch(err => {
+              console.warn('[SW] Precaching failed for', url, err);
+            })
+          )
+        );
+      })
       .then(() => self.skipWaiting())
       .catch(err => {
         console.error('[SW] Error en install:', err);
@@ -101,7 +114,7 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           return caches.match(request)
-            .then(match => match || caches.match('/offline.html') || caches.match('/index.html'));
+            .then(match => match || caches.match(scopedUrl('./offline.html')) || caches.match(scopedUrl('./index.html')));
         })
     );
     return;
