@@ -1,15 +1,21 @@
 (function (global) {
   function normalizeCubacel(num) {
-    const cleaned = (num || "").replace(/\s+/g, "");
-    if (/^\+53/.test(cleaned)) {
-      return cleaned.replace(/^\+53/, "");
+    // Aceptar separadores comunes pero quedarnos con los dígitos (+ solo al inicio)
+    // PASS: 51-23-45-67, (51)234567, 51.23.45.67, +53 51-23-45-67
+    // FAIL: 45123456
+    const raw = (num || "").trim();
+    const hasPlus = raw.startsWith("+");
+    const digitsOnly = raw.replace(/\D/g, "");
+
+    if (hasPlus && digitsOnly.startsWith("53")) {
+      return digitsOnly.slice(2);
     }
 
-    if (/^53/.test(cleaned) && cleaned.replace(/\D/g, "").length > 8) {
-      return cleaned.replace(/^53/, "");
+    if (digitsOnly.startsWith("53") && digitsOnly.length > 8) {
+      return digitsOnly.slice(2);
     }
 
-    return cleaned;
+    return digitsOnly;
   }
 
   function isCubacelNumber(num) {
