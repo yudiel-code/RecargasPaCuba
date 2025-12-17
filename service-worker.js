@@ -3,8 +3,9 @@
 
 'use strict';
 
-const CACHE_VERSION = 'v4';
-const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
+const CACHE_VERSION = 'v5';
+const STATIC_CACHE_PREFIX = 'rpc-static-';
+const CACHE_NAME = `${STATIC_CACHE_PREFIX}${CACHE_VERSION}`;
 
 function scopedUrl(path) {
   return new URL(path, self.registration.scope).toString();
@@ -80,7 +81,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys => {
       return Promise.all(
         keys
-          .filter(key => key.startsWith('rpc-static-') && key !== CACHE_NAME)
+          .filter(key => key.startsWith(STATIC_CACHE_PREFIX) && key !== CACHE_NAME)
           .map(key => caches.delete(key))
       );
     }).then(() => self.clients.claim())
@@ -115,6 +116,23 @@ self.addEventListener('fetch', event => {
         .catch(() => {
           return caches.match(request)
             .then(match => match || caches.match(scopedUrl('./offline.html')) || caches.match(scopedUrl('./index.html')));
+        })
+    );
+    return;
+  }
+
+  // JS: network-first para evitar scripts obsoletos, fallback a cache para modo offline
+  if (request.destination === 'script' || request.url.endsWith('.js')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const respClone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, respClone));
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request)
+            .then(match => match || new Response('', { status: 503, statusText: 'Service Unavailable' }));
         })
     );
     return;
