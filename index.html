@@ -18,17 +18,6 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        const isLocalhost = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-
-        if (isLocalhost) {
-          navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(reg => reg.unregister());
-          }).catch(err => {
-            console.warn('SW unregister failed:', err);
-          });
-          return;
-        }
-
         navigator.serviceWorker.register('./service-worker.js').catch(err => {
           console.warn('SW registration failed:', err);
         });
@@ -82,7 +71,7 @@
 
     </div>
 
-    <div class="legal-links" style="text-align:center;margin-top:12px;">
+    <div class="legal-links legal-links--sticky" style="text-align:center;margin-top:12px;">
       <small>
         <a href="terminos.html">Términos</a> ·
         <a href="privacidad.html">Privacidad</a> ·
@@ -391,5 +380,7 @@
 </script>
 </body>
 </html>
+
+
 
 

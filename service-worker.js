@@ -3,13 +3,8 @@
 
 'use strict';
 
-const CACHE_VERSION = 'v5';
-const STATIC_CACHE_PREFIX = 'rpc-static-';
-const CACHE_NAME = `${STATIC_CACHE_PREFIX}${CACHE_VERSION}`;
-
-function scopedUrl(path) {
-  return new URL(path, self.registration.scope).toString();
-}
+const CACHE_VERSION = 'v4';
+const CACHE_NAME = `rpc-static-${CACHE_VERSION}`;
 
 // Archivos que SÃ existen en tu proyecto segÃºn el Ã¡rbol de VS Code
 const CORE_ASSETS = [
@@ -58,16 +53,7 @@ const CORE_ASSETS = [
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => {
-        const scopedAssets = CORE_ASSETS.map(scopedUrl);
-        return Promise.allSettled(
-          scopedAssets.map(url =>
-            cache.add(url).catch(err => {
-              console.warn('[SW] Precaching failed for', url, err);
-            })
-          )
-        );
-      })
+      .then(cache => cache.addAll(CORE_ASSETS))
       .then(() => self.skipWaiting())
       .catch(err => {
         console.error('[SW] Error en install:', err);
@@ -81,7 +67,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys => {
       return Promise.all(
         keys
-          .filter(key => key.startsWith(STATIC_CACHE_PREFIX) && key !== CACHE_NAME)
+          .filter(key => key.startsWith('rpc-static-') && key !== CACHE_NAME)
           .map(key => caches.delete(key))
       );
     }).then(() => self.clients.claim())
@@ -115,24 +101,7 @@ self.addEventListener('fetch', event => {
         })
         .catch(() => {
           return caches.match(request)
-            .then(match => match || caches.match(scopedUrl('./offline.html')) || caches.match(scopedUrl('./index.html')));
-        })
-    );
-    return;
-  }
-
-  // JS: network-first para evitar scripts obsoletos, fallback a cache para modo offline
-  if (request.destination === 'script' || request.url.endsWith('.js')) {
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          const respClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, respClone));
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request)
-            .then(match => match || new Response('', { status: 503, statusText: 'Service Unavailable' }));
+            .then(match => match || caches.match('/offline.html') || caches.match('/index.html'));
         })
     );
     return;
@@ -144,11 +113,7 @@ self.addEventListener('fetch', event => {
       caches.match(request).then(cacheResponse => {
         const fetchPromise = fetch(request)
           .then(networkResponse => {
-            if (!networkResponse || !networkResponse.ok || networkResponse.type === 'opaque') {
-              return networkResponse;
-            }
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, responseClone));
+            caches.open(CACHE_NAME).then(cache => cache.put(request, networkResponse.clone()));
             return networkResponse;
           })
           .catch(() => null);

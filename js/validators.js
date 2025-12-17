@@ -1,26 +1,7 @@
 (function (global) {
-  function normalizeCubacel(num) {
-    // Aceptar separadores comunes pero quedarnos con los dígitos (+ solo al inicio)
-    // PASS: 51-23-45-67, (51)234567, 51.23.45.67, +53 51-23-45-67
-    // FAIL: 45123456
-    const raw = (num || "").trim();
-    const hasPlus = raw.startsWith("+");
-    const digitsOnly = raw.replace(/\D/g, "");
-
-    if (hasPlus && digitsOnly.startsWith("53")) {
-      return digitsOnly.slice(2);
-    }
-
-    if (digitsOnly.startsWith("53") && digitsOnly.length > 8) {
-      return digitsOnly.slice(2);
-    }
-
-    return digitsOnly;
-  }
-
   function isCubacelNumber(num) {
-    const normalized = normalizeCubacel(num);
-    return /^5\d{7}$/.test(normalized);
+    const cleaned = (num || "").replace(/\s+/g, "").replace(/^\+?53/, "");
+    return /^5\d{7}$/.test(cleaned);
   }
 
   function isMatchingNumbers(n1, n2) {
@@ -58,8 +39,8 @@
       return { ok: true, sanitized: { email: correoFinal, numero: correoFinal } };
     }
 
-    const normalized1 = normalizeCubacel(n1);
-    const normalized2 = normalizeCubacel(n2);
+    const normalized1 = n1.replace(/^\+?53/, "");
+    const normalized2 = n2.replace(/^\+?53/, "");
 
     if (!normalized1 || !normalized2) {
       return { ok: false, error: "Por favor, escribe el número en ambos campos." };
