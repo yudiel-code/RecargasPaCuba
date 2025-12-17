@@ -1,4 +1,4 @@
-/* ===== BASE GLOBAL ƒ?" RecargasPaCuba ===== */
+/* ===== BASE GLOBAL "RecargasPaCuba" ===== */
 
 /* Fuentes globales */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -21,7 +21,7 @@
   --bg-bottom: #1aa0c3;
 }
 
-/* Reset bÇ­sico + anti-flash */
+/* Reset básico + anti-flash */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -62,7 +62,7 @@ body {
   flex-direction: column;
 }
 
-/* Tarjetas genÇ¸ricas */
+/* Tarjetas genéricas */
 .card {
   background: var(--bg-card);
   border-radius: var(--radius-xl);
@@ -160,7 +160,7 @@ body {
   font-size: 0.8rem;
 }
 
-/* Estado online genÇ¸rico */
+/* Estado online genérico */
 .estado-online {
   display: inline-flex;
   align-items: center;
