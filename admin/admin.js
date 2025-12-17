@@ -1,53 +1,77 @@
-// admin/admin.js - lÃ³gica comÃºn admin (protecciÃ³n + helpers)
+// admin/admin.js - lógica común admin (protección + helpers)
 
 (function () {
-  const ADMIN_EMAILS = [
-    "recargaspacubaapp@gmail.com"
-  ];
-
+  const ADMIN_EMAIL = "recargaspacubaapp@gmail.com";
   const isLoginPage = /\/admin\/login\.html$/i.test(window.location.pathname) ||
                       /login\.html$/i.test(window.location.pathname);
 
-  // Fallback viejo por si Firebase no estÃ¡ disponible (solo para no romper nada)
-  function fallbackLocalCheck() {
-    const logged = localStorage.getItem("adminLogged");
-    if (logged !== "true" && !isLoginPage) {
-      window.location.href = "login.html";
+  // Guardar/hide mientras se confirma la sesión para evitar flash
+  let previousVisibility;
+  function hideUntilAuth() {
+    if (isLoginPage) return;
+    const doc = document.documentElement;
+    previousVisibility = doc.style.visibility;
+    doc.style.visibility = "hidden";
+  }
+  function showPage() {
+    const doc = document.documentElement;
+    if (previousVisibility !== undefined) {
+      doc.style.visibility = previousVisibility;
+    } else {
+      doc.style.visibility = "";
     }
   }
 
-  // Preferimos siempre Firebase
-  if (window.firebaseOnAuthStateChanged && window.firebaseAuth) {
-    window.firebaseOnAuthStateChanged(window.firebaseAuth, (user) => {
-      const email = (user && user.email ? user.email.toLowerCase() : "");
-      const esAdmin = !!user && ADMIN_EMAILS.includes(email);
+  hideUntilAuth();
 
-      if (!esAdmin) {
-        // Si no es admin:
-        localStorage.removeItem("adminLogged");
-        localStorage.removeItem("adminEmail");
-
-        if (!isLoginPage) {
-          window.location.href = "login.html";
-        }
-      } else {
-        // Admin vÃ¡lido â†’ marcamos flags locales
-        localStorage.setItem("adminLogged", "true");
-        localStorage.setItem("adminEmail", email);
-      }
-    });
-  } else {
-    // Si por cualquier motivo Firebase no se ha cargado,
-    // usamos el comportamiento anterior basado en localStorage
-    fallbackLocalCheck();
+  function clearAdminFlags() {
+    localStorage.removeItem("adminLogged");
+    localStorage.removeItem("adminEmail");
   }
 
-  // Logout si existe el botÃ³n #logout en la pÃ¡gina
+  async function forceSignOut() {
+    if (window.firebaseSignOut && window.firebaseAuth) {
+      try {
+        await window.firebaseSignOut(window.firebaseAuth);
+      } catch (e) {}
+    }
+  }
+
+  async function handleUnauthenticated() {
+    clearAdminFlags();
+    await forceSignOut();
+    if (!isLoginPage) {
+      window.location.href = "login.html";
+    } else {
+      showPage();
+    }
+  }
+
+  const hasFirebase = !!(window.firebaseOnAuthStateChanged && window.firebaseAuth);
+  if (!hasFirebase) {
+    handleUnauthenticated();
+    return;
+  }
+
+  window.firebaseOnAuthStateChanged(window.firebaseAuth, async (user) => {
+    const email = (user && user.email ? user.email.toLowerCase() : "");
+    const esAdmin = !!user && email === ADMIN_EMAIL;
+
+    if (!esAdmin) {
+      await handleUnauthenticated();
+      return;
+    }
+
+    // Admin válido: no se usan flags locales
+    clearAdminFlags();
+    showPage();
+  });
+
+  // Logout si existe el botón #logout en la página
   const logout = document.querySelector("#logout");
   if (logout) {
     logout.addEventListener("click", async () => {
-      localStorage.removeItem("adminLogged");
-      localStorage.removeItem("adminEmail");
+      clearAdminFlags();
 
       if (window.firebaseSignOut && window.firebaseAuth) {
         try {
@@ -62,7 +86,7 @@
   // Helpers comunes para otras pantallas admin
   window.AdminHelpers = {
     formatCurrency(v) {
-      return typeof v === "number" ? v.toFixed(2) + " â‚¬" : v;
+      return typeof v === "number" ? v.toFixed(2) + " ƒ'ª" : v;
     },
     emptyTable(tbody, message) {
       if (!tbody) return;
