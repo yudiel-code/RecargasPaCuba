@@ -10,6 +10,13 @@
   <meta name="theme-color" content="#0b63d1">
 
   <title>RecargasPaCuba</title>
+  <script>
+    const __rpcParams = new URLSearchParams(window.location.search || "");
+    const __rpcBuild = __rpcParams.get("v") || "prod";
+    window.__RPC_BUILD = __rpcBuild;
+    try { document.documentElement.dataset.rpcBuild = __rpcBuild; } catch (_) {}
+    console.info("[RPC] build", __rpcBuild);
+  </script>
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/app.css">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -68,6 +75,9 @@
         <a href="reembolsos.html">Reembolsos</a> ·
         <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
       </small>
+    </div>
+    <div id="rpc-build-indicator" style="text-align:center;font-size:12px;color:#6b6b6b;margin-top:6px;">
+      Build:
     </div>
   </section>
 </main>
@@ -206,9 +216,18 @@
         const allowed = ["recargar.html", "cuenta.html", "historial.html"];
         const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
         const dest = safe || "recargar.html";
+        const vParam = params.get("v");
+        let finalDest = dest;
+        if (vParam && !/[?&]v=/.test(dest)) {
+          const parts = dest.split("#");
+          const base = parts[0];
+          const hash = parts[1] ? "#" + parts[1] : "";
+          const sep = base.includes("?") ? "&" : "?";
+          finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
+        }
         if (!window.__authRedirected) {
           window.__authRedirected = true;
-          window.location.href = dest;
+          window.location.href = finalDest;
         }
       } catch (error) {
         console.log("Error login Firebase:", error);
@@ -366,9 +385,18 @@
       const allowed = ["recargar.html", "cuenta.html", "historial.html"];
       const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
       const dest = safe || "recargar.html";
+      const vParam = params.get("v");
+      let finalDest = dest;
+      if (vParam && !/[?&]v=/.test(dest)) {
+        const parts = dest.split("#");
+        const base = parts[0];
+        const hash = parts[1] ? "#" + parts[1] : "";
+        const sep = base.includes("?") ? "&" : "?";
+        finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
+      }
       if (!window.__authRedirected) {
         window.__authRedirected = true;
-        window.location.href = dest;
+        window.location.href = finalDest;
       }
     } catch (e) {
       console.error("Error sincronizando sesión en login:", e);
@@ -384,6 +412,13 @@
     });
   }
 </script>
+<script>
+  (function () {
+    const el = document.getElementById("rpc-build-indicator");
+    if (!el) return;
+    const build = (typeof window.__RPC_BUILD === "string" && window.__RPC_BUILD) ? window.__RPC_BUILD : "prod";
+    el.textContent = "Build: " + build;
+  })();
+</script>
 </body>
 </html>
-
