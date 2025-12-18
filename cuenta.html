@@ -1244,7 +1244,13 @@
     }
 
     if (!usuarioSesion) {
-      window.location.href = "index.html";
+      const currentPage = (location.pathname || "").split("/").pop() || "cuenta.html";
+      const relativeTarget = `${currentPage}${location.search || ""}${location.hash || ""}`;
+      const p = new URLSearchParams();
+      p.set("next", relativeTarget);
+      const v = new URLSearchParams(location.search || "").get("v");
+      if (v) p.set("v", v);
+      window.location.replace(`index.html?${p.toString()}`);
     }
 
     const nombreMostrar = datosUsuario.nombre || "Usuario";
