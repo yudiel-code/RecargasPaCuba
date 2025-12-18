@@ -822,6 +822,14 @@
       height: 50px;
       fill: #fff;
     }
+
+    #avatarBox:focus-visible,
+    .metodo-opcion:focus-visible,
+    .link-list li:focus-visible {
+      outline: 2px solid #fbbf24;
+      outline-offset: 3px;
+      box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
+    }
   </style>
 </head>
 
@@ -882,7 +890,7 @@
         </div>
 
         <div class="usuario-box">
-          <div class="avatar" id="avatarBox">
+          <div class="avatar" id="avatarBox" role="button" tabindex="0" aria-label="Editar avatar">
             <div class="avatar-letra" id="avatarLetra">Y</div>
             <img id="avatarImg" alt="Avatar usuario">
             <small>Editar</small>
@@ -1045,7 +1053,7 @@
         </div>
 
         <ul class="link-list">
-          <li>
+          <li role="button" tabindex="0" aria-label="Ver términos y condiciones">
             <div class="link-item">
               <div class="link-icon">📋</div>
               <div>
@@ -1056,7 +1064,7 @@
             <div class="link-chevron">›</div>
           </li>
 
-          <li>
+          <li role="button" tabindex="0" aria-label="Ver política de privacidad">
             <div class="link-item">
               <div class="link-icon">🔐</div>
               <div>
@@ -1067,7 +1075,7 @@
             <div class="link-chevron">›</div>
           </li>
 
-          <li>
+          <li role="button" tabindex="0" aria-label="Ver política de reembolsos">
             <div class="link-item">
               <div class="link-icon">💳</div>
               <div>
@@ -1100,36 +1108,36 @@
   </nav>
 
   <div id="modalMetodo" class="modal-bg">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalMetodoTitle" tabindex="-1">
       <div class="modal-header">
-        <div class="modal-title">Seleccionar método de pago</div>
-        <button class="modal-close" data-close="metodo">×</button>
+        <div class="modal-title" id="modalMetodoTitle">Seleccionar método de pago</div>
+        <button class="modal-close" data-close="metodo" type="button" aria-label="Cerrar">×</button>
       </div>
       <div class="modal-body">
         <p>Elige cómo quieres añadir saldo a tu monedero RecargasPaCuba.</p>
         <div class="selector-banco">
-          <div class="banco-pill metodo-opcion" data-metodo="bizum">
+          <div class="banco-pill metodo-opcion" data-metodo="bizum" role="button" tabindex="0" aria-label="Seleccionar Bizum">
             <div>
               <span class="nombre">Bizum</span><br>
               <span class="tag">En segundos</span>
             </div>
             <div>📲</div>
           </div>
-          <div class="banco-pill metodo-opcion" data-metodo="transferencia">
+          <div class="banco-pill metodo-opcion" data-metodo="transferencia" role="button" tabindex="0" aria-label="Seleccionar transferencia">
             <div>
               <span class="nombre">Transferencia</span><br>
               <span class="tag">24-48 horas</span>
             </div>
             <div>🏦</div>
           </div>
-          <div class="banco-pill metodo-opcion" data-metodo="paypal">
+          <div class="banco-pill metodo-opcion" data-metodo="paypal" role="button" tabindex="0" aria-label="Seleccionar PayPal">
             <div>
               <span class="nombre">PayPal</span><br>
               <span class="tag">Pago online</span>
             </div>
             <div>🅿️</div>
           </div>
-          <div class="banco-pill metodo-opcion" data-metodo="tarjeta">
+          <div class="banco-pill metodo-opcion" data-metodo="tarjeta" role="button" tabindex="0" aria-label="Seleccionar tarjeta">
             <div>
               <span class="nombre">Visa &amp; Mastercard</span><br>
               <span class="tag">Tarjeta bancaria</span>
@@ -1149,10 +1157,10 @@
   </div>
 
   <div id="modalSaldo" class="modal-bg">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSaldoTitle" tabindex="-1">
       <div class="modal-header">
-        <div class="modal-title">Añadir saldo manual</div>
-        <button class="modal-close" data-close="saldo">×</button>
+        <div class="modal-title" id="modalSaldoTitle">Añadir saldo manual</div>
+        <button class="modal-close" data-close="saldo" type="button" aria-label="Cerrar">×</button>
       </div>
       <div class="modal-body">
         <p>Introduce el importe que quieres añadir a tu saldo una vez confirmado el pago.</p>
@@ -1180,10 +1188,10 @@
   </div>
 
   <div id="modalCuenta" class="modal-bg">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalCuentaTitle" tabindex="-1">
       <div class="modal-header">
-        <div class="modal-title">Datos de tu cuenta</div>
-        <button class="modal-close" data-close="cuenta">×</button>
+        <div class="modal-title" id="modalCuentaTitle">Datos de tu cuenta</div>
+        <button class="modal-close" data-close="cuenta" type="button" aria-label="Cerrar">×</button>
       </div>
       <div class="modal-body">
         <div class="cuenta-campos">
@@ -1332,6 +1340,12 @@
     const modalSaldo  = document.getElementById("modalSaldo");
     const modalCuenta = document.getElementById("modalCuenta");
     const inputSaldo  = document.getElementById("inputSaldo");
+    const modalMetodoDlg = modalMetodo ? modalMetodo.querySelector(".modal") : null;
+    const modalSaldoDlg  = modalSaldo ? modalSaldo.querySelector(".modal") : null;
+    const modalCuentaDlg = modalCuenta ? modalCuenta.querySelector(".modal") : null;
+    const modalMetodoClose = modalMetodo ? modalMetodo.querySelector(".modal-close") : null;
+    let lastFocusedElement = null;
+    let openModalId = "";
 
     function obtenerNombreMetodo(metodo) {
       switch (metodo) {
@@ -1372,29 +1386,51 @@
 
     function abrirModalMetodo() {
       if (modalMetodo) {
+        lastFocusedElement = document.activeElement;
+        openModalId = "metodo";
         marcarMetodoActivo();
         modalMetodo.style.display = "flex";
+        const foco = modalMetodoClose || modalMetodoDlg;
+        if (foco && typeof foco.focus === "function") {
+          setTimeout(() => foco.focus(), 0);
+        }
       }
     }
 
     function cerrarModalMetodo() {
       if (modalMetodo) modalMetodo.style.display = "none";
+      if (openModalId === "metodo") openModalId = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
     }
 
     function abrirModalSaldo() {
       if (modalSaldo) {
+        lastFocusedElement = document.activeElement;
+        openModalId = "saldo";
         actualizarTextoMetodo();
         modalSaldo.style.display = "flex";
+        const foco = inputSaldo || modalSaldoDlg;
+        if (foco && typeof foco.focus === "function") {
+          setTimeout(() => foco.focus(), 0);
+        }
       }
     }
 
     function cerrarModalSaldo() {
       if (modalSaldo) modalSaldo.style.display = "none";
+      if (openModalId === "saldo") openModalId = "";
       if (inputSaldo) inputSaldo.value = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
     }
 
     function abrirModalCuenta() {
       if (!modalCuenta) return;
+      lastFocusedElement = document.activeElement;
+      openModalId = "cuenta";
       modalCuenta.style.display = "flex";
       const nombreInput = document.getElementById("cuentaNombre");
       const correoInput = document.getElementById("cuentaCorreo");
@@ -1403,11 +1439,30 @@
       if (nombreInput) nombreInput.value = datosUsuario.nombre || "";
       if (correoInput) correoInput.value = datosUsuario.email || "";
       if (passInput)   passInput.value   = "";
+      const foco = nombreInput || modalCuentaDlg;
+      if (foco && typeof foco.focus === "function") {
+        setTimeout(() => foco.focus(), 0);
+      }
     }
 
     function cerrarModalCuenta() {
       if (modalCuenta) modalCuenta.style.display = "none";
+      if (openModalId === "cuenta") openModalId = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
     }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key !== "Escape") return;
+      if (openModalId === "metodo") {
+        cerrarModalMetodo();
+      } else if (openModalId === "saldo") {
+        cerrarModalSaldo();
+      } else if (openModalId === "cuenta") {
+        cerrarModalCuenta();
+      }
+    });
 
     document.querySelectorAll(".modal-close").forEach(function(btn) {
       btn.addEventListener("click", function() {
@@ -1510,6 +1565,12 @@
           window.location.href = "reembolsos.html";
         }
       });
+      li.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
+          li.click();
+        }
+      });
     });
 
     const soporteBtn = document.getElementById("soporteBtn");
@@ -1564,6 +1625,12 @@
     if (avatarBox && inputAvatar) {
       avatarBox.addEventListener("click", function() {
         inputAvatar.click();
+      });
+      avatarBox.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
+          inputAvatar.click();
+        }
       });
 
       inputAvatar.addEventListener("change", function(event) {
@@ -1700,6 +1767,12 @@
         setMetodoPagoActual(metodo);
         cerrarModalMetodo();
         abrirModalSaldo();
+      });
+      op.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
+          op.click();
+        }
       });
     });
 

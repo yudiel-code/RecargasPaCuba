@@ -895,6 +895,32 @@
       const inputNum1 = document.getElementById("modal-numero");
       const inputNum2 = document.getElementById("modal-numero2");
       const btnRealizar = document.getElementById("btnRealizarRecarga");
+      const modalDlg = modalBg ? modalBg.querySelector(".modal-recarga") : null;
+      let lastFocusedElement = null;
+
+      function abrirModalRecarga() {
+        if (!modalBg) return;
+        lastFocusedElement = document.activeElement;
+        modalBg.style.display = "flex";
+        setTimeout(() => {
+          if (modalDlg && typeof modalDlg.focus === "function") {
+            modalDlg.focus();
+          }
+        }, 0);
+      }
+
+      function cerrarModalRecarga() {
+        if (modalBg) modalBg.style.display = "none";
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+          lastFocusedElement.focus();
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modalBg && modalBg.style.display === "flex") {
+          cerrarModalRecarga();
+        }
+      });
 
       let precioActual = 0;
       let beneficioActual = "";
@@ -945,14 +971,14 @@
             // ✅ Mostrar últimos números al abrir el modal
             renderNumerosRecientes();
 
-            modalBg.style.display = "flex";
+            abrirModalRecarga();
           });
         });
 
         // Cerrar modal al tocar fuera
         modalBg.addEventListener("click", (e) => {
           if (e.target === modalBg) {
-            modalBg.style.display = "none";
+            cerrarModalRecarga();
           }
         });
 
@@ -1046,7 +1072,7 @@
           }
 
           showToastSuccess("¡ Recarga registrada correctamente\nID: " + idConfirmacion);
-          modalBg.style.display = "none";
+          cerrarModalRecarga();
         });
       }
     });

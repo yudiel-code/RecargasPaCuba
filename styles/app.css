@@ -329,3 +329,18 @@ body.page-legal li {
 .nav-btn div {
   font-weight: 600;
 }
+
+/* Accessibility: focus-visible */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.cta:focus-visible,
+.tab:focus-visible,
+.nav-btn:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
+}

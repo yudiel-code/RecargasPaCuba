@@ -166,7 +166,7 @@
 
   <div class="historial-container">
 
-    <div class="card card--gradient" id="card-recarga">
+    <div class="card card--gradient" id="card-recarga" role="button" tabindex="0" aria-label="Ver historial de recargas">
       <div class="icono">⚡</div>
       <div class="contenido">
         <div class="titulo">Recarga realizada</div>
@@ -176,7 +176,7 @@
       <div class="estado verde" id="recarga-estado">Sin movimientos registrados</div>
     </div>
 
-    <div class="card card--gradient" id="card-saldo">
+    <div class="card card--gradient" id="card-saldo" role="button" tabindex="0" aria-label="Ver historial de saldos">
       <div class="icono">💰</div>
       <div class="contenido">
         <div class="titulo">Saldo agregado</div>
@@ -186,7 +186,7 @@
       <div class="estado verde" id="saldo-estado">Sin movimientos registrados</div>
     </div>
 
-    <div class="card card--gradient" id="card-correo">
+    <div class="card card--gradient" id="card-correo" role="button" tabindex="0" aria-label="Ver historial de correos">
       <div class="icono">📧</div>
       <div class="contenido">
         <div class="titulo">Correo recibido</div>
@@ -220,10 +220,10 @@
 
   <!-- MODAL -->
   <div class="modal-bg" id="modal-bg">
-    <div class="modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titulo" tabindex="-1">
       <h3 id="modal-titulo"></h3>
       <div id="modal-lista"></div>
-      <button class="cerrar" id="cerrarModal">Cerrar</button>
+      <button class="cerrar" id="cerrarModal" type="button" aria-label="Cerrar">Cerrar</button>
     </div>
   </div>
 
@@ -352,6 +352,31 @@
         const modalLista = document.getElementById("modal-lista");
         const modalTitulo= document.getElementById("modal-titulo");
         const cerrar     = document.getElementById("cerrarModal");
+        const modalDlg   = modalBg ? modalBg.querySelector(".modal") : null;
+        let lastFocusedElement = null;
+
+        function abrirModalAccesible() {
+          if (!modalBg) return;
+          lastFocusedElement = document.activeElement;
+          modalBg.style.display = "flex";
+          const foco = cerrar || modalDlg;
+          if (foco && typeof foco.focus === "function") {
+            setTimeout(() => foco.focus(), 0);
+          }
+        }
+
+        function cerrarModalAccesible() {
+          if (modalBg) modalBg.style.display = "none";
+          if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+            lastFocusedElement.focus();
+          }
+        }
+
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && modalBg && modalBg.style.display === "flex") {
+            cerrarModalAccesible();
+          }
+        });
 
         function abrirModal(tipo, titulo) {
           if (!modalLista || !modalTitulo || !modalBg) return;
@@ -375,7 +400,7 @@
             });
           }
 
-          modalBg.style.display = "flex";
+          abrirModalAccesible();
         }
 
         function abrirModalCorreos() {
@@ -405,7 +430,7 @@
             });
           }
 
-          modalBg.style.display = "flex";
+          abrirModalAccesible();
         }
 
         const cardRecarga = document.getElementById("card-recarga");
@@ -414,19 +439,37 @@
 
         if (cardRecarga) {
           cardRecarga.onclick = () => abrirModal("recarga", "Historial de recargas");
+          cardRecarga.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              if (e.key === " ") e.preventDefault();
+              abrirModal("recarga", "Historial de recargas");
+            }
+          });
         }
 
         if (cardSaldo) {
           cardSaldo.onclick = () => abrirModal("saldo", "Historial de saldos");
+          cardSaldo.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              if (e.key === " ") e.preventDefault();
+              abrirModal("saldo", "Historial de saldos");
+            }
+          });
         }
 
         if (cardCorreo) {
           cardCorreo.onclick = () => abrirModalCorreos();
+          cardCorreo.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              if (e.key === " ") e.preventDefault();
+              abrirModalCorreos();
+            }
+          });
         }
 
         if (cerrar && modalBg) {
-          cerrar.onclick = () => modalBg.style.display = "none";
-          modalBg.onclick = e => e.target === modalBg && (modalBg.style.display = "none");
+          cerrar.onclick = () => cerrarModalAccesible();
+          modalBg.onclick = e => e.target === modalBg && cerrarModalAccesible();
         }
       })();
     });
