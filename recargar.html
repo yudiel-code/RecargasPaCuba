@@ -1092,7 +1092,14 @@
     guardProtectedPage({
       auth,
       onAuthStateChanged,
-      redirectTo: "index.html",
+      redirectTo: (() => {
+        const vInUrl = new URLSearchParams(window.location.search || "").get("v");
+        if (vInUrl) return "index.html";
+        let vStored = null;
+        try { vStored = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        if (vStored) return `index.html?v=${encodeURIComponent(vStored)}`;
+        return "index.html";
+      })(),
       timeoutMs: 20000,
       onReady: (user) => {
         try {
