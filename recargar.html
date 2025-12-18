@@ -693,7 +693,7 @@
 
   <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN + UserData -->
   <script>
-    window.addEventListener("load", () => {
+    (function () { let recargarInitRun=false; window.__initRecargarPage=function __initRecargarPage(authUser){ if(recargarInitRun) return; recargarInitRun=true;
       // Anti-flash
       document.documentElement.classList.add("loaded");
 
@@ -1075,36 +1075,42 @@
           cerrarModalRecarga();
         });
       }
-    });
+    }; })();
   </script>
 
-  <!-- ✅ B1.3: onAuthStateChanged para sincronizar sesión con Firebase en RECARGAR -->
+  <!-- ? B1.3: onAuthStateChanged para sincronizar sesi¢n con Firebase en RECARGAR -->
   <script type="module">
+    import { guardProtectedPage } from "./js/guard.js";
     import { auth, onAuthStateChanged } from "./js/firebase.js";
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        // Si Firebase no tiene sesión, limpiamos y mandamos al login
-        localStorage.removeItem("usuario");
-        window.location.href = "index.html";
-        return;
-      }
+    guardProtectedPage({
+      auth,
+      onAuthStateChanged,
+      redirectTo: "index.html",
+      timeoutMs: 20000,
+      onReady: (user) => {
+        try {
+          const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+          const datos = JSON.parse(raw);
 
-      try {
-        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
-        const datos = JSON.parse(raw);
+          const nuevo = {
+            ...datos,
+            nombre: datos.nombre || user.displayName || "",
+            email: (user.email || "").toLowerCase(),
+            activo: true
+          };
 
-        const nuevo = {
-          ...datos,
-          nombre: datos.nombre || user.displayName || "",
-          email: (user.email || "").toLowerCase(),
-          activo: true
-        };
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+          localStorage.setItem("usuario", (user.email || "").toLowerCase());
+        } catch (e) {
+          console.error("Error sincronizando sesi¢n en recargar:", e);
+        }
 
-        localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
-        localStorage.setItem("usuario", (user.email || "").toLowerCase());
-      } catch (e) {
-        console.error("Error sincronizando sesión en recargar:", e);
+        if (document.readyState === "complete") {
+          window.__initRecargarPage(user);
+        } else {
+          window.addEventListener("load", () => window.__initRecargarPage(user), { once: true });
+        }
       }
     });
   </script>
@@ -1112,6 +1118,9 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
+
+
 
 
 
