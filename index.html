@@ -10,20 +10,10 @@
   <meta name="theme-color" content="#0b63d1">
 
   <title>RecargasPaCuba</title>
-  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/app.css">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="js/ui.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(err => {
-          console.warn('SW registration failed:', err);
-        });
-      });
-    }
-  </script>
 </head>
 
 <body>
@@ -380,7 +370,6 @@
 </script>
 </body>
 </html>
-
 
 
 
