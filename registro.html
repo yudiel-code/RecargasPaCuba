@@ -210,7 +210,20 @@
         }
         localStorage.removeItem("usuario");
         localStorage.removeItem("usuarioRegistrado");
-        window.location.href = "index.html";
+        const currentParams = new URLSearchParams(window.location.search || "");
+        const targetUrl = new URL("index.html", window.location.href);
+        let vParam = currentParams.get("v");
+        if (!vParam) {
+          try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        }
+        if (vParam) {
+          targetUrl.searchParams.set("v", vParam);
+        }
+        const nextParam = currentParams.get("next");
+        if (nextParam) {
+          targetUrl.searchParams.set("next", nextParam);
+        }
+        window.location.href = targetUrl.toString();
       } catch (error) {
         console.error("Error en registro:", error);
         let mensaje = "No se pudo completar el registro.";

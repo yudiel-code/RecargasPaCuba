@@ -1596,7 +1596,20 @@
         if (window.firebaseSignOut) {
           window.firebaseSignOut().catch(function() {});
         }
-        window.location.href = "index.html";
+        const currentParams = new URLSearchParams(window.location.search || "");
+        const targetUrl = new URL("index.html", window.location.href);
+        let vParam = currentParams.get("v");
+        if (!vParam) {
+          try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        }
+        if (vParam) {
+          targetUrl.searchParams.set("v", vParam);
+        }
+        const nextParam = currentParams.get("next");
+        if (nextParam) {
+          targetUrl.searchParams.set("next", nextParam);
+        }
+        window.location.replace(targetUrl.toString());
       });
     }
 
@@ -1830,7 +1843,20 @@
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         localStorage.removeItem("usuario");
-        window.location.href = "index.html";
+        const currentParams = new URLSearchParams(window.location.search || "");
+        const targetUrl = new URL("index.html", window.location.href);
+        let vParam = currentParams.get("v");
+        if (!vParam) {
+          try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        }
+        if (vParam) {
+          targetUrl.searchParams.set("v", vParam);
+        }
+        const nextParam = currentParams.get("next");
+        if (nextParam) {
+          targetUrl.searchParams.set("next", nextParam);
+        }
+        window.location.replace(targetUrl.toString());
         return;
       }
 
