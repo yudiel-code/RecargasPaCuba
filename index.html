@@ -128,6 +128,23 @@
 
   const MAX_INTENTOS = 5;
   const BLOQUEO_TIEMPO = 10 * 60 * 1000;
+  function resolvePostAuthRedirect() {
+    const params = new URLSearchParams(location.search || "");
+    const raw = params.get("next");
+    const allowed = ["recargar.html", "cuenta.html", "historial.html"];
+    const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
+    const dest = safe || "recargar.html";
+    const vParam = params.get("v");
+    let finalDest = dest;
+    if (vParam && !/[?&]v=/.test(dest)) {
+      const parts = dest.split("#");
+      const base = parts[0];
+      const hash = parts[1] ? "#" + parts[1] : "";
+      const sep = base.includes("?") ? "&" : "?";
+      finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
+    }
+    return finalDest;
+  }
 
   function estaBloqueado() {
     const bloqueo = localStorage.getItem("login_bloqueado_hasta");
@@ -211,20 +228,7 @@
         }
 
         localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
-        const params = new URLSearchParams(location.search || "");
-        const raw = params.get("next");
-        const allowed = ["recargar.html", "cuenta.html", "historial.html"];
-        const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
-        const dest = safe || "recargar.html";
-        const vParam = params.get("v");
-        let finalDest = dest;
-        if (vParam && !/[?&]v=/.test(dest)) {
-          const parts = dest.split("#");
-          const base = parts[0];
-          const hash = parts[1] ? "#" + parts[1] : "";
-          const sep = base.includes("?") ? "&" : "?";
-          finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
-        }
+        const finalDest = resolvePostAuthRedirect();
         if (!window.__authRedirected) {
           window.__authRedirected = true;
           window.location.href = finalDest;
@@ -380,20 +384,7 @@
       localStorage.setItem("usuario", (user.email || "").toLowerCase());
 
       // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
-      const params = new URLSearchParams(location.search || "");
-      const raw = params.get("next");
-      const allowed = ["recargar.html", "cuenta.html", "historial.html"];
-      const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
-      const dest = safe || "recargar.html";
-      const vParam = params.get("v");
-      let finalDest = dest;
-      if (vParam && !/[?&]v=/.test(dest)) {
-        const parts = dest.split("#");
-        const base = parts[0];
-        const hash = parts[1] ? "#" + parts[1] : "";
-        const sep = base.includes("?") ? "&" : "?";
-        finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
-      }
+      const finalDest = resolvePostAuthRedirect();
       if (!window.__authRedirected) {
         window.__authRedirected = true;
         window.location.href = finalDest;
