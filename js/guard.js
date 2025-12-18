@@ -26,6 +26,15 @@ export function guardProtectedPage(options = {}) {
         const hasQuery = redirectTo.includes('?');
         const separator = redirectTo.endsWith('?') || redirectTo.endsWith('&') ? '' : (hasQuery ? '&' : '?');
         finalDest = `${redirectTo}${separator}next=${encodedNext}`;
+
+        const vParam = (new URLSearchParams(location.search || '')).get('v');
+        if (vParam && !/[?&]v=/.test(finalDest)) {
+          const parts = finalDest.split('#');
+          const base = parts[0];
+          const hash = parts[1] ? '#' + parts[1] : '';
+          const sep = base.includes('?') ? '&' : '?';
+          finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
+        }
       }
     } catch (_) {}
     location.replace(finalDest);
