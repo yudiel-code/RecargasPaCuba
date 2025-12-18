@@ -36,3 +36,44 @@
     createToast(message, "error");
   };
 })();
+
+// Append current ?v cache-busting param to internal *.html links (idempotent).
+(function () {
+  const applyVersionToLinks = () => {
+    const params = new URLSearchParams(window.location.search || "");
+    const currentV = params.get("v");
+    if (!currentV) return;
+
+    const anchors = document.querySelectorAll("a[href]");
+    anchors.forEach((a) => {
+      const href = (a.getAttribute("href") || "").trim();
+      if (!href) return;
+      const lower = href.toLowerCase();
+      if (href.startsWith("#")) return;
+      if (lower.startsWith("mailto:") || lower.startsWith("tel:") || lower.startsWith("javascript:")) return;
+      if (href.includes("://")) return;
+
+      let url;
+      try {
+        url = new URL(href, window.location.href);
+      } catch (_) {
+        return;
+      }
+
+      if (url.origin !== window.location.origin) return;
+      if (!url.pathname.toLowerCase().endsWith(".html")) return;
+      if (url.searchParams.has("v")) return;
+
+      url.searchParams.set("v", currentV);
+      const search = url.searchParams.toString();
+      const newHref = `${url.pathname}${search ? "?" + search : ""}${url.hash || ""}`;
+      a.setAttribute("href", newHref);
+    });
+  };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyVersionToLinks, { once: true });
+  } else {
+    applyVersionToLinks();
+  }
+})();
