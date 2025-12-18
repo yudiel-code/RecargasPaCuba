@@ -60,7 +60,10 @@
         try { document.documentElement.dataset.rpcBuild = storedV; } catch (_) {}
         try {
           const buildEl = document.getElementById("rpc-build-indicator");
-          if (buildEl) buildEl.textContent = "Build: " + storedV;
+          if (buildEl) {
+            buildEl.textContent = "Build: " + storedV;
+            buildEl.style.display = "block";
+          }
         } catch (_) {}
       }
     }

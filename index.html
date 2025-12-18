@@ -76,7 +76,7 @@
         <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
       </small>
     </div>
-    <div id="rpc-build-indicator" style="text-align:center;font-size:12px;color:#6b6b6b;margin-top:6px;">
+    <div id="rpc-build-indicator" style="text-align:center;font-size:12px;color:#6b6b6b;margin-top:6px;display:none;">
       Build:
     </div>
   </section>
@@ -417,7 +417,12 @@
     const el = document.getElementById("rpc-build-indicator");
     if (!el) return;
     const build = (typeof window.__RPC_BUILD === "string" && window.__RPC_BUILD) ? window.__RPC_BUILD : "prod";
-    el.textContent = "Build: " + build;
+    if (build && build !== "prod") {
+      el.textContent = "Build: " + build;
+      el.style.display = "block";
+    } else {
+      el.style.display = "none";
+    }
   })();
 </script>
 </body>
