@@ -14,7 +14,21 @@ export function guardProtectedPage(options = {}) {
       localStorage.removeItem('usuario');
       localStorage.removeItem('usuarioRegistrado');
     } catch (_) {}
-    location.replace(redirectTo);
+    let finalDest = redirectTo;
+    try {
+      const currentPage = (location.pathname || '').split('/').pop() || '';
+      const isOnIndex = currentPage.toLowerCase() === 'index.html';
+      const redirectBase = (redirectTo.split('#')[0] || '').split('?')[0].toLowerCase();
+      const isIndexTarget = redirectBase === 'index.html';
+      if (isIndexTarget && !isOnIndex) {
+        const relativeTarget = `${currentPage}${location.search || ''}${location.hash || ''}`;
+        const encodedNext = encodeURIComponent(relativeTarget);
+        const hasQuery = redirectTo.includes('?');
+        const separator = redirectTo.endsWith('?') || redirectTo.endsWith('&') ? '' : (hasQuery ? '&' : '?');
+        finalDest = `${redirectTo}${separator}next=${encodedNext}`;
+      }
+    } catch (_) {}
+    location.replace(finalDest);
   };
 
   return new Promise((resolve) => {

@@ -201,7 +201,15 @@
         }
 
         localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
-        window.location.href = "recargar.html";
+        const params = new URLSearchParams(location.search || "");
+        const raw = params.get("next");
+        const allowed = ["recargar.html", "cuenta.html", "historial.html"];
+        const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
+        const dest = safe || "recargar.html";
+        if (!window.__authRedirected) {
+          window.__authRedirected = true;
+          window.location.href = dest;
+        }
       } catch (error) {
         console.log("Error login Firebase:", error);
 
@@ -353,7 +361,15 @@
       localStorage.setItem("usuario", (user.email || "").toLowerCase());
 
       // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
-      window.location.href = "recargar.html";
+      const params = new URLSearchParams(location.search || "");
+      const raw = params.get("next");
+      const allowed = ["recargar.html", "cuenta.html", "historial.html"];
+      const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
+      const dest = safe || "recargar.html";
+      if (!window.__authRedirected) {
+        window.__authRedirected = true;
+        window.location.href = dest;
+      }
     } catch (e) {
       console.error("Error sincronizando sesión en login:", e);
     }
@@ -370,6 +386,4 @@
 </script>
 </body>
 </html>
-
-
 
