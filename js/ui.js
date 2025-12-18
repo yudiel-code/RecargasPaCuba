@@ -41,7 +41,30 @@
 (function () {
   const applyVersionToLinks = () => {
     const params = new URLSearchParams(window.location.search || "");
-    const currentV = params.get("v");
+    let currentV = params.get("v");
+
+    if (currentV) {
+      try { sessionStorage.setItem("rpc_v", currentV); } catch (_) {}
+    } else {
+      let storedV = null;
+      try { storedV = sessionStorage.getItem("rpc_v"); } catch (_) {}
+      if (storedV) {
+        try {
+          const u = new URL(window.location.href);
+          u.searchParams.set("v", storedV);
+          const newUrl = `${u.pathname}${u.searchParams.toString() ? "?" + u.searchParams.toString() : ""}${u.hash || ""}`;
+          window.history.replaceState(null, "", newUrl);
+        } catch (_) {}
+        currentV = storedV;
+        window.__RPC_BUILD = storedV;
+        try { document.documentElement.dataset.rpcBuild = storedV; } catch (_) {}
+        try {
+          const buildEl = document.getElementById("rpc-build-indicator");
+          if (buildEl) buildEl.textContent = "Build: " + storedV;
+        } catch (_) {}
+      }
+    }
+
     if (!currentV) return;
 
     const anchors = document.querySelectorAll("a[href]");
