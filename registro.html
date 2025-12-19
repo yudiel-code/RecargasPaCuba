@@ -165,9 +165,16 @@
     const authInicial = window.firebaseAuth || null;
     const userInicial = authInicial && authInicial.currentUser;
     if (userInicial && tieneUsuarioPrevio && usuario.forzarCambio === false) {
-      window.location.href = "recargar.html";
+      const params = new URLSearchParams(window.location.search || "");
+      let vParam = params.get("v");
+      if (!vParam) {
+        try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+      }
+      const targetUrl = new URL("recargar.html", window.location.href);
+      targetUrl.searchParams.set("next", "recargar.html");
+      if (vParam) targetUrl.searchParams.set("v", vParam);
+      window.location.href = targetUrl.toString();
     }
-
     const btnRegister = document.getElementById("btn-register");
     btnRegister.addEventListener("click", async () => {
       const nombre = (document.getElementById("reg-nombre").value || "").trim();
@@ -291,5 +298,6 @@
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
+
 
 
