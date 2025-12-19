@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/app.css">
   <script src="js/ui.js"></script>
+  <script src="js/guard.js"></script>
 
   <style>
     /* Tipografía como Cuenta/Recargar */
@@ -259,6 +260,7 @@
 
   <script>
     window.addEventListener("load", () => {
+      if (typeof guardProtectedPage === "function") { guardProtectedPage({ redirectTo: "index.html", timeoutMs: 20000, onReady: (user) => {} }); }
       // Control de sesión
       
       const emailUsuario = localStorage.getItem("usuario") || "";
