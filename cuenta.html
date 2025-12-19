@@ -764,7 +764,16 @@
       font-size: 14px;
       cursor: pointer;
       user-select: none;
-      color: #e5e7eb;
+      color: #ffffff;
+      background: transparent;
+      border: none;
+      padding: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      line-height: 1;
+    }
+    .campo .ojo-toggle svg {
+      fill: currentColor;
     }
 
     .modal-footer .alerta {
@@ -1207,7 +1216,14 @@
             <div class="campo-label">Contraseña (solo para cambiarla)</div>
             <div class="password-wrap" style="position:relative;">
               <input id="cuentaPass" type="password" placeholder="Deja vacío si no quieres cambiarla">
-              <button type="button" id="togglePass" class="ojo-toggle">Mostrar</button>
+              <span id="togglePass" class="ojo-toggle toggle-pass" role="button" aria-label="Mostrar contrasena" aria-pressed="false">
+                <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                </svg>
+                <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+                  <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+                </svg>
+              </span>
             </div>
           </div>
         </div>
@@ -1549,14 +1565,24 @@
 
         if (input.type === "password") {
           input.type = "text";
-          icon.textContent = "Ocultar";
           icon.setAttribute("aria-label", "Ocultar contrasena");
           icon.setAttribute("aria-pressed", "true");
+          const eye = icon.querySelector(".icon-eye");
+          const eyeOff = icon.querySelector(".icon-eye-off");
+          if (eye && eyeOff) {
+            eye.style.display = "none";
+            eyeOff.style.display = "inline";
+          }
         } else {
           input.type = "password";
-          icon.textContent = "Mostrar";
           icon.setAttribute("aria-label", "Mostrar contrasena");
           icon.setAttribute("aria-pressed", "false");
+          const eye = icon.querySelector(".icon-eye");
+          const eyeOff = icon.querySelector(".icon-eye-off");
+          if (eye && eyeOff) {
+            eye.style.display = "inline";
+            eyeOff.style.display = "none";
+          }
         }
       });
     }
