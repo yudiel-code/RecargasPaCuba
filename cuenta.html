@@ -1207,7 +1207,7 @@
             <div class="campo-label">Contraseña (solo para cambiarla)</div>
             <div class="password-wrap" style="position:relative;">
               <input id="cuentaPass" type="password" placeholder="Deja vacío si no quieres cambiarla">
-              <span id="togglePass" class="ojo-toggle">👁</span>
+              <button type="button" id="togglePass" class="ojo-toggle">Mostrar</button>
             </div>
           </div>
         </div>
@@ -1549,10 +1549,14 @@
 
         if (input.type === "password") {
           input.type = "text";
-          icon.textContent = "🙈";
+          icon.textContent = "Ocultar";
+          icon.setAttribute("aria-label", "Ocultar contrasena");
+          icon.setAttribute("aria-pressed", "true");
         } else {
           input.type = "password";
-          icon.textContent = "👁";
+          icon.textContent = "Mostrar";
+          icon.setAttribute("aria-label", "Mostrar contrasena");
+          icon.setAttribute("aria-pressed", "false");
         }
       });
     }
