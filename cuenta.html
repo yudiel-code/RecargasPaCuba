@@ -1243,6 +1243,7 @@
 
   <!-- SCRIPT PRINCIPAL -->
   <script>
+    window.__initCuentaPage = function __initCuentaPage(authUser) {
     const usuarioSesion = localStorage.getItem("usuario");
 
     let datosUsuario;
@@ -1859,6 +1860,28 @@
     calcularMonedas();
     marcarMetodoActivo();
     actualizarTextoMetodo();
+    };
+  </script>
+
+  <script type="module">
+    import { guardProtectedPage } from "./js/guard.js";
+    import { auth, onAuthStateChanged } from "./js/firebase.js";
+
+    const v = (new URLSearchParams(location.search || "")).get("v") || sessionStorage.getItem("rpc_v") || "";
+    const redirectTo = v ? `index.html?v=${encodeURIComponent(v)}` : "index.html";
+
+    guardProtectedPage({
+      redirectTo,
+      timeoutMs: 7000,
+      auth,
+      onAuthStateChanged,
+      onReady: (user) => {
+        try {
+          if (!localStorage.getItem("usuario")) localStorage.setItem("usuario", (user?.email || "").toLowerCase());
+        } catch (_) {}
+        if (typeof window.__initCuentaPage === "function") window.__initCuentaPage(user);
+      }
+    });
   </script>
 
   <!-- SCRIPT FIREBASE (centralizado con js/firebase.js) -->
