@@ -16,27 +16,22 @@ export function guardProtectedPage(options = {}) {
     } catch (_) {}
     let finalDest = redirectTo;
     try {
+      const finalDestUrl = new URL(redirectTo, location.href);
       const currentPage = (location.pathname || '').split('/').pop() || '';
       const isOnIndex = currentPage.toLowerCase() === 'index.html';
-      const redirectBase = (redirectTo.split('#')[0] || '').split('?')[0];
-      const redirectLast = (redirectBase.split('/').pop() || '').replace(/^\.\//, '').toLowerCase();
+      const redirectPath = finalDestUrl.pathname || '';
+      const redirectLast = (redirectPath.split('/').pop() || '').replace(/^\.\//, '').toLowerCase();
       const isIndexTarget = redirectLast === 'index.html';
       if (isIndexTarget && !isOnIndex) {
         const relativeTarget = `${currentPage}${location.search || ''}${location.hash || ''}`;
-        const encodedNext = encodeURIComponent(relativeTarget);
-        const hasQuery = redirectTo.includes('?');
-        const separator = redirectTo.endsWith('?') || redirectTo.endsWith('&') ? '' : (hasQuery ? '&' : '?');
-        finalDest = `${redirectTo}${separator}next=${encodedNext}`;
+        finalDestUrl.searchParams.set('next', relativeTarget);
 
         const vParam = (new URLSearchParams(location.search || '')).get('v');
-        if (vParam && !/[?&]v=/.test(finalDest)) {
-          const parts = finalDest.split('#');
-          const base = parts[0];
-          const hash = parts[1] ? '#' + parts[1] : '';
-          const sep = base.includes('?') ? '&' : '?';
-          finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
+        if (vParam && !finalDestUrl.searchParams.has('v')) {
+          finalDestUrl.searchParams.set('v', vParam);
         }
       }
+      finalDest = finalDestUrl.toString();
     } catch (_) {}
     location.replace(finalDest);
   };
