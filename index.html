@@ -17,10 +17,10 @@
     try { document.documentElement.dataset.rpcBuild = __rpcBuild; } catch (_) {}
     console.info("[RPC] build", __rpcBuild);
   </script>
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/app.css">
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="js/ui.js?v=r1"></script>
 </head>
 
 <body>
@@ -356,7 +356,7 @@
 </script>
 
 <!-- ✅ Firebase centralizado en js/firebase.js -->
-<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/firebase.js?v=r1"></script>
 
 <!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
 <script type="module">

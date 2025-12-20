@@ -1,11 +1,11 @@
-// admin/admin.js - lógica común admin (protección + helpers)
+// admin/admin.js - lÃ³gica comÃºn admin (protecciÃ³n + helpers)
 
 (function () {
   const ADMIN_EMAIL = "recargaspacubaapp@gmail.com";
   const isLoginPage = /\/admin\/login\.html$/i.test(window.location.pathname) ||
                       /login\.html$/i.test(window.location.pathname);
 
-  // Guardar/hide mientras se confirma la sesión para evitar flash
+  // Guardar/hide mientras se confirma la sesiï¿½n para evitar flash
   let previousVisibility;
   function hideUntilAuth() {
     if (isLoginPage) return;
@@ -62,12 +62,12 @@
       return;
     }
 
-    // Admin válido: no se usan flags locales
+    // Admin vï¿½lido: no se usan flags locales
     clearAdminFlags();
     showPage();
   });
 
-  // Logout si existe el botón #logout en la página
+  // Logout si existe el botï¿½n #logout en la pï¿½gina
   const logout = document.querySelector("#logout");
   if (logout) {
     logout.addEventListener("click", async () => {
@@ -86,7 +86,7 @@
   // Helpers comunes para otras pantallas admin
   window.AdminHelpers = {
     formatCurrency(v) {
-      return typeof v === "number" ? v.toFixed(2) + " ƒ'ª" : v;
+      return typeof v === "number" ? v.toFixed(2) + " â‚¬" : v;
     },
     emptyTable(tbody, message) {
       if (!tbody) return;
