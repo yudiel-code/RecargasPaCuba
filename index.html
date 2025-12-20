@@ -100,7 +100,9 @@
 <!-- SCRIPT PRINCIPAL LOGIN + RECUPERAR -->
 <script type="module">
   // EmailJS (se deja inicializado por si se usa en otros flujos)
-  emailjs.init("flObIaDu0VCKDBP7i");
+  if (window.emailjs && typeof window.emailjs.init === "function") {
+    emailjs.init("flObIaDu0VCKDBP7i");
+  }
 
   // B1.2: limpiar restos de contraseña / forzarCambio en localStorage
   (function limpiarSensibles() {
