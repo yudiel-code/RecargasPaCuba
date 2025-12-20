@@ -7,9 +7,9 @@
 
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#28c6db">
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/app.css">
-  <script src="js/ui.js"></script>
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <script src="js/ui.js?v=r1"></script>
   <script type="module">
   import { guardProtectedPage } from "./js/guard.js?v=r1";
   window.guardProtectedPage = guardProtectedPage;
@@ -257,7 +257,7 @@
   </nav>
 
   <!-- Capa de datos unificada -->
-  <script src="js/userData.js"></script>
+  <script src="js/userData.js?v=r1"></script>
 
   <script>
     window.addEventListener("DOMContentLoaded", () => {
@@ -479,7 +479,7 @@
 
   <!-- B1.3: onAuthStateChanged para sincronizar sesión con Firebase en HISTORIAL -->
   <script type="module">
-    import { auth, onAuthStateChanged } from "./js/firebase.js";
+    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
@@ -513,7 +513,7 @@
     });
   </script>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=r1"></script>
 </body>
 </html>
 
