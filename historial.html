@@ -10,9 +10,10 @@
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/app.css">
   <script src="js/ui.js"></script>
-  <script src="js/guard.js"></script>
-
-  <style>
+  <script type="module">
+  import { guardProtectedPage } from "./js/guard.js?v=r1";
+  window.guardProtectedPage = guardProtectedPage;
+</script>
     /* Tipografía como Cuenta/Recargar */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
 

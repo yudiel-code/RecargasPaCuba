@@ -7,13 +7,13 @@
   <meta name="theme-color" content="#28c6db">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
   <title>Recargar | RecargasPaCuba</title>
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/app.css">
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
   <meta name="theme-color" content="#0b5bd3">
 
   <!-- ✅ EmailJS para correo de recarga -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="js/ui.js?v=r1"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
@@ -687,9 +687,9 @@
   </nav>
 
   <!-- ✅ Data local centralizada + tabla de productos -->
-  <script src="js/products.js"></script>
-  <script src="js/userData.js"></script>
-  <script src="js/validators.js"></script>
+  <script src="js/products.js?v=r1"></script>
+  <script src="js/userData.js?v=r1"></script>
+  <script src="js/validators.js?v=r1"></script>
 
   <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN + UserData -->
   <script>
@@ -1074,10 +1074,10 @@
     }; })();
   </script>
 
-  <!-- ? B1.3: onAuthStateChanged para sincronizar sesi¢n con Firebase en RECARGAR -->
+  <!-- ? B1.3: onAuthStateChanged para sincronizar sesión con Firebase en RECARGAR -->
   <script type="module">
-    import { guardProtectedPage } from "./js/guard.js";
-    import { auth, onAuthStateChanged } from "./js/firebase.js";
+    import { guardProtectedPage } from "./js/guard.js?v=r1";
+    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
 
     guardProtectedPage({
       auth,
@@ -1106,7 +1106,7 @@
           localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
           localStorage.setItem("usuario", (user.email || "").toLowerCase());
         } catch (e) {
-          console.error("Error sincronizando sesi¢n en recargar:", e);
+          console.error("Error sincronizando sesión en recargar:", e);
         }
 
         if (document.readyState === "complete") {
@@ -1118,7 +1118,7 @@
     });
   </script>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=r1"></script>
 </body>
 </html>
 

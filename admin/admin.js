@@ -5,7 +5,7 @@
   const isLoginPage = /\/admin\/login\.html$/i.test(window.location.pathname) ||
                       /login\.html$/i.test(window.location.pathname);
 
-  // Guardar/hide mientras se confirma la sesi�n para evitar flash
+  // Guardar/hide mientras se confirma la sesión para evitar flash
   let previousVisibility;
   function hideUntilAuth() {
     if (isLoginPage) return;
@@ -62,12 +62,12 @@
       return;
     }
 
-    // Admin v�lido: no se usan flags locales
+    // Admin válido: no se usan flags locales
     clearAdminFlags();
     showPage();
   });
 
-  // Logout si existe el bot�n #logout en la p�gina
+  // Logout si existe el botón #logout en la página
   const logout = document.querySelector("#logout");
   if (logout) {
     logout.addEventListener("click", async () => {

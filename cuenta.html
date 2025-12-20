@@ -7,9 +7,9 @@
 
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#28c6db">
-  <link rel="stylesheet" href="styles/base.css">
-  <link rel="stylesheet" href="styles/app.css">
-  <script src="js/ui.js"></script>
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <script src="js/ui.js?v=r1"></script>
 
   <style>
     html, body {
@@ -1239,7 +1239,7 @@
   </div>
 
   <!-- DATA LOCAL CENTRALIZADA -->
-  <script src="js/userData.js"></script>
+  <script src="js/userData.js?v=r1"></script>
 
   <!-- SCRIPT PRINCIPAL -->
   <script>
@@ -1864,8 +1864,8 @@
   </script>
 
   <script type="module">
-    import { guardProtectedPage } from "./js/guard.js";
-    import { auth, onAuthStateChanged } from "./js/firebase.js";
+    import { guardProtectedPage } from "./js/guard.js?v=r1";
+    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
 
     const v = (new URLSearchParams(location.search || "")).get("v") || sessionStorage.getItem("rpc_v") || "";
     const redirectTo = v ? `index.html?v=${encodeURIComponent(v)}` : "index.html";
@@ -1886,7 +1886,7 @@
 
   <!-- SCRIPT FIREBASE (centralizado con js/firebase.js) -->
   <script type="module">
-    import { auth, onAuthStateChanged, signOut } from "./js/firebase.js";
+    import { auth, onAuthStateChanged, signOut } from "./js/firebase.js?v=r1";
 
     // Exponemos un signOut ya vinculado a este auth para el script no-módulo
     window.firebaseSignOut = function() {
@@ -1927,7 +1927,7 @@
     });
   </script>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=r1"></script>
 </body>
 </html>
 
