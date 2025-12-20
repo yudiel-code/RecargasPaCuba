@@ -259,8 +259,11 @@
   <script src="js/userData.js"></script>
 
   <script>
-    window.addEventListener("load", () => {
+    window.addEventListener("DOMContentLoaded", () => {
       if (typeof guardProtectedPage === "function") { guardProtectedPage({ redirectTo: "index.html", timeoutMs: 20000, onReady: (user) => {} }); }
+    });
+
+    window.addEventListener("load", () => {
       // Control de sesión
       
       const emailUsuario = localStorage.getItem("usuario") || "";
