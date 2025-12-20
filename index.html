@@ -325,7 +325,7 @@
       }
 
       try {
-        const firebaseModule = await import("./js/firebase.js");
+        const firebaseModule = await import("./js/firebase.js?v=r1");
         const auth = firebaseModule.auth || window.firebaseAuth || null;
         const sendPasswordResetEmail =
           firebaseModule.sendPasswordResetEmail ||
@@ -360,14 +360,10 @@
 
 <!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
 <script type="module">
-  import { auth, onAuthStateChanged } from "./js/firebase.js";
+  import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
 
   onAuthStateChanged(auth, (user) => {
     if (!user) return;
-
-    if (!localStorage.getItem("usuario")) {
-      return;
-    }
 
     try {
       const raw = localStorage.getItem("usuarioRegistrado") || "{}";

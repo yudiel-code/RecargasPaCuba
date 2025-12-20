@@ -12,7 +12,10 @@
   <script src="js/ui.js?v=r1"></script>
   <script type="module">
   import { guardProtectedPage } from "./js/guard.js?v=r1";
+  import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
   window.guardProtectedPage = guardProtectedPage;
+  window.auth = auth;
+  window.onAuthStateChanged = onAuthStateChanged;
 </script>
   <style>
     /* Tipografía como Cuenta/Recargar */
