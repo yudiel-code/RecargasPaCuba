@@ -118,15 +118,42 @@
 
     <label class="input-label" for="new-pass">Contrase&ntilde;a</label>
     <div class="password-wrap">
-      <input id="new-pass" class="input-pill" type="password" placeholder="Contrase&ntilde;a" autocomplete="new-password" aria-describedby="password-guidance msg">
-      <button type="button" id="toggle-pass-1" class="toggle-pass" aria-label="Mostrar contrase&ntilde;a">Mostrar</button>
-    </div>
+  <input id="new-pass" class="input-pill" type="password" placeholder="Contraseña">
+  <span
+    id="toggle-pass-1"
+    class="toggle-pass"
+    role="button"
+    tabindex="0"
+    aria-label="Mostrar contraseña"
+    aria-pressed="false"
+  >
+    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+    </svg>
+    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+      <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+    </svg>
+  </span>
+</div>
 
-    <label class="input-label" for="new-pass2">Repetir contrase&ntilde;a</label>
-    <div class="password-wrap">
-      <input id="new-pass2" class="input-pill" type="password" placeholder="Repetir contrase&ntilde;a" autocomplete="new-password" aria-describedby="password-guidance msg">
-      <button type="button" id="toggle-pass-2" class="toggle-pass" aria-label="Mostrar contrase&ntilde;a">Mostrar</button>
-    </div>
+<div class="password-wrap">
+  <input id="new-pass2" class="input-pill" type="password" placeholder="Repetir contraseña">
+  <span
+    id="toggle-pass-2"
+    class="toggle-pass"
+    role="button"
+    tabindex="0"
+    aria-label="Mostrar contraseña"
+    aria-pressed="false"
+  >
+    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+    </svg>
+    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+      <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+    </svg>
+  </span>
+</div>
 
     <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
 
@@ -267,33 +294,38 @@
     });
 
     // Ojito 1
-    document.getElementById("toggle-pass-1").addEventListener("click", () => {
-      const input = document.getElementById("new-pass");
-      const icon = document.getElementById("toggle-pass-1");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.textContent = "Ocultar";
-        icon.setAttribute("aria-label", "Ocultar contrase\u00f1a");
-      } else {
-        input.type = "password";
-        icon.textContent = "Mostrar";
-        icon.setAttribute("aria-label", "Mostrar contrase\u00f1a");
-      }
-    });
+    function wirePassToggle(toggleId, inputId) {
+  const toggle = document.getElementById(toggleId);
+  const input = document.getElementById(inputId);
+  if (!toggle || !input) return;
 
-    document.getElementById("toggle-pass-2").addEventListener("click", () => {
-      const input = document.getElementById("new-pass2");
-      const icon = document.getElementById("toggle-pass-2");
-      if (input.type === "password") {
-        input.type = "text";
-        icon.textContent = "Ocultar";
-        icon.setAttribute("aria-label", "Ocultar contrase\u00f1a");
-      } else {
-        input.type = "password";
-        icon.textContent = "Mostrar";
-        icon.setAttribute("aria-label", "Mostrar contrase\u00f1a");
-      }
-    });
+  const eye = toggle.querySelector(".icon-eye");
+  const eyeOff = toggle.querySelector(".icon-eye-off");
+
+  const setState = (visible) => {
+    input.type = visible ? "text" : "password";
+    toggle.setAttribute("aria-pressed", visible ? "true" : "false");
+    toggle.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+    if (eye) eye.style.display = visible ? "none" : "inline";
+    if (eyeOff) eyeOff.style.display = visible ? "inline" : "none";
+  };
+
+  const toggleIt = () => setState(input.type === "password");
+
+  toggle.addEventListener("click", toggleIt);
+  toggle.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleIt();
+    }
+  });
+
+  setState(false);
+}
+
+wirePassToggle("toggle-pass-1", "new-pass");
+wirePassToggle("toggle-pass-2", "new-pass2");
+
   </script>
 
   <script type="module" src="js/app.js?v=r1"></script>

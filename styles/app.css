@@ -344,3 +344,19 @@ textarea:focus-visible,
   outline-offset: 3px;
   box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
 }
+/* --- Legal links: unified separator --- */
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0; /* el separador lo ponemos con ::before */
+}
+
+.legal-links a + a::before {
+  content: " · ";
+  opacity: 0.8;
+}
+
+.legal-links a {
+  text-decoration: underline;
+}
