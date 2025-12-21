@@ -64,9 +64,42 @@
 
       <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
 
-      <button id="btn-forgot" class="link-forgot">¿Olvidaste tu contraseña?</button>
+<button id="btn-forgot" class="link-forgot" type="button">¿Olvidaste tu contraseña?</button>
 
-    </div>
+<button
+  id="btn-login-google"
+  class="btn-google-icon"
+  type="button"
+  aria-label="Continuar con Google"
+  style="display:flex;align-items:center;justify-content:center;margin:10px auto 0;background:transparent;border:0;padding:0;width:46px;height:46px;border-radius:999px;cursor:pointer;touch-action:manipulation;"
+>
+  <svg class="g-svg" viewBox="0 0 48 48" width="24" height="24" aria-hidden="true" style="display:block;">
+    <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.6l6.9-6.9C35.98 2.72 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.02 6.22C12.43 13.3 17.74 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.22-.43-4.74H24v9.02h12.64c-.55 2.96-2.2 5.47-4.68 7.16l7.16 5.56c4.18-3.86 6.38-9.54 6.38-16z"/>
+    <path fill="#FBBC05" d="M10.58 28.44a14.5 14.5 0 0 1 0-8.88l-8.02-6.22a24 24 0 0 0 0 21.32l8.02-6.22z"/>
+    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.14 15.9-5.8l-7.16-5.56c-2 1.35-4.55 2.16-8.74 2.16-6.26 0-11.57-3.8-13.42-9.44l-8.02 6.22C6.51 42.62 14.62 48 24 48z"/>
+  </svg>
+</button>
+
+<script type="module">
+  const btnGoogle = document.getElementById("btn-login-google");
+  if (btnGoogle) {
+    btnGoogle.addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        if (typeof window.firebaseGoogleSignIn !== "function") {
+          console.warn("firebaseGoogleSignIn no está disponible en window.");
+          return;
+        }
+        await window.firebaseGoogleSignIn();
+      } catch (err) {
+        console.error("Google Sign-In error:", err);
+      }
+    });
+  }
+</script>
+
+</div>
 
     <div class="legal-links legal-links--sticky" style="text-align:center;margin-top:12px;">
       <small>
@@ -99,6 +132,31 @@
 
 <!-- SCRIPT PRINCIPAL LOGIN + RECUPERAR -->
 <script type="module">
+    // FIX: define resolvePostAuthRedirect if missing (prevents ReferenceError)
+  window.resolvePostAuthRedirect = window.resolvePostAuthRedirect || function resolvePostAuthRedirect() {
+    try {
+      const url = new URL(window.location.href);
+
+      const next =
+        url.searchParams.get("next") ||
+        sessionStorage.getItem("rpc_next") ||
+        "recargar.html";
+
+      const v =
+        url.searchParams.get("v") ||
+        sessionStorage.getItem("rpc_v") ||
+        "";
+
+      sessionStorage.setItem("rpc_next", next);
+      if (v) sessionStorage.setItem("rpc_v", v);
+
+      const sep = next.includes("?") ? "&" : "?";
+      return v ? `${next}${sep}v=${encodeURIComponent(v)}` : next;
+    } catch (e) {
+      return "recargar.html";
+    }
+  };
+
   // EmailJS (se deja inicializado por si se usa en otros flujos)
   if (window.emailjs && typeof window.emailjs.init === "function") {
     emailjs.init("flObIaDu0VCKDBP7i");

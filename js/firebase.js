@@ -8,7 +8,9 @@ import {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
 // Configuración única de Firebase para toda la app
@@ -32,7 +34,12 @@ window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
 window.firebaseSignOut = signOut;
 window.firebaseOnAuthStateChanged = onAuthStateChanged;
-
+window.firebaseGoogleSignIn = async (authInstance) => {
+  const a = authInstance || window.firebaseAuth;
+  if (!a) throw new Error("firebase-auth-no-disponible");
+  const provider = new GoogleAuthProvider();
+  return await signInWithPopup(a, provider);
+};
 // Nuevas funciones para registro
 window.firebaseCreateUser = createUserWithEmailAndPassword;
 window.firebaseUpdateProfile = updateProfile;
