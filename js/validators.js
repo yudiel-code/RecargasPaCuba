@@ -1,6 +1,20 @@
 (function (global) {
+  function normalizeCubacel(num) {
+    // Solo dígitos
+    let digits = String(num || "").replace(/\D/g, "");
+
+    // Quita el 53 SOLO si es prefijo internacional (hay más de 8 dígitos)
+    // Ej: +53 5 3719610 -> "5353719610" (10) -> recorta a "53719610" (8)
+    // Ej: 53719610 (8) -> NO recorta (porque es número local válido que empieza por 53)
+    while (digits.startsWith("53") && digits.length > 8) {
+      digits = digits.slice(2);
+    }
+
+    return digits; // esperado: 8 dígitos empezando por 5
+  }
+
   function isCubacelNumber(num) {
-    const cleaned = (num || "").replace(/\s+/g, "").replace(/^\+?53/, "");
+    const cleaned = normalizeCubacel(num);
     return /^5\d{7}$/.test(cleaned);
   }
 
@@ -10,37 +24,43 @@
 
   function isNautaEmail(email) {
     const cleaned = (email || "").trim().toLowerCase();
-    return /^[a-z0-9._%+-]+@nauta\.(?:cu|com\.cu)$/.test(cleaned);
+    // Solo dominios válidos para recarga NAUTA
+    return /^[a-z0-9._%+-]+@nauta\.(?:com\.cu|co\.cu)$/.test(cleaned);
   }
 
-  function validarRecargaEntrada({ operador, numero1, numero2, email }) {
+  function validarRecargaEntrada({ operador, tipo, numero1, numero2, email1, email2 }) {
     const op = (operador || "").toLowerCase();
+    const t = (tipo || "").toLowerCase();
     const n1 = (numero1 || "").replace(/\s+/g, "").trim();
     const n2 = (numero2 || "").replace(/\s+/g, "").trim();
-    const emailLimpio = (email || "").trim();
+    const e1 = (email1 || "").trim();
+    const e2 = (email2 || "").trim();
 
-    if (op.includes("nauta")) {
-      const correo = emailLimpio || n1;
-      const correoConfirmacion = emailLimpio || n2;
+    const esNauta = (t === "nauta") || op.includes("nauta");
+
+    if (esNauta) {
+      const correo = e1 || n1;
+      const correoConfirmacion = e2 || n2;
 
       if (!correo || !correoConfirmacion) {
         return { ok: false, error: "Por favor, escribe el correo NAUTA en ambos campos." };
       }
 
-      if (!isMatchingNumbers(correo, correoConfirmacion)) {
+      if (String(correo).trim() !== String(correoConfirmacion).trim()) {
         return { ok: false, error: "Los correos no coinciden. Revisa el correo NAUTA." };
       }
 
       if (!isNautaEmail(correo)) {
-        return { ok: false, error: "Correo NAUTA inválido. Usa tu correo @nauta.cu o @nauta.com.cu." };
+        return { ok: false, error: "Correo NAUTA inválido. Usa usuario@nauta.com.cu o usuario@nauta.co.cu." };
       }
 
-      const correoFinal = correo.toLowerCase();
-      return { ok: true, sanitized: { email: correoFinal, numero: correoFinal } };
+      const correoFinal = String(correo).trim().toLowerCase();
+      return { ok: true, sanitized: { destino: correoFinal, email: correoFinal, numero: correoFinal } };
     }
 
-    const normalized1 = n1.replace(/^\+?53/, "");
-    const normalized2 = n2.replace(/^\+?53/, "");
+    // Cubacel: normalizar sin comerse el "53" local cuando el número empieza por 53xxxxxx
+    const normalized1 = normalizeCubacel(n1);
+    const normalized2 = normalizeCubacel(n2);
 
     if (!normalized1 || !normalized2) {
       return { ok: false, error: "Por favor, escribe el número en ambos campos." };
@@ -63,6 +83,7 @@
   }
 
   global.Validators = {
+    normalizeCubacel,
     isCubacelNumber,
     isMatchingNumbers,
     isNautaEmail,

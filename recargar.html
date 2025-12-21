@@ -637,31 +637,49 @@
 
   </main>
 
-  <!-- ✅ MODAL RECARGA -->
+ <!-- ✅ MODAL RECARGA -->
   <div id="modal-bg-recarga" class="modal-bg-recarga">
     <div class="modal-recarga">
       <div class="modal-titulo">Confirma tu recarga</div>
       <div id="modal-detalle-cobro" class="modal-linea"></div>
       <div id="modal-detalle-recibe" class="modal-linea" style="margin-bottom:8px;"></div>
 
-      <div class="input-prefijo">
-        <span class="prefijo">+53</span>
-        <input id="modal-numero" type="tel" inputmode="numeric" maxlength="8" placeholder="Número del móvil" />
+      <!-- ✅ DESTINO: CUBACEL (TELÉFONO) -->
+      <div id="modal-destino-msisdn">
+        <div class="input-prefijo">
+          <span class="prefijo">+53</span>
+          <input id="modal-numero" type="tel" inputmode="numeric" maxlength="8" placeholder="Número del móvil" />
+        </div>
+
+        <div class="input-prefijo">
+          <span class="prefijo">+53</span>
+          <input id="modal-numero2" type="tel" inputmode="numeric" maxlength="8" placeholder="Repite el número" />
+        </div>
+
+        <!-- ✅ NUEVO: SELECTOR VISUAL DE NÚMEROS RECIENTES (solo aplica a teléfono) -->
+        <div id="modal-recientes" class="modal-recientes" style="display:none;">
+          <div class="modal-recientes-titulo">Últimos números usados</div>
+          <div id="modal-recientes-lista" class="modal-recientes-lista"></div>
+        </div>
       </div>
 
-      <div class="input-prefijo">
-        <span class="prefijo">+53</span>
-        <input id="modal-numero2" type="tel" inputmode="numeric" maxlength="8" placeholder="Repite el número" />
-      </div>
+      <!-- ✅ DESTINO: NAUTA (EMAIL) -->
+      <div id="modal-destino-nauta" style="display:none;">
+        <div class="input-prefijo">
+          <input id="modal-nauta-email" type="email" inputmode="email" autocomplete="email" placeholder="usuario@nauta.com.cu" />
+        </div>
 
-      <!-- ✅ NUEVO: SELECTOR VISUAL DE NÚMEROS RECIENTES -->
-      <div id="modal-recientes" class="modal-recientes" style="display:none;">
-        <div class="modal-recientes-titulo">Últimos números usados</div>
-        <div id="modal-recientes-lista" class="modal-recientes-lista"></div>
+        <div class="input-prefijo">
+          <input id="modal-nauta-email2" type="email" inputmode="email" autocomplete="email" placeholder="Repite el correo Nauta" />
+        </div>
+
+        <div class="modal-aviso" style="margin-top:6px;">
+          Solo se acepta @nauta.com.cu o @nauta.co.cu
+        </div>
       </div>
 
       <div class="modal-aviso">
-        Verifica el número, las recargas no se pueden revertir.
+        Verifica el destino, las recargas no se pueden revertir.
       </div>
 
       <button id="btnRealizarRecarga">Realizar recarga</button>
@@ -890,9 +908,15 @@
       const modalRecibe = document.getElementById("modal-detalle-recibe");
       const inputNum1 = document.getElementById("modal-numero");
       const inputNum2 = document.getElementById("modal-numero2");
+      const inputNauta1 = document.getElementById("modal-nauta-email");
+      const inputNauta2 = document.getElementById("modal-nauta-email2");
+      const modalDestinoMsisdn = document.getElementById("modal-destino-msisdn");
+      const modalDestinoNauta = document.getElementById("modal-destino-nauta");
+      const modalRecientes = document.getElementById("modal-recientes");
       const btnRealizar = document.getElementById("btnRealizarRecarga");
       const modalDlg = modalBg ? modalBg.querySelector(".modal-recarga") : null;
       let lastFocusedElement = null;
+      let tipoDestinoActual = "msisdn"; // "msisdn" | "nauta"
 
       function abrirModalRecarga() {
         if (!modalBg) return;
@@ -958,14 +982,29 @@
               return;
             }
 
-            modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
-            modalRecibe.textContent = `El móvil recibe: ${recibeTxt}`;
+            // Detectar tipo de destino por productId
+            tipoDestinoActual = (productId && productId.startsWith("nauta-")) ? "nauta" : "msisdn";
 
+            modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
+            modalRecibe.textContent = (tipoDestinoActual === "nauta")
+              ? `La cuenta NAUTA recibe: ${recibeTxt}`
+              : `El móvil recibe: ${recibeTxt}`;
+
+            // Reset inputs
             inputNum1.value = "";
             inputNum2.value = "";
+            if (inputNauta1) inputNauta1.value = "";
+            if (inputNauta2) inputNauta2.value = "";
 
-            // ✅ Mostrar últimos números al abrir el modal
-            renderNumerosRecientes();
+            // Toggle UI del modal según tipo
+            if (modalDestinoMsisdn) modalDestinoMsisdn.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+            if (modalDestinoNauta) modalDestinoNauta.style.display = (tipoDestinoActual === "nauta") ? "block" : "none";
+
+            // Recientes solo aplica a teléfono
+            if (modalRecientes) modalRecientes.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+            if (tipoDestinoActual === "msisdn") {
+              renderNumerosRecientes();
+            }
 
             abrirModalRecarga();
           });
@@ -989,8 +1028,11 @@
             return;
           }
 
+          const isNauta = (tipoDestinoActual === "nauta");
           const n1 = inputNum1.value || "";
           const n2 = inputNum2.value || "";
+          const e1 = (inputNauta1 && inputNauta1.value) ? inputNauta1.value : "";
+          const e2 = (inputNauta2 && inputNauta2.value) ? inputNauta2.value : "";
 
           if (typeof validarRecargaEntrada !== "function") {
             const msgValidacion = "No se pudo validar los datos. Inténtalo de nuevo.";
@@ -1002,10 +1044,14 @@
             return;
           }
 
+          // Nota: validators.js debe aceptar email1/email2 cuando operador/tipo sea NAUTA
           const validacion = validarRecargaEntrada({
             operador: operadorActual || "",
+            tipo: isNauta ? "nauta" : "cubacel",
             numero1: n1,
-            numero2: n2
+            numero2: n2,
+            email1: e1,
+            email2: e2
           });
 
           if (!validacion.ok) {
@@ -1023,13 +1069,15 @@
             return;
           }
 
-          const numeroFinal = validacion.sanitized && validacion.sanitized.numero ? validacion.sanitized.numero : null;
+          const destinoFinal = (validacion.sanitized && (validacion.sanitized.destino || validacion.sanitized.numero))
+            ? (validacion.sanitized.destino || validacion.sanitized.numero)
+            : null;
 
           const productoId = productoActual ? productoActual.id : null;
 
           // ? Usamos la capa de negocio centralizada
           const resultado = await procesarRecarga({
-            numero: numeroFinal || "+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""),
+            numero: destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""))),
             importe: precioActual,
             beneficio: beneficioActual,
             operador: operadorActual || "",
@@ -1047,8 +1095,8 @@
           const { idConfirmacion, movimiento } = resultado;
 
           // ? Guardar número reciente
-          if (numeroFinal) {
-            guardarNumeroReciente(numeroFinal.replace(/^\+?53/, ""));
+          if (!isNauta && destinoFinal) {
+            guardarNumeroReciente(String(destinoFinal).replace(/^\+?53/, ""));
           }
 
           // ? Correo al cliente (EmailJS)
