@@ -1,4 +1,4 @@
-/* ===== APP: Pantalla de inicio de sesiÇün ===== */
+/* ===== APP: Pantalla de inicio de sesión ===== */
 
 #screen-home {
   display: flex;
@@ -223,6 +223,71 @@ body.page-legal li {
   max-width: 480px;
   margin: 0 auto;
   padding: 12px 14px 110px;
+}
+/* ===== FIX ModalSaldo: input importe igual que metodo + € dentro + sin spinner ===== */
+
+/* Igualar altura del “método seleccionado” con el input */
+#modalSaldo .metodo-resumen{
+  box-sizing: border-box;
+  min-height: 38px;
+}
+
+/* Campo importe: no flex (el € no debe robar ancho) */
+#modalSaldo .campo-saldo{
+  margin-top: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+}
+
+/* Input: mismo tamaño/bordes que metodo-resumen */
+#modalSaldo #inputSaldo{
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e5e7eb;
+
+  padding: 8px 36px 8px 10px; /* espacio para € dentro */
+  min-height: 38px;
+  font-size: 12px;
+  line-height: 1.2;
+
+  outline: none;
+}
+
+/* Focus consistente (sin bordes raros al pinchar) */
+#modalSaldo #inputSaldo:focus,
+#modalSaldo #inputSaldo:focus-visible{
+  border-color: #fbbf24;
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
+}
+
+/* € dentro del input */
+#modalSaldo .campo-saldo > span{
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.8;
+  font-size: 12px;
+}
+
+/* Quitar spinner del number SOLO aquí */
+#modalSaldo #inputSaldo::-webkit-outer-spin-button,
+#modalSaldo #inputSaldo::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+#modalSaldo #inputSaldo{
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* ===== Toasts ===== */

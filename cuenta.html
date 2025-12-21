@@ -589,29 +589,6 @@
       background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.96));
     }
 
-    .campo-saldo {
-      margin-top: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .campo-saldo input {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: rgba(15, 23, 42, 0.9);
-      color: #e5e7eb;
-      padding: 9px 12px;
-      outline: none;
-      font-size: 13px;
-    }
-
-    .campo-saldo span {
-      font-size: 13px;
-      opacity: 0.8;
-    }
-
     .modal-footer {
       margin-top: 12px;
       display: flex;
@@ -1190,7 +1167,7 @@
         <span class="alerta">
           Recuerda registrar los movimientos de saldo también en tu control interno.
         </span>
-        <button class="btn-secondary" data-close="saldo">Cancelar</button>
+        <button class="btn-secondary" data-close="saldo" type="button">Cancelar</button>
         <button id="confirmarSaldoBtn" class="btn-primary">Guardar saldo</button>
       </div>
     </div>
@@ -1244,7 +1221,20 @@
   <!-- SCRIPT PRINCIPAL -->
   <script>
     window.__initCuentaPage = function __initCuentaPage(authUser) {
-    const usuarioSesion = localStorage.getItem("usuario");
+  // Cierre genérico de modales: cualquier botón con data-close cierra su .modal-bg
+  if (!window.__rpcModalCloseBound) {
+    window.__rpcModalCloseBound = true;
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest("[data-close]") : null;
+      if (!btn) return;
+
+      const modalBg = btn.closest(".modal-bg");
+      if (modalBg) modalBg.style.display = "none";
+    });
+  }
+
+  const usuarioSesion = localStorage.getItem("usuario");
 
     let datosUsuario;
     try {
