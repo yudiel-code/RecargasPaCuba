@@ -1,4 +1,4 @@
-<!doctype html>
+<!doctype html> 
 <html lang="es">
 <head>
   <meta charset="utf-8" />
@@ -176,6 +176,42 @@
 
   <script type="module" src="js/firebase.js?v=r1"></script>
 
+  <!-- ✅ Redirect robusto: evita race de currentUser usando onAuthStateChanged (no interfiere con registro porque requiere forzarCambio === false) -->
+  <script type="module">
+    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+
+      try {
+        const data = localStorage.getItem("usuarioRegistrado");
+        let usuario = {};
+        try {
+          usuario = data ? JSON.parse(data) : {};
+        } catch (e) {
+          usuario = {};
+        }
+
+        const tieneUsuarioPrevio = usuario && (usuario.email || usuario.usuario);
+        if (!tieneUsuarioPrevio) return;
+
+        if (usuario.forzarCambio === false) {
+          const params = new URLSearchParams(window.location.search || "");
+          let vParam = params.get("v");
+          if (!vParam) {
+            try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+          }
+          const targetUrl = new URL("recargar.html", window.location.href);
+          targetUrl.searchParams.set("next", "recargar.html");
+          if (vParam) targetUrl.searchParams.set("v", vParam);
+          window.location.href = targetUrl.toString();
+        }
+      } catch (_) {
+        // noop
+      }
+    });
+  </script>
+
   <script>
     // Cargamos el usuario guardado
     const data = localStorage.getItem("usuarioRegistrado");
@@ -187,23 +223,7 @@
       usuario = {};
     }
 
-    // Solo redirigimos si ya hay usuario y NO necesita cambio/registro
-    window.addEventListener("load", () => {
-      const tieneUsuarioPrevio = usuario && (usuario.email || usuario.usuario);
-      const authInicial = window.firebaseAuth || null;
-      const userInicial = authInicial && authInicial.currentUser;
-      if (userInicial && tieneUsuarioPrevio && usuario.forzarCambio === false) {
-        const params = new URLSearchParams(window.location.search || "");
-        let vParam = params.get("v");
-        if (!vParam) {
-          try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
-        }
-        const targetUrl = new URL("recargar.html", window.location.href);
-        targetUrl.searchParams.set("next", "recargar.html");
-        if (vParam) targetUrl.searchParams.set("v", vParam);
-        window.location.href = targetUrl.toString();
-      }
-    });    const btnRegister = document.getElementById("btn-register");
+    const btnRegister = document.getElementById("btn-register");
     btnRegister.addEventListener("click", async () => {
       const nombre = (document.getElementById("reg-nombre").value || "").trim();
       const email = (document.getElementById("reg-email").value || "").trim().toLowerCase();
@@ -295,43 +315,38 @@
 
     // Ojito 1
     function wirePassToggle(toggleId, inputId) {
-  const toggle = document.getElementById(toggleId);
-  const input = document.getElementById(inputId);
-  if (!toggle || !input) return;
+      const toggle = document.getElementById(toggleId);
+      const input = document.getElementById(inputId);
+      if (!toggle || !input) return;
 
-  const eye = toggle.querySelector(".icon-eye");
-  const eyeOff = toggle.querySelector(".icon-eye-off");
+      const eye = toggle.querySelector(".icon-eye");
+      const eyeOff = toggle.querySelector(".icon-eye-off");
 
-  const setState = (visible) => {
-    input.type = visible ? "text" : "password";
-    toggle.setAttribute("aria-pressed", visible ? "true" : "false");
-    toggle.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
-    if (eye) eye.style.display = visible ? "none" : "inline";
-    if (eyeOff) eyeOff.style.display = visible ? "inline" : "none";
-  };
+      const setState = (visible) => {
+        input.type = visible ? "text" : "password";
+        toggle.setAttribute("aria-pressed", visible ? "true" : "false");
+        toggle.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+        if (eye) eye.style.display = visible ? "none" : "inline";
+        if (eyeOff) eyeOff.style.display = visible ? "inline" : "none";
+      };
 
-  const toggleIt = () => setState(input.type === "password");
+      const toggleIt = () => setState(input.type === "password");
 
-  toggle.addEventListener("click", toggleIt);
-  toggle.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      toggleIt();
+      toggle.addEventListener("click", toggleIt);
+      toggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleIt();
+        }
+      });
+
+      setState(false);
     }
-  });
 
-  setState(false);
-}
-
-wirePassToggle("toggle-pass-1", "new-pass");
-wirePassToggle("toggle-pass-2", "new-pass2");
-
+    wirePassToggle("toggle-pass-1", "new-pass");
+    wirePassToggle("toggle-pass-2", "new-pass2");
   </script>
 
   <script type="module" src="js/app.js?v=r1"></script>
 </body>
 </html>
-
-
-
-
