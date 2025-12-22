@@ -1076,13 +1076,46 @@
           const productoId = productoActual ? productoActual.id : null;
 
           // ? Usamos la capa de negocio centralizada
-          const resultado = await procesarRecarga({
+          // Firestore: registrar solicitud PENDING (Spark) antes de procesar en cliente
+try {
+  const app = window.firebaseApp;
+  const auth = window.firebaseAuth;
+  const user = auth && auth.currentUser;
+  if (!app || !user) throw new Error("firebase-no-auth");
+
+  const { getFirestore, doc, setDoc, serverTimestamp } =
+    await import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js");
+
+  const db = getFirestore(app);
+  const fireRecargaId = "PEND-" + Date.now();
+
+  await setDoc(doc(db, "recargas", fireRecargaId), {
+    uid: user.uid,
+    productId: String(productoId || ""),
+    destino: String(
+      destinoFinal ||
+        (isNauta
+          ? (e1 || "").trim()
+          : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
+    ),
+    status: "PENDING",
+    canal: "web",
+    createdAt: serverTimestamp()
+  });
+} catch (e) {
+  console.error("Firestore create PENDING recarga failed:", e);
+  showToastError("No se pudo registrar la solicitud. Inténtalo de nuevo.");
+  return;
+}
+
+const resultado = await procesarRecarga({
             numero: destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""))),
             importe: precioActual,
             beneficio: beneficioActual,
             operador: operadorActual || "",
             productoId
           });
+
 
           if (!resultado || !resultado.success) {
             const msg = resultado && resultado.message
@@ -1104,7 +1137,7 @@
             try {
               await emailjs.send("service_ryvafj3", "template_k5t8asf", {
                 to_email: datosUsuario.email,
-                numero: numeroFinal || movimiento.numero,
+                numero: (destinoFinal || (movimiento && movimiento.numero) || ""),
                 importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
                 beneficio: movimiento.beneficio || beneficioActual,
                 fecha: movimiento.fecha || new Date().toLocaleString(),
