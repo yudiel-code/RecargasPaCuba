@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="styles/app.css?v=r1">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="js/ui.js?v=r1"></script>
+  <link rel="icon" type="image/png" href="icon-256.png">
 </head>
 
 <body>
@@ -132,30 +133,7 @@
 
 <!-- SCRIPT PRINCIPAL LOGIN + RECUPERAR -->
 <script type="module">
-    // FIX: define resolvePostAuthRedirect if missing (prevents ReferenceError)
-  window.resolvePostAuthRedirect = window.resolvePostAuthRedirect || function resolvePostAuthRedirect() {
-    try {
-      const url = new URL(window.location.href);
-
-      const next =
-        url.searchParams.get("next") ||
-        sessionStorage.getItem("rpc_next") ||
-        "recargar.html";
-
-      const v =
-        url.searchParams.get("v") ||
-        sessionStorage.getItem("rpc_v") ||
-        "";
-
-      sessionStorage.setItem("rpc_next", next);
-      if (v) sessionStorage.setItem("rpc_v", v);
-
-      const sep = next.includes("?") ? "&" : "?";
-      return v ? `${next}${sep}v=${encodeURIComponent(v)}` : next;
-    } catch (e) {
-      return "recargar.html";
-    }
-  };
+    
 
   // EmailJS (se deja inicializado por si se usa en otros flujos)
   if (window.emailjs && typeof window.emailjs.init === "function") {
@@ -188,23 +166,53 @@
 
   const MAX_INTENTOS = 5;
   const BLOQUEO_TIEMPO = 10 * 60 * 1000;
+
   function resolvePostAuthRedirect() {
-    const params = new URLSearchParams(location.search || "");
-    const raw = params.get("next");
-    const allowed = ["recargar.html", "cuenta.html", "historial.html"];
-    const safe = raw && !raw.includes("://") && !/^[\/\\\\]/.test(raw) && !raw.includes("..") && allowed.includes((raw.split(/[?#]/)[0] || "")) ? raw : null;
-    const dest = safe || "recargar.html";
-    const vParam = params.get("v");
-    let finalDest = dest;
-    if (vParam && !/[?&]v=/.test(dest)) {
-      const parts = dest.split("#");
-      const base = parts[0];
-      const hash = parts[1] ? "#" + parts[1] : "";
-      const sep = base.includes("?") ? "&" : "?";
-      finalDest = `${base}${sep}v=${encodeURIComponent(vParam)}${hash}`;
+    const params = new URLSearchParams(window.location.search || "");
+
+    // Read-only fallbacks (no writes)
+    const rawNext = (params.get("next") || sessionStorage.getItem("rpc_next") || "").trim();
+    const rawV = (params.get("v") || sessionStorage.getItem("rpc_v") || "").trim();
+
+    // Allowlist: only these pages are valid post-auth destinations
+    const allow = new Set(["recargar.html", "cuenta.html", "historial.html"]);
+
+    let candidate = rawNext || "recargar.html";
+
+    // Block absolute/protocol URLs, protocol-relative, traversal, backslashes, null byte
+    const isUnsafe =
+      /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(candidate) ||
+      candidate.includes("..") ||
+      candidate.includes("\\") ||
+      candidate.includes("\0");
+
+    // Validate base path (strip query/hash for allowlist check)
+    const base = candidate.split(/[?#]/)[0];
+
+    if (isUnsafe || !allow.has(base)) {
+      candidate = "recargar.html";
     }
-    return finalDest;
+
+    // Append v only if present and not already in query
+    if (rawV) {
+      const hashIndex = candidate.indexOf("#");
+      const beforeHash = hashIndex >= 0 ? candidate.slice(0, hashIndex) : candidate;
+      const hash = hashIndex >= 0 ? candidate.slice(hashIndex) : "";
+
+      const qIndex = beforeHash.indexOf("?");
+      const path = qIndex >= 0 ? beforeHash.slice(0, qIndex) : beforeHash;
+      const query = qIndex >= 0 ? beforeHash.slice(qIndex + 1) : "";
+
+      const qParams = new URLSearchParams(query);
+      if (!qParams.has("v")) qParams.set("v", rawV);
+
+      const rebuilt = qParams.toString();
+      candidate = path + (rebuilt ? `?${rebuilt}` : "") + hash;
+    }
+
+    return candidate;
   }
+  window.resolvePostAuthRedirect = resolvePostAuthRedirect;
 
   function estaBloqueado() {
     const bloqueo = localStorage.getItem("login_bloqueado_hasta");
@@ -288,7 +296,7 @@
         }
 
         localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
-        const finalDest = resolvePostAuthRedirect();
+        const finalDest = window.resolvePostAuthRedirect();
         if (!window.__authRedirected) {
           window.__authRedirected = true;
           window.location.href = finalDest;
@@ -440,7 +448,7 @@
       localStorage.setItem("usuario", (user.email || "").toLowerCase());
 
       // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
-      const finalDest = resolvePostAuthRedirect();
+      const finalDest = window.resolvePostAuthRedirect();
       if (!window.__authRedirected) {
         window.__authRedirected = true;
         window.location.href = finalDest;
