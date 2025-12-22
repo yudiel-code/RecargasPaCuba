@@ -297,7 +297,163 @@
       }
 
       (async () => {
-        const lista = getHistorial();
+        let lista = getHistorial();
+
+        async function getFirebaseUserOnce(timeoutMs) {
+          return new Promise((resolve) => {
+            try {
+              if (auth && auth.currentUser) return resolve(auth.currentUser);
+
+              let done = false;
+              const t = setTimeout(() => {
+                if (done) return;
+                done = true;
+                resolve(auth && auth.currentUser ? auth.currentUser : null);
+              }, typeof timeoutMs === "number" ? timeoutMs : 8000);
+
+              const unsub = onAuthStateChanged(auth, (user) => {
+                if (done) return;
+                done = true;
+                clearTimeout(t);
+                try { if (typeof unsub === "function") unsub(); } catch (_) {}
+                resolve(user || null);
+              });
+            } catch (e) {
+              resolve(null);
+            }
+          });
+        }
+
+        async function getFirebaseSdkVersionFromFirebaseJs() {
+          try {
+            const res = await fetch("./js/firebase.js?v=r1", { cache: "no-store" });
+            if (!res.ok) return null;
+            const text = await res.text();
+            const m = text.match(/firebasejs\/(\d+\.\d+\.\d+)\//);
+            return m ? m[1] : null;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function toDateFromCreatedAt(value) {
+          try {
+            if (!value) return null;
+            if (value instanceof Date) return value;
+            if (typeof value === "string" || typeof value === "number") {
+              const d = new Date(value);
+              return isNaN(d.getTime()) ? null : d;
+            }
+            if (typeof value.toDate === "function") {
+              const d = value.toDate();
+              return d instanceof Date && !isNaN(d.getTime()) ? d : null;
+            }
+            if (typeof value.seconds === "number") {
+              const d = new Date(value.seconds * 1000);
+              return isNaN(d.getTime()) ? null : d;
+            }
+            return null;
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function formatFechaFromCreatedAt(value) {
+          const d = toDateFromCreatedAt(value);
+          if (!d) return "";
+          try {
+            return d.toLocaleString("es-ES");
+          } catch (e) {
+            return "";
+          }
+        }
+
+        function mergeByIdPreferFirst(primary, secondary) {
+          const out = [];
+          const seen = new Set();
+
+          (Array.isArray(primary) ? primary : []).forEach((m) => {
+            const id = (m && m.id) ? String(m.id) : "";
+            if (id && seen.has(id)) return;
+            if (id) seen.add(id);
+            out.push(m);
+          });
+
+          (Array.isArray(secondary) ? secondary : []).forEach((m) => {
+            const id = (m && m.id) ? String(m.id) : "";
+            if (id && seen.has(id)) return;
+            if (id) seen.add(id);
+            out.push(m);
+          });
+
+          return out;
+        }
+
+        async function fetchRecargasFromFirestore(uid) {
+          const version = (await getFirebaseSdkVersionFromFirebaseJs()) || null;
+          if (!version) return [];
+
+          const mod = await import(`https://www.gstatic.com/firebasejs/${version}/firebase-firestore.js`);
+          const { getFirestore, collection, query, where, orderBy, limit, getDocs } = mod;
+
+          const db = getFirestore();
+          const col = collection(db, "recargas");
+
+          let docs = [];
+          try {
+            const q = query(col, where("uid", "==", uid), orderBy("createdAt", "desc"), limit(50));
+            const snap = await getDocs(q);
+            docs = snap && snap.docs ? snap.docs : [];
+          } catch (err1) {
+            try {
+              const q2 = query(col, where("uid", "==", uid), limit(200));
+              const snap2 = await getDocs(q2);
+              const tmp = snap2 && snap2.docs ? snap2.docs : [];
+              docs = tmp;
+            } catch (err2) {
+              console.error("Error leyendo Firestore (recargas):", err2);
+              return [];
+            }
+          }
+
+          const mapped = docs.map((d) => {
+            const data = (d && typeof d.data === "function") ? (d.data() || {}) : {};
+            const statusRaw = (data.status || data.estado || "").toString();
+            const status = statusRaw ? statusRaw.toUpperCase() : "";
+            const estado = (status === "OK" || status === "COMPLETED" || status === "SUCCESS") ? "OK" : (status || "");
+
+            return {
+              tipo: "recarga",
+              id: (d && d.id) ? d.id : (data.id || ""),
+              numero: data.destino || data.numero || "",
+              importe: data.importe,
+              fecha: formatFechaFromCreatedAt(data.createdAt),
+              estado: estado
+            };
+          });
+
+          // ordenar por fecha (por si entramos por fallback sin orderBy)
+          mapped.sort((a, b) => {
+            const da = new Date(a && a.fecha ? a.fecha : 0).getTime();
+            const dbb = new Date(b && b.fecha ? b.fecha : 0).getTime();
+            return dbb - da;
+          });
+
+          return mapped.slice(0, 50);
+        }
+
+        try {
+          const fbUser = await getFirebaseUserOnce(8000);
+          if (fbUser && fbUser.uid) {
+            const fsRecargas = await fetchRecargasFromFirestore(fbUser.uid);
+            if (Array.isArray(fsRecargas) && fsRecargas.length) {
+              // Firestore primero; luego lo local (sin duplicar por id)
+              lista = mergeByIdPreferFirst(fsRecargas, lista);
+            }
+          }
+        } catch (e) {
+          console.error("Error cargando recargas desde Firestore:", e);
+        }
 
         const recargas = lista.filter(m => m && m.tipo === "recarga");
         const saldos   = lista.filter(m => m && m.tipo === "saldo");
@@ -521,11 +677,3 @@
   <script type="module" src="js/app.js?v=r1"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
