@@ -12,6 +12,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
 // Configuración única de Firebase para toda la app
 const firebaseConfig = {
@@ -26,10 +27,15 @@ const firebaseConfig = {
 // Inicializar app y auth una sola vez
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const functions = getFunctions(app);
+const callFunction = (name, data) => httpsCallable(functions, name)(data);
 
 // Exponer en window para scripts NO módulo
 window.firebaseApp = app;
 window.firebaseAuth = auth;
+window.firebaseFunctions = functions;
+window.firebaseHttpsCallable = httpsCallable;
+window.firebaseCallFunction = callFunction;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
 window.firebaseSignOut = signOut;
@@ -53,5 +59,8 @@ export {
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  updateProfile
+  updateProfile,
+  functions,
+  httpsCallable,
+  callFunction
 };
