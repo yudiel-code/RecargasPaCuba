@@ -1,4 +1,4 @@
-// guard.js - Protected Page Guard (promise-based, minimal)
+// guard.js - Protected Page Guard (promise-based, minimal) 
 // Bloquea la vista hasta validar sesión con Firebase auth; redirige si no hay usuario.
 
 export function guardProtectedPage(options = {}) {
@@ -26,7 +26,10 @@ export function guardProtectedPage(options = {}) {
         const relativeTarget = `${currentPage}${location.search || ''}${location.hash || ''}`;
         finalDestUrl.searchParams.set('next', relativeTarget);
 
-        const vParam = (new URLSearchParams(location.search || '')).get('v');
+        const vParam =
+          (new URLSearchParams(location.search || '')).get('v') ||
+          (sessionStorage.getItem('rpc_v') || '');
+
         if (vParam && !finalDestUrl.searchParams.has('v')) {
           finalDestUrl.searchParams.set('v', vParam);
         }
