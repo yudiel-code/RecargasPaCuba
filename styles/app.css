@@ -187,6 +187,12 @@ body.page-historial {
   box-sizing: border-box;
 }
 
+/* Historial: reservar espacio para la línea de fecha aunque esté vacía */
+.historial-container .card--gradient .fecha {
+  min-height: 14px;
+  line-height: 14px;
+}
+
 body.page-cuenta {
   padding: 12px 14px 110px;
   font-family: "Poppins", system-ui, sans-serif;
