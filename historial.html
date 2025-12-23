@@ -20,6 +20,9 @@
   <style>
     /* Tipografía como Cuenta/Recargar */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+/* Anti-flash (Historial): no muestres las cards hasta data-ready */
+html:not(.rpc-ready) .historial-container { opacity: 0 !important; pointer-events: none; }
+html.rpc-ready .historial-container { opacity: 1 !important; }
 
     :root{
       --left:#0b63d1;
@@ -170,7 +173,7 @@
 
 <body>
 
-  <div class="historial-container">
+  <div class="historial-container" style="opacity:0; pointer-events:none;">
 
     <div class="card card--gradient" id="card-recarga" role="button" tabindex="0" aria-label="Ver historial de recargas">
       <div class="icono">⚡</div>
@@ -263,10 +266,7 @@
   <!-- Capa de datos unificada -->
   <!-- Catálogo de productos (para resolver productId -> importe) -->
   <script src="js/products.js?v=r1"></script>
-
-  <!-- Catálogo de productos (para resolver productId -> importe) -->
-  <script src="js/products.js?v=r1"></script>
-
+ 
   <!-- Capa de datos unificada -->
   <script src="js/userData.js?v=r1"></script>
 
@@ -284,7 +284,6 @@
 });
 
     window.addEventListener("load", () => {
-      document.documentElement.classList.remove("rpc-ready");
       // Control de sesión
       
       const emailUsuario = localStorage.getItem("usuario") || "";
@@ -710,6 +709,10 @@
         }
 
         document.documentElement.classList.add("rpc-ready");
+        try {
+          const hc = document.querySelector(".historial-container");
+          if (hc) { hc.style.opacity = "1"; hc.style.pointerEvents = "auto"; }
+        } catch (_) {}
       })();
     });
   </script>
