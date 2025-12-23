@@ -261,6 +261,13 @@
   </nav>
 
   <!-- Capa de datos unificada -->
+  <!-- Catálogo de productos (para resolver productId -> importe) -->
+  <script src="js/products.js?v=r1"></script>
+
+  <!-- Catálogo de productos (para resolver productId -> importe) -->
+  <script src="js/products.js?v=r1"></script>
+
+  <!-- Capa de datos unificada -->
   <script src="js/userData.js?v=r1"></script>
 
   <script>
@@ -277,6 +284,7 @@
 });
 
     window.addEventListener("load", () => {
+      document.documentElement.classList.remove("rpc-ready");
       // Control de sesión
       
       const emailUsuario = localStorage.getItem("usuario") || "";
@@ -422,22 +430,81 @@
             const status = statusRaw ? statusRaw.toUpperCase() : "";
             const estado = (status === "OK" || status === "COMPLETED" || status === "SUCCESS") ? "OK" : (status || "");
 
+            const productIdRaw = (data.productId || data.product || "");
+            const productIdKey = String(productIdRaw || "").trim();
+            const productIdNorm = productIdKey ? productIdKey.toLowerCase() : "";
+
+            // 1) Si Firestore trae importe, úsalo
+            let importeRaw = (data.importe ?? data.amount ?? data.price ?? data.precio ?? data.valor);
+
+            // 2) Si no trae importe, intenta resolverlo por catálogo (products.js)
+            if ((importeRaw === undefined || importeRaw === null || importeRaw === "") && productIdNorm) {
+              let found = null;
+
+              // Prioridad absoluta: API oficial window.Products.getById(...)
+              if (!found && window.Products && typeof window.Products.getById === "function") {
+                try {
+                  found = window.Products.getById(productIdNorm);
+                } catch (_) {
+                  found = null;
+                }
+              }
+
+              // Compatibilidad: otros globals antiguos (map o array)
+              const sources = [
+                window.RPC_PRODUCTS,
+                window.PRODUCTS,
+                window.products
+              ];
+
+              for (const src of sources) {
+                if (!src || found) continue;
+
+                // mapa por id
+                if (typeof src === "object" && !Array.isArray(src) && src[productIdNorm]) {
+                  found = src[productIdNorm];
+                  break;
+                }
+
+                // array de productos
+                if (Array.isArray(src)) {
+                  const hit = src.find(p => p && (String(p.id || p.productId || "").trim().toLowerCase() === productIdNorm));
+                  if (hit) {
+                    found = hit;
+                    break;
+                  }
+                }
+              }
+
+              if (found) {
+                importeRaw = (found.importe ?? found.amount ?? found.price ?? found.precio ?? found.valor);
+              }
+
+              // NOTA: se elimina el fallback numérico desde productId (ej: "cubacel-20" -> "20")
+              // porque produce importes incorrectos (20.00) cuando el catálogo trae 20.84.
+            }
+
+            // Normaliza a número
+            let importeNum = undefined;
+            if (importeRaw !== undefined && importeRaw !== null && importeRaw !== "") {
+              const n = Number(String(importeRaw).replace(",", "."));
+              if (!isNaN(n)) importeNum = n;
+            }
+
             return {
               tipo: "recarga",
               id: (d && d.id) ? d.id : (data.id || ""),
               numero: data.destino || data.numero || "",
-              importe: data.importe,
+              productId: productIdNorm,
+              importe: importeNum,
+              createdAtMs: (toDateFromCreatedAt(data.createdAt)?.getTime() || 0),
               fecha: formatFechaFromCreatedAt(data.createdAt),
               estado: estado
             };
           });
 
           // ordenar por fecha (por si entramos por fallback sin orderBy)
-          mapped.sort((a, b) => {
-            const da = new Date(a && a.fecha ? a.fecha : 0).getTime();
-            const dbb = new Date(b && b.fecha ? b.fecha : 0).getTime();
-            return dbb - da;
-          });
+          mapped.sort((a, b) => (Number(b && b.createdAtMs) || 0) - (Number(a && a.createdAtMs) || 0));
 
           return mapped.slice(0, 50);
         }
@@ -641,6 +708,8 @@
           cerrar.onclick = () => cerrarModalAccesible();
           modalBg.onclick = e => e.target === modalBg && cerrarModalAccesible();
         }
+
+        document.documentElement.classList.add("rpc-ready");
       })();
     });
   </script>

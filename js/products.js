@@ -59,7 +59,8 @@
   };
 
   function getById(id) {
-    return PRODUCTS[id] || null;
+    const key = String(id || "").trim().toLowerCase();
+    return PRODUCTS[key] || null;
   }
 
   function getAll() {

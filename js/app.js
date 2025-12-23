@@ -30,6 +30,7 @@ export function showToast(message, type = "info") {
   if (!container) {
     container = document.createElement("div");
     container.id = "toast-container";
+    container.className = "toast-container";
     document.body.appendChild(container);
   }
 

@@ -174,9 +174,13 @@ body.page-historial {
   color: #ffffff;
 }
 .historial-container .card--gradient {
-  min-height: 150px;
+  min-height: 0;
   width: 100%;
   box-sizing: border-box;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .historial-container {
   width: 100%;
