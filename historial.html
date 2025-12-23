@@ -20,9 +20,14 @@
   <style>
     /* Tipografía como Cuenta/Recargar */
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-/* Anti-flash (Historial): no muestres las cards hasta data-ready */
-html:not(.rpc-ready) .historial-container { opacity: 0 !important; pointer-events: none; }
-html.rpc-ready .historial-container { opacity: 1 !important; }
+
+    /* Anti-flash align with recargar */
+    html { visibility: hidden; }
+    html.loaded { visibility: visible; }
+
+    /* Anti-flash (Historial): no muestres las cards hasta data-ready */
+    html:not(.rpc-ready) .historial-container { opacity: 0 !important; pointer-events: none; }
+    html.rpc-ready .historial-container { opacity: 1 !important; }
 
     :root{
       --left:#0b63d1;
@@ -43,7 +48,6 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
       display: flex;
       flex-direction: column;
       color: white;
-      /* menos espacio para que la Última tarjeta llegue casi a la barra */
       padding-bottom: 90px;
     }
 
@@ -166,8 +170,6 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
       box-shadow: 0 10px 24px rgba(0,0,0,0.40);
       font-size: 14px;
     }
-
-    /* Barra inferior unificada (verde hoja + azul claro) */
   </style>
 </head>
 
@@ -237,10 +239,10 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
   </div>
 
   <div class="legal-links" style="text-align:center;margin-top:12px;">
-        <small>
-      <a href="terminos.html">Términos</a> 
-      <a href="privacidad.html">Privacidad</a> 
-      <a href="reembolsos.html">Reembolsos</a> 
+    <small>
+      <a href="terminos.html">Términos</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="reembolsos.html">Reembolsos</a>
       <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
     </small>
   </div>
@@ -263,32 +265,33 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
     </div>
   </nav>
 
-  <!-- Capa de datos unificada -->
   <!-- Catálogo de productos (para resolver productId -> importe) -->
   <script src="js/products.js?v=r1"></script>
- 
+
   <!-- Capa de datos unificada -->
   <script src="js/userData.js?v=r1"></script>
 
   <script>
     window.addEventListener("DOMContentLoaded", () => {
+      try { document.documentElement.classList.add("loaded"); } catch (_) {}
+
       if (typeof guardProtectedPage === "function") {
-    guardProtectedPage({
-      redirectTo: "index.html",
-      timeoutMs: 20000,
-      auth,
-      onAuthStateChanged,
-      onReady: (user) => {},
+        guardProtectedPage({
+          redirectTo: "index.html",
+          timeoutMs: 20000,
+          auth,
+          onAuthStateChanged,
+          onReady: (user) => {},
+        });
+      }
     });
-  }
-});
 
     window.addEventListener("load", () => {
-      // Control de sesión
-      
-      const emailUsuario = localStorage.getItem("usuario") || "";
+      try { document.documentElement.classList.add("loaded"); } catch (_) {}
 
-      // Historial desde UserData (centralizado)
+      const emailUsuarioBase = (localStorage.getItem("usuario") || "").toString();
+      let sessionEmailSnapshot = (localStorage.getItem("usuario") || emailUsuarioBase || "").toString();
+
       function getHistorial() {
         if (window.UserData && typeof window.UserData.getHistorial === "function") {
           return window.UserData.getHistorial();
@@ -305,6 +308,216 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
 
       (async () => {
         let lista = getHistorial();
+
+        let __historialRevealed = false;
+        function revealHistorialOnce() {
+          if (__historialRevealed) return;
+          __historialRevealed = true;
+          document.documentElement.classList.add("rpc-ready");
+          try {
+            const hc = document.querySelector(".historial-container");
+            if (hc) { hc.style.opacity = "1"; hc.style.pointerEvents = "auto"; }
+          } catch (_) {}
+        }
+
+        // ===== Orden/fecha estables (local + Firestore) =====
+        function msFromPendId(id) {
+          try {
+            const s = (id || "").toString().trim();
+            const m = s.match(/^PEND-(\d{10,})$/i);
+            if (!m) return 0;
+            const n = Number(m[1]);
+            return Number.isFinite(n) ? n : 0;
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        function parseEsFechaToMs(str) {
+          try {
+            const s = (str || "").toString().trim();
+            const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:,)?\s*(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+            if (!m) return 0;
+            const dd = Number(m[1]);
+            const mm = Number(m[2]);
+            const yy = Number(m[3]);
+            const hh = Number(m[4]);
+            const mi = Number(m[5]);
+            const ss = Number(m[6] || 0);
+            const d = new Date(yy, (mm - 1), dd, hh, mi, ss);
+            const t = d.getTime();
+            return isNaN(t) ? 0 : t;
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        function parseAnyFechaToMs(str) {
+          try {
+            const s = (str || "").toString().trim();
+            if (!s) return 0;
+            const es = parseEsFechaToMs(s);
+            if (es) return es;
+            const iso = Date.parse(s);
+            return isNaN(iso) ? 0 : iso;
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        function sortKeyMovimiento(m) {
+          if (!m) return 0;
+
+          const ca = Number(m.createdAtMs || 0);
+          if (ca > 0) return ca;
+
+          const pend = msFromPendId(m.id);
+          if (pend > 0) return pend;
+
+          const f = (m.fecha || "").toString().trim();
+          const ms = parseAnyFechaToMs(f);
+          return ms || 0;
+        }
+
+        function normalizeFechaText(m) {
+          if (!m) return "";
+          const raw = (m.fecha || "").toString().trim();
+          if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(raw)) return raw;
+          const ms = sortKeyMovimiento(m);
+          if (ms > 0) {
+            try { return new Date(ms).toLocaleString("es-ES"); } catch (_) { return ""; }
+          }
+          return raw || "";
+        }
+
+        // ===== Helpers DOM =====
+        function safeSetText(el, txt) {
+          try {
+            if (!el) return;
+            const t = (txt == null) ? "" : String(txt);
+            if (el.textContent !== t) el.textContent = t;
+          } catch (_) {}
+        }
+
+        function safeSetClass(el, cls) {
+          try {
+            if (!el) return;
+            const c = (cls == null) ? "" : String(cls);
+            if (el.className !== c) el.className = c;
+          } catch (_) {}
+        }
+
+        // ===== Selección estable por ID =====
+        let selectedRecargaId = null;
+        let __lastRecargaFingerprint = null;
+
+        function fingerprintRecarga(u) {
+          if (!u) return "";
+          const id = (u.id || "").toString();
+          const num = (u.numero || "").toString();
+          const est = (u.estado || "").toString();
+          const imp = Number(u.importe);
+          const impTxt = isNaN(imp) ? "" : imp.toFixed(2);
+          const f = normalizeFechaText(u) || "";
+          return `${id}|${num}|${est}|${impTxt}|${f}`;
+        }
+
+        function pickTopRecargaFromList(arr) {
+          const recargas = (Array.isArray(arr) ? arr : []).filter(m => m && m.tipo === "recarga");
+          if (!recargas.length) return null;
+          recargas.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
+          return recargas[0] || null;
+        }
+
+        function getSelectedRecarga(recargasSorted, allowChange) {
+          if (!Array.isArray(recargasSorted) || !recargasSorted.length) return null;
+
+          const top = recargasSorted[0] || null;
+          if (!top) return null;
+
+          const topId = (top.id || "").toString();
+          if (!selectedRecargaId) {
+            selectedRecargaId = topId;
+            return top;
+          }
+
+          const found = recargasSorted.find(r => r && (r.id || "").toString() === selectedRecargaId) || null;
+          if (found && !allowChange) return found;
+
+          if (allowChange && topId && topId !== selectedRecargaId) {
+            selectedRecargaId = topId;
+            return top;
+          }
+
+          return found || top;
+        }
+
+        function updateRecargaAndCorreoAtomic(u) {
+          const fp = fingerprintRecarga(u);
+          if (fp && fp === __lastRecargaFingerprint) return;
+          __lastRecargaFingerprint = fp;
+
+          const descR   = document.getElementById("recarga-desc");
+          const fechaR  = document.getElementById("recarga-fecha");
+          const estadoR = document.getElementById("recarga-estado");
+
+          const correoDesc   = document.getElementById("correo-desc");
+          const correoFecha  = document.getElementById("correo-fecha");
+          const correoEstado = document.getElementById("correo-estado");
+
+          const importeR = Number(u && u.importe);
+          const importeTxtR = isNaN(importeR) ? "-" : `-${importeR.toFixed(2)} €`;
+
+          const fechaTxt = normalizeFechaText(u);
+
+          // Recarga realizada
+          safeSetText(descR, `Recarga a ${u && u.numero ? u.numero : ""}`);
+          safeSetText(fechaR, fechaTxt);
+          safeSetText(estadoR, importeTxtR);
+          safeSetClass(estadoR, "estado rojo");
+
+          // Correo recibido (snapshot de email: NO cambies entre renders)
+          const idTxt      = (u && u.id) ? u.id : "Sin ID";
+          const emailTxt   = (sessionEmailSnapshot || localStorage.getItem("usuario") || emailUsuarioBase || "Sin correo registrado").toString();
+          const estadoBase = (u && u.estado ? u.estado : "").toString();
+          const estadoTxt  = (estadoBase === "OK") ? "Entregada" : "En proceso";
+          const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
+          const correoDescTxt = `${emailTxt} | ${importeTxt} | ID: ${idTxt}`;
+          const correoEstadoClass = (estadoTxt === "Entregada") ? "estado verde" : "estado amarillo";
+
+          safeSetText(correoDesc, correoDescTxt);
+          safeSetText(correoFecha, fechaTxt);
+          safeSetText(correoEstado, estadoTxt);
+          safeSetClass(correoEstado, correoEstadoClass);
+        }
+
+        function renderCardsFromLista(allowSelectionChange) {
+          const recargas = lista.filter(m => m && m.tipo === "recarga");
+          const saldos   = lista.filter(m => m && m.tipo === "saldo");
+
+          recargas.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
+          saldos.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
+
+          const selectedRecarga = getSelectedRecarga(recargas, !!allowSelectionChange);
+          if (selectedRecarga) {
+            updateRecargaAndCorreoAtomic(selectedRecarga);
+          }
+
+          if (saldos.length) {
+            const u = saldos[0];
+            const descS   = document.getElementById("saldo-desc");
+            const fechaS  = document.getElementById("saldo-fecha");
+            const estadoS = document.getElementById("saldo-estado");
+
+            const importeS = Number(u.importe);
+            const importeTxtS = isNaN(importeS) ? "-" : `+${importeS.toFixed(2)} €`;
+
+            safeSetText(descS, "Ingreso recibido");
+            safeSetText(fechaS, normalizeFechaText(u));
+            safeSetText(estadoS, importeTxtS);
+            safeSetClass(estadoS, "estado verde");
+          }
+        }
 
         async function getFirebaseUserOnce(timeoutMs) {
           return new Promise((resolve) => {
@@ -368,11 +581,7 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
         function formatFechaFromCreatedAt(value) {
           const d = toDateFromCreatedAt(value);
           if (!d) return "";
-          try {
-            return d.toLocaleString("es-ES");
-          } catch (e) {
-            return "";
-          }
+          try { return d.toLocaleString("es-ES"); } catch (e) { return ""; }
         }
 
         function mergeByIdPreferFirst(primary, secondary) {
@@ -415,8 +624,7 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
             try {
               const q2 = query(col, where("uid", "==", uid), limit(200));
               const snap2 = await getDocs(q2);
-              const tmp = snap2 && snap2.docs ? snap2.docs : [];
-              docs = tmp;
+              docs = snap2 && snap2.docs ? snap2.docs : [];
             } catch (err2) {
               console.error("Error leyendo Firestore (recargas):", err2);
               return [];
@@ -430,65 +638,27 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
             const estado = (status === "OK" || status === "COMPLETED" || status === "SUCCESS") ? "OK" : (status || "");
 
             const productIdRaw = (data.productId || data.product || "");
-            const productIdKey = String(productIdRaw || "").trim();
-            const productIdNorm = productIdKey ? productIdKey.toLowerCase() : "";
+            const productIdNorm = String(productIdRaw || "").trim().toLowerCase();
 
-            // 1) Si Firestore trae importe, úsalo
             let importeRaw = (data.importe ?? data.amount ?? data.price ?? data.precio ?? data.valor);
 
-            // 2) Si no trae importe, intenta resolverlo por catálogo (products.js)
             if ((importeRaw === undefined || importeRaw === null || importeRaw === "") && productIdNorm) {
               let found = null;
-
-              // Prioridad absoluta: API oficial window.Products.getById(...)
-              if (!found && window.Products && typeof window.Products.getById === "function") {
-                try {
-                  found = window.Products.getById(productIdNorm);
-                } catch (_) {
-                  found = null;
-                }
+              if (window.Products && typeof window.Products.getById === "function") {
+                try { found = window.Products.getById(productIdNorm); } catch (_) { found = null; }
               }
-
-              // Compatibilidad: otros globals antiguos (map o array)
-              const sources = [
-                window.RPC_PRODUCTS,
-                window.PRODUCTS,
-                window.products
-              ];
-
-              for (const src of sources) {
-                if (!src || found) continue;
-
-                // mapa por id
-                if (typeof src === "object" && !Array.isArray(src) && src[productIdNorm]) {
-                  found = src[productIdNorm];
-                  break;
-                }
-
-                // array de productos
-                if (Array.isArray(src)) {
-                  const hit = src.find(p => p && (String(p.id || p.productId || "").trim().toLowerCase() === productIdNorm));
-                  if (hit) {
-                    found = hit;
-                    break;
-                  }
-                }
-              }
-
               if (found) {
                 importeRaw = (found.importe ?? found.amount ?? found.price ?? found.precio ?? found.valor);
               }
-
-              // NOTA: se elimina el fallback numérico desde productId (ej: "cubacel-20" -> "20")
-              // porque produce importes incorrectos (20.00) cuando el catálogo trae 20.84.
             }
 
-            // Normaliza a número
             let importeNum = undefined;
             if (importeRaw !== undefined && importeRaw !== null && importeRaw !== "") {
               const n = Number(String(importeRaw).replace(",", "."));
               if (!isNaN(n)) importeNum = n;
             }
+
+            const createdAtMs = (toDateFromCreatedAt(data.createdAt)?.getTime() || msFromPendId(d && d.id));
 
             return {
               tipo: "recarga",
@@ -496,94 +666,42 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
               numero: data.destino || data.numero || "",
               productId: productIdNorm,
               importe: importeNum,
-              createdAtMs: (toDateFromCreatedAt(data.createdAt)?.getTime() || 0),
+              createdAtMs: createdAtMs,
               fecha: formatFechaFromCreatedAt(data.createdAt),
               estado: estado
             };
           });
 
-          // ordenar por fecha (por si entramos por fallback sin orderBy)
-          mapped.sort((a, b) => (Number(b && b.createdAtMs) || 0) - (Number(a && a.createdAtMs) || 0));
-
+          mapped.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
           return mapped.slice(0, 50);
         }
 
-        try {
-          const fbUser = await getFirebaseUserOnce(8000);
-          if (fbUser && fbUser.uid) {
-            const fsRecargas = await fetchRecargasFromFirestore(fbUser.uid);
-            if (Array.isArray(fsRecargas) && fsRecargas.length) {
-              // Firestore primero; luego lo local (sin duplicar por id)
-              lista = mergeByIdPreferFirst(fsRecargas, lista);
-            }
-          }
-        } catch (e) {
-          console.error("Error cargando recargas desde Firestore:", e);
+        function withTimeout(promise, ms) {
+          return new Promise((resolve) => {
+            let done = false;
+            const t = setTimeout(() => {
+              if (done) return;
+              done = true;
+              resolve(null);
+            }, ms);
+
+            Promise.resolve(promise)
+              .then((v) => {
+                if (done) return;
+                done = true;
+                clearTimeout(t);
+                resolve(v);
+              })
+              .catch(() => {
+                if (done) return;
+                done = true;
+                clearTimeout(t);
+                resolve(null);
+              });
+          });
         }
 
-        const recargas = lista.filter(m => m && m.tipo === "recarga");
-        const saldos   = lista.filter(m => m && m.tipo === "saldo");
-
-        // Tarjeta Recarga
-        if (recargas.length) {
-          const u = recargas[0];
-          const descR   = document.getElementById("recarga-desc");
-          const fechaR  = document.getElementById("recarga-fecha");
-          const estadoR = document.getElementById("recarga-estado");
-
-          const importeR = Number(u.importe);
-          const importeTxtR = isNaN(importeR) ? "-" : `-${importeR.toFixed(2)} €`;
-
-          if (descR)  descR.textContent  = `Recarga a ${u.numero || ""}`;
-          if (fechaR) fechaR.textContent = u.fecha || "";
-          if (estadoR) {
-            estadoR.textContent = importeTxtR;
-            estadoR.className = "estado rojo";
-          }
-
-          // Tarjeta Correo recibido (Última recarga)
-          const correoDesc   = document.getElementById("correo-desc");
-          const correoFecha  = document.getElementById("correo-fecha");
-          const correoEstado = document.getElementById("correo-estado");
-
-          if (correoDesc && correoFecha && correoEstado) {
-            const idTxt      = u.id || "Sin ID";
-            const emailTxt   = emailUsuario || "Sin correo registrado";
-            const estadoBase = u.estado || "";
-            const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
-            const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
-
-            correoDesc.textContent  = `${emailTxt} | ${importeTxt} | ID: ${idTxt}`;
-            correoFecha.textContent = u.fecha || "";
-            correoEstado.textContent = estadoTxt;
-
-            if (estadoTxt === "Entregada") {
-              correoEstado.className = "estado verde";
-            } else {
-              correoEstado.className = "estado amarillo";
-            }
-          }
-        }
-
-        // Tarjeta Saldo
-        if (saldos.length) {
-          const u = saldos[0];
-          const descS   = document.getElementById("saldo-desc");
-          const fechaS  = document.getElementById("saldo-fecha");
-          const estadoS = document.getElementById("saldo-estado");
-
-          const importeS = Number(u.importe);
-          const importeTxtS = isNaN(importeS) ? "-" : `+${importeS.toFixed(2)} €`;
-
-          if (descS)  descS.textContent  = "Ingreso recibido";
-          if (fechaS) fechaS.textContent = u.fecha || "";
-          if (estadoS) {
-            estadoS.textContent = importeTxtS;
-            estadoS.className = "estado verde";
-          }
-        }
-
-        // Modal genérico (recargas / saldos)
+        // ===== MODALES (NO se re-renderizan “en caliente”) =====
         const modalBg    = document.getElementById("modal-bg");
         const modalLista = document.getElementById("modal-lista");
         const modalTitulo= document.getElementById("modal-titulo");
@@ -621,6 +739,7 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
           modalLista.innerHTML = "";
 
           const datos = lista.filter(m => m && m.tipo === tipo);
+          datos.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
 
           if (!datos.length) {
             modalLista.innerHTML = '<div class="modal-item">Sin movimientos registrados</div>';
@@ -631,7 +750,7 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
               const impTxt  = isNaN(importe) ? "" : `${signo}${importe.toFixed(2)} €`;
               const fila = document.createElement("div");
               fila.className = "modal-item";
-              fila.textContent = `${m.fecha || ""} | ${impTxt}`;
+              fila.textContent = `${normalizeFechaText(m) || ""} | ${impTxt}`;
               modalLista.appendChild(fila);
             });
           }
@@ -646,22 +765,23 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
           modalLista.innerHTML = "";
 
           const recargasLocal = lista.filter(m => m && m.tipo === "recarga");
+          recargasLocal.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
 
           if (!recargasLocal.length) {
             modalLista.innerHTML = '<div class="modal-item">No hay correos enviados</div>';
           } else {
             recargasLocal.forEach(m => {
               const idTxt      = m.id || "Sin ID";
-              const emailTxt   = emailUsuario || "Sin correo";
+              const emailTxt   = (sessionEmailSnapshot || localStorage.getItem("usuario") || emailUsuarioBase || "Sin correo").toString();
               const importe    = Number(m.importe);
               const importeTxt = isNaN(importe) ? "" : `${importe.toFixed(2)} €`;
-              const estadoBase = m.estado || "";
+              const estadoBase = (m.estado || "").toString();
               const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
 
               const fila = document.createElement("div");
               fila.className = "modal-item";
               fila.textContent =
-                `${m.fecha || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | ID: ${idTxt}`;
+                `${normalizeFechaText(m) || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | ID: ${idTxt}`;
               modalLista.appendChild(fila);
             });
           }
@@ -708,11 +828,30 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
           modalBg.onclick = e => e.target === modalBg && cerrarModalAccesible();
         }
 
-        document.documentElement.classList.add("rpc-ready");
+        // ==============================
+        // FIX: render único visible
+        // - intentamos Firestore (rápido) con timeout
+        // - luego un solo render + reveal (sin swaps)
+        // ==============================
         try {
-          const hc = document.querySelector(".historial-container");
-          if (hc) { hc.style.opacity = "1"; hc.style.pointerEvents = "auto"; }
-        } catch (_) {}
+          const fbUser = await getFirebaseUserOnce(8000);
+          if (fbUser && fbUser.email) {
+            sessionEmailSnapshot = String(fbUser.email).toLowerCase();
+          }
+
+          if (fbUser && fbUser.uid) {
+            const fsRecargasMaybe = await withTimeout(fetchRecargasFromFirestore(fbUser.uid), 1200);
+            if (Array.isArray(fsRecargasMaybe) && fsRecargasMaybe.length) {
+              lista = mergeByIdPreferFirst(fsRecargasMaybe, lista);
+            }
+          }
+        } catch (e) {
+          console.error("Error preparando dataset Firestore:", e);
+        }
+
+        // Un solo render (ya con dataset final elegido) y reveal
+        renderCardsFromLista(true);
+        revealHistorialOnce();
       })();
     });
   </script>
@@ -723,9 +862,9 @@ html.rpc-ready .historial-container { opacity: 1 !important; }
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
-  localStorage.removeItem("usuario");
-  return;
-}
+        localStorage.removeItem("usuario");
+        return;
+      }
 
       try {
         const raw = localStorage.getItem("usuarioRegistrado") || "{}";
