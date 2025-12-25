@@ -455,6 +455,11 @@ body.page-legal li {
   gap: 4px;
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(187, 247, 208, 0.9);
+
+  /* Normaliza altura entre páginas (Cuenta incluida) */
+  min-height: 64px;
+  align-items: center;
+  box-sizing: border-box;
 }
 
 .nav-btn {
@@ -465,10 +470,26 @@ body.page-legal li {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
   padding: 6px 0;
   border-radius: 999px;
   text-decoration: none;
+
+  /* Normaliza altura del botón (evita que en Cuenta se vea más fino) */
+  min-height: 48px;
+  box-sizing: border-box;
+
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+
+/* FIX móvil: cuando tocas, que el feedback sea pill (no rectángulo nativo) */
+.nav-btn:active {
+  background: rgba(15, 23, 42, 0.25);
+  border-radius: 999px;
 }
 
 .nav-btn span {
