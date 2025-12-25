@@ -7,26 +7,184 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
+const { setGlobalOptions } = require("firebase-functions");
+const { onRequest } = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
+const { FieldValue } = require("firebase-admin/firestore");
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
+
+// Mantén tu control de costes
 setGlobalOptions({ maxInstances: 10 });
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+// Init Admin SDK (Firestore)
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
+const db = admin.firestore();
+
+/**
+ * Catálogo server-side (source of truth).
+ * Ajusta/Completa con TODOS tus productId reales.
+ */
+const PRODUCTS = {
+  // --- CUBACEL ---
+  "cubacel-10": { id: "cubacel-10", kind: "cubacel", amount: 10.42, currency: "EUR" },
+  "cubacel-20": { id: "cubacel-20", kind: "cubacel", amount: 20.84, currency: "EUR" },
+  "cubacel-25": { id: "cubacel-25", kind: "cubacel", amount: 25.01, currency: "EUR" },
+  "cubacel-30": { id: "cubacel-30", kind: "cubacel", amount: 31.26, currency: "EUR" },
+
+  // --- NAUTA (ejemplos; ajusta a tu catálogo real) ---
+  "nauta-5": { id: "nauta-5", kind: "nauta", amount: 5.0, currency: "EUR" },
+  "nauta-10": { id: "nauta-10", kind: "nauta", amount: 10.0, currency: "EUR" },
+};
+
+function sendJson(res, status, payload) {
+  res.status(status);
+  res.set("Content-Type", "application/json; charset=utf-8");
+  res.send(JSON.stringify(payload));
+}
+
+function setCors(req, res) {
+  const origin = req.get("origin") || "*";
+  res.set("Access-Control-Allow-Origin", origin);
+  res.set("Vary", "Origin");
+  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.set("Access-Control-Max-Age", "3600");
+}
+
+function safeParseBody(req) {
+  if (req.body && typeof req.body === "object") return req.body;
+  if (typeof req.body === "string" && req.body.trim()) {
+    try {
+      return JSON.parse(req.body);
+    } catch (_) {
+      return null;
+    }
+  }
+  return null;
+}
+
+function normalizeCubacel(input) {
+  let s = String(input || "").trim();
+  s = s.replace(/[^\d+]/g, "");
+  if (s.startsWith("+53")) s = s.slice(3);
+  if (s.startsWith("53") && s.length > 8) s = s.slice(2);
+  s = s.replace(/[^\d]/g, "");
+  return s;
+}
+
+function isValidCubacel(normalized) {
+  return /^5\d{7}$/.test(normalized);
+}
+
+function isValidNautaEmail(emailRaw) {
+  const e = String(emailRaw || "").trim().toLowerCase();
+  return /^[^\s@]+@nauta(\.com)?\.cu$/.test(e);
+}
+
+/**
+ * Fase 2 (sandbox): createOrder (sin pago)
+ * - valida server-side
+ * - calcula importe en servidor (PRODUCTS)
+ * - crea orden PENDING en /orders
+ * - responde { orderId, amount, currency, status }
+ */
+exports.createOrder = onRequest(async (req, res) => {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).send("");
+  }
+  if (req.method !== "POST") {
+    return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+  }
+
+  const body = safeParseBody(req);
+  if (!body) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
+  }
+
+  let { uid, productId, destino } = body;
+
+  uid = typeof uid === "string" ? uid.trim() : "";
+  productId = typeof productId === "string" ? productId.trim().toLowerCase() : "";
+  destino = typeof destino === "string" ? destino.trim() : "";
+
+  if (!uid || uid.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
+  }
+  if (!productId || productId.length > 64) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
+  }
+
+  const product = PRODUCTS[productId];
+  if (!product) {
+    return sendJson(res, 400, { ok: false, error: "UNKNOWN_PRODUCT_ID", productId });
+  }
+
+  if (!destino || destino.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_DESTINO" });
+  }
+
+  // Validación de destino según tipo
+  let destinoNormalized = destino;
+  if (product.kind === "cubacel") {
+    const n = normalizeCubacel(destino);
+    if (!isValidCubacel(n)) {
+      return sendJson(res, 400, { ok: false, error: "INVALID_CUBACEL_NUMBER" });
+    }
+    destinoNormalized = `+53${n}`;
+  } else if (product.kind === "nauta") {
+    const e = destino.trim().toLowerCase();
+    if (!isValidNautaEmail(e)) {
+      return sendJson(res, 400, { ok: false, error: "INVALID_NAUTA_EMAIL" });
+    }
+    destinoNormalized = e;
+  }
+
+  const amount = Number(product.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return sendJson(res, 500, { ok: false, error: "INVALID_PRODUCT_AMOUNT" });
+  }
+
+  const currency = product.currency || "EUR";
+
+  try {
+    const ref = db.collection("orders").doc();
+    const orderId = ref.id;
+    const nowMs = Date.now();
+
+    await ref.set({
+      uid,
+      productId: product.id,
+      destino: destinoNormalized,
+      status: "PENDING",
+      amount,
+      currency,
+      channel: "sandbox",
+      createdAt: FieldValue.serverTimestamp(),
+
+      createdAtMs: nowMs,
+    });
+
+    logger.info("createOrder OK", { orderId, uid, productId: product.id });
+
+    return sendJson(res, 200, {
+      ok: true,
+      orderId,
+      amount,
+      currency,
+      status: "PENDING",
+    });
+  } catch (err) {
+    logger.error("createOrder error", err);
+    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
+  }
+});
 
 // exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
+//   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
 // });

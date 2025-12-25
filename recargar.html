@@ -728,6 +728,27 @@ body {
         emailjs.init("flObIaDu0VCKDBP7i");
       }
 
+      // ✅ FASE 2 (sandbox/emulador): helper para crear orden PENDING en backend
+      async function createOrderSandbox({ uid, productId, destino }) {
+        const url = "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder";
+
+        const resp = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uid, productId, destino })
+        });
+
+        let data = null;
+        try { data = await resp.json(); } catch (_) {}
+
+        if (!resp.ok || !data || data.ok !== true) {
+          const code = (data && data.error) ? data.error : ("HTTP_" + resp.status);
+          throw new Error(code);
+        }
+
+        return data; // { ok, orderId, amount, currency, status }
+      }
+
       const datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
 
       // =========================
@@ -1080,38 +1101,35 @@ body {
 
           const productoId = productoActual ? productoActual.id : null;
 
-          // ? Usamos la capa de negocio centralizada
-          // Firestore: registrar solicitud PENDING (Spark) antes de procesar en cliente
-try {
-  const app = window.firebaseApp;
-  const auth = window.firebaseAuth;
-  const user = auth && auth.currentUser;
-  if (!app || !user) throw new Error("firebase-no-auth");
+          // ✅ FASE 2 (sandbox/emulador): crear ORDEN PENDING en backend (Cloud Function createOrder)
+          let orderResp = null;
+          let orderId = null;
 
-  const { getFirestore, doc, setDoc, serverTimestamp } =
-    await import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js");
+          try {
+            const auth = window.firebaseAuth;
+            const user = (auth && auth.currentUser) || authUser;
+            if (!user) throw new Error("firebase-no-auth");
+            if (!productoId) throw new Error("missing-productId");
 
-  const db = getFirestore(app);
-  const fireRecargaId = "PEND-" + Date.now();
+            const destinoForOrder = String(
+              destinoFinal ||
+                (isNauta
+                  ? (e1 || "").trim()
+                  : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
+            );
 
-  await setDoc(doc(db, "recargas", fireRecargaId), {
-    uid: user.uid,
-    productId: String(productoId || ""),
-    destino: String(
-      destinoFinal ||
-        (isNauta
-          ? (e1 || "").trim()
-          : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
-    ),
-    status: "PENDING",
-    canal: "web",
-    createdAt: serverTimestamp()
-  });
-} catch (e) {
-  console.error("Firestore create PENDING recarga failed:", e);
-  showToastError("No se pudo registrar la solicitud. Inténtalo de nuevo.");
-  return;
-}
+            orderResp = await createOrderSandbox({
+              uid: user.uid,
+              productId: String(productoId),
+              destino: destinoForOrder
+            });
+
+            orderId = orderResp && orderResp.orderId ? String(orderResp.orderId) : null;
+          } catch (e) {
+            console.error("createOrderSandbox failed:", e);
+            showToastError("No se pudo crear la orden. Inténtalo de nuevo.");
+            return;
+          }
 
 const resultado = await procesarRecarga({
             numero: destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""))),
@@ -1146,14 +1164,15 @@ const resultado = await procesarRecarga({
                 importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
                 beneficio: movimiento.beneficio || beneficioActual,
                 fecha: movimiento.fecha || new Date().toLocaleString(),
-                id_confirmacion: idConfirmacion
+                                id_confirmacion: (orderId || idConfirmacion)
+
               });
             } catch (err) {
               console.error("Error enviando correo de recarga:", err);
             }
           }
 
-          showToastSuccess("¡ Recarga registrada correctamente\nID: " + idConfirmacion);
+          showToastSuccess("¡ Recarga registrada correctamente\nID: " + (orderId || idConfirmacion));
           cerrarModalRecarga();
         });
       }
