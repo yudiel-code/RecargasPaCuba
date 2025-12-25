@@ -33,7 +33,7 @@
 html {
   position: relative;
   min-height: 100%;
-  background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 35%, var(--bg-bottom) 70%);
+  background: linear-gradient(135deg, #0b63d1 0%, #19c6c3 100%);
   background-repeat: no-repeat;
   background-size: cover;
 }
