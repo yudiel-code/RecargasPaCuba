@@ -396,7 +396,10 @@ exports.markOrderFailed = onRequest(async (req, res) => {
 
     const nowMs = Date.now();
 
-    await ref.update({
+    const eventRef = ref.collection("events").doc();
+    const batch = db.batch();
+
+    batch.update(ref, {
       status: "FAILED",
       failedAt: FieldValue.serverTimestamp(),
       failedAtMs: nowMs,
@@ -404,7 +407,21 @@ exports.markOrderFailed = onRequest(async (req, res) => {
       updatedAtMs: nowMs,
     });
 
-    logger.info("markOrderFailed OK", { orderId, uid, authSource: uidRes.source });
+    batch.set(eventRef, {
+      type: "FAILED",
+      orderId,
+      uid,
+      channel: "sandbox",
+      statusFrom: "PENDING",
+      statusTo: "FAILED",
+      authSource: uidRes.source, // "token" | "body"
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+    });
+
+    await batch.commit();
+
+    logger.info("markOrderFailed OK", { orderId, uid, authSource: uidRes.source, eventId: eventRef.id });
 
     return sendJson(res, 200, { ok: true, orderId, status: "FAILED" });
   } catch (err) {
