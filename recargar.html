@@ -732,11 +732,17 @@ body {
       async function createOrderSandbox({ uid, productId, destino }) {
         const url = "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder";
 
-        const resp = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uid, productId, destino })
-        });
+        const auth = window.firebaseAuth;
+const user = (auth && auth.currentUser) || authUser;
+if (!user) throw new Error("firebase-no-auth");
+const token = await user.getIdToken();
+
+const resp = await fetch(url, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+  body: JSON.stringify({ uid, productId, destino })
+});
+
 
         let data = null;
         try { data = await resp.json(); } catch (_) {}

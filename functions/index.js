@@ -13,7 +13,6 @@ const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 
-
 // Mantén tu control de costes
 setGlobalOptions({ maxInstances: 10 });
 
@@ -84,6 +83,42 @@ function isValidNautaEmail(emailRaw) {
   return /^[^\s@]+@nauta(\.com)?\.cu$/.test(e);
 }
 
+function isRunningInEmulator() {
+  return process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FIREBASE_EMULATOR_HUB;
+}
+
+function getBearerToken(req) {
+  const h = req.get("authorization") || req.get("Authorization") || "";
+  const m = /^Bearer\s+(.+)$/i.exec(String(h).trim());
+  return m ? m[1] : "";
+}
+
+/**
+ * Resuelve el uid de forma segura:
+ * - En producción (no emulador): requiere Authorization: Bearer <ID_TOKEN>
+ * - En emulador: permite fallback al uid del body para pruebas (PowerShell, etc.)
+ */
+async function resolveUid(req, uidFromBody) {
+  const requireAuth = !isRunningInEmulator();
+  const token = getBearerToken(req);
+
+  if (!token) {
+    if (requireAuth) {
+      return { ok: false, error: "MISSING_AUTH" };
+    }
+    return { ok: true, uid: uidFromBody || "", source: "body" };
+  }
+
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    const uid = (decoded && decoded.uid) ? String(decoded.uid) : "";
+    if (!uid) return { ok: false, error: "INVALID_ID_TOKEN" };
+    return { ok: true, uid, source: "token" };
+  } catch (e) {
+    return { ok: false, error: "INVALID_ID_TOKEN" };
+  }
+}
+
 /**
  * Fase 2 (sandbox): createOrder (sin pago)
  * - valida server-side
@@ -108,13 +143,23 @@ exports.createOrder = onRequest(async (req, res) => {
 
   let { uid, productId, destino } = body;
 
-  uid = typeof uid === "string" ? uid.trim() : "";
+  // Normaliza inputs
+  const uidBody = typeof uid === "string" ? uid.trim() : "";
   productId = typeof productId === "string" ? productId.trim().toLowerCase() : "";
   destino = typeof destino === "string" ? destino.trim() : "";
 
+  // UID: token-first (prod), body fallback (emulador)
+  const uidRes = await resolveUid(req, uidBody);
+  if (!uidRes.ok) {
+    return sendJson(res, 401, { ok: false, error: uidRes.error });
+  }
+  uid = uidRes.uid;
+
+  // Validación UID final (por si en emulador vino vacío)
   if (!uid || uid.length > 128) {
     return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
   }
+
   if (!productId || productId.length > 64) {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
@@ -159,17 +204,17 @@ exports.createOrder = onRequest(async (req, res) => {
     await ref.set({
       uid,
       productId: product.id,
-      destino: destinoNormalized,
+      destination: destinoNormalized,
       status: "PENDING",
       amount,
       currency,
       channel: "sandbox",
+      authSource: uidRes.source, // "token" | "body"
       createdAt: FieldValue.serverTimestamp(),
-
       createdAtMs: nowMs,
     });
 
-    logger.info("createOrder OK", { orderId, uid, productId: product.id });
+    logger.info("createOrder OK", { orderId, uid, productId: product.id, authSource: uidRes.source });
 
     return sendJson(res, 200, {
       ok: true,
