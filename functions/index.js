@@ -431,6 +431,118 @@ exports.markOrderFailed = onRequest(async (req, res) => {
 });
 
 /**
+ * Fase 3 (sandbox): markOrderCancelled
+ * - marca una orden PENDING -> CANCELLED (solo sandbox)
+ * - auth token-first (prod), body fallback (emulador)
+ * - valida ownership (uid debe coincidir con la orden)
+ * - idempotente: si ya está CANCELLED devuelve ok:true; si está FAILED/PAID/COMPLETED devuelve ok:true con terminalState:true
+ * - audit log: crea /orders/{orderId}/events/{autoId}
+ */
+exports.markOrderCancelled = onRequest(async (req, res) => {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).send("");
+  }
+  if (req.method !== "POST") {
+    return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+  }
+
+  const body = safeParseBody(req);
+  if (!body) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
+  }
+
+  let { uid, orderId } = body;
+
+  const uidBody = typeof uid === "string" ? uid.trim() : "";
+  orderId = typeof orderId === "string" ? orderId.trim() : "";
+
+  const uidRes = await resolveUid(req, uidBody);
+  if (!uidRes.ok) {
+    return sendJson(res, 401, { ok: false, error: uidRes.error });
+  }
+  uid = uidRes.uid;
+
+  if (!uid || uid.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
+  }
+  if (!orderId || orderId.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
+  }
+
+  try {
+    const ref = db.collection("orders").doc(orderId);
+    const snap = await ref.get();
+
+    if (!snap.exists) {
+      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
+    }
+
+    const data = snap.data() || {};
+    const ownerUid = typeof data.uid === "string" ? data.uid : "";
+    const status = typeof data.status === "string" ? data.status : "";
+    const channel = typeof data.channel === "string" ? data.channel : "";
+
+    if (channel !== "sandbox") {
+      return sendJson(res, 403, { ok: false, error: "NOT_ALLOWED_CHANNEL" });
+    }
+
+    if (!ownerUid || ownerUid !== uid) {
+      return sendJson(res, 403, { ok: false, error: "FORBIDDEN" });
+    }
+
+    // Idempotencia: si ya está CANCELLED, ok y listo
+    if (status === "CANCELLED") {
+      return sendJson(res, 200, { ok: true, orderId, status, alreadyCancelled: true });
+    }
+
+    // Estado terminal: ya fallida, pagada o completada (no “cancelamos” nada)
+    if (status === "FAILED" || status === "PAID" || status === "COMPLETED") {
+      return sendJson(res, 200, { ok: true, orderId, status, terminalState: true });
+    }
+
+    if (status !== "PENDING") {
+      return sendJson(res, 409, { ok: false, error: "INVALID_STATUS", status });
+    }
+
+    const nowMs = Date.now();
+
+    const eventRef = ref.collection("events").doc();
+    const batch = db.batch();
+
+    batch.update(ref, {
+      status: "CANCELLED",
+      cancelledAt: FieldValue.serverTimestamp(),
+      cancelledAtMs: nowMs,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedAtMs: nowMs,
+    });
+
+    batch.set(eventRef, {
+      type: "CANCELLED",
+      orderId,
+      uid,
+      channel: "sandbox",
+      statusFrom: "PENDING",
+      statusTo: "CANCELLED",
+      authSource: uidRes.source, // "token" | "body"
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+    });
+
+    await batch.commit();
+
+    logger.info("markOrderCancelled OK", { orderId, uid, authSource: uidRes.source, eventId: eventRef.id });
+
+    return sendJson(res, 200, { ok: true, orderId, status: "CANCELLED" });
+  } catch (err) {
+    logger.error("markOrderCancelled error", err);
+    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+/**
  * Sandbox Fulfillment: cuando una order pasa a PAID, la completamos automáticamente.
  * - Solo channel: "sandbox"
  * - Solo transición PENDING -> PAID
