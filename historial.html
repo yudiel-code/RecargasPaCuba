@@ -281,7 +281,13 @@
           timeoutMs: 20000,
           auth,
           onAuthStateChanged,
-          onReady: (user) => {},
+          onReady: (user) => {
+            try {
+              window.__rpcAuthReady = true;
+              window.__rpcAuthUser = user || null;
+              window.dispatchEvent(new Event("rpc-auth-ready"));
+            } catch (_) {}
+          },
         });
       }
     });
@@ -309,6 +315,19 @@
       (async () => {
         let lista = getHistorial();
 
+        // Espera a auth-ready para evitar renders pre-auth (failsafe timeout).
+        try {
+          if (!window.__rpcAuthReady) {
+            await new Promise((resolve) => {
+              const t = setTimeout(resolve, 20000);
+              window.addEventListener("rpc-auth-ready", () => { clearTimeout(t); resolve(); }, { once: true });
+            });
+          }
+          if (window.__rpcAuthUser && window.__rpcAuthUser.email) {
+            sessionEmailSnapshot = String(window.__rpcAuthUser.email).toLowerCase();
+          }
+        } catch (_) {}
+
         let __historialRevealed = false;
         function revealHistorialOnce() {
           if (__historialRevealed) return;
@@ -319,6 +338,11 @@
             if (hc) { hc.style.opacity = "1"; hc.style.pointerEvents = "auto"; }
           } catch (_) {}
         }
+
+        // Failsafe: si algo rompe antes del reveal, no dejes la pantalla en azul para siempre.
+        setTimeout(() => {
+          try { revealHistorialOnce(); } catch (_) {}
+        }, 3000);
 
         // ===== Orden/fecha estables (local + Firestore) =====
         function msFromPendId(id) {
@@ -415,11 +439,12 @@
           if (!u) return "";
           const id = (u.id || "").toString();
           const num = (u.numero || "").toString();
+          const st = (u.status || "").toString();
           const est = (u.estado || "").toString();
           const imp = Number(u.importe);
           const impTxt = isNaN(imp) ? "" : imp.toFixed(2);
           const f = normalizeFechaText(u) || "";
-          return `${id}|${num}|${est}|${impTxt}|${f}`;
+          return `${id}|${num}|${st}|${est}|${impTxt}|${f}`;
         }
 
         function pickTopRecargaFromList(arr) {
@@ -466,29 +491,81 @@
           const correoEstado = document.getElementById("correo-estado");
 
           const importeR = Number(u && u.importe);
-          const importeTxtR = isNaN(importeR) ? "-" : `-${importeR.toFixed(2)} €`;
+          const importeTxtR = isNaN(importeR) ? "" : `-${importeR.toFixed(2)} €`;
 
           const fechaTxt = normalizeFechaText(u);
 
-          // Recarga realizada
-          safeSetText(descR, `Recarga a ${u && u.numero ? u.numero : ""}`);
+          // Status canónico (prefer u.status; fallback a u.estado)
+          let statusUp = (u && u.status ? u.status : "").toString().trim().toUpperCase();
+          if (!statusUp) {
+            const legacyUp = (u && u.estado ? u.estado : "").toString().trim().toUpperCase();
+            if (legacyUp === "OK" || legacyUp === "SUCCESS" || legacyUp === "PAID" || legacyUp === "DELIVERED") statusUp = "COMPLETED";
+            else if (legacyUp === "CANCELED") statusUp = "CANCELLED";
+            else if (legacyUp) statusUp = legacyUp;
+            else statusUp = "PENDING";
+          } else {
+            if (statusUp === "OK" || statusUp === "SUCCESS" || statusUp === "PAID" || statusUp === "DELIVERED") statusUp = "COMPLETED";
+            else if (statusUp === "CANCELED") statusUp = "CANCELLED";
+          }
+
+                    function statusToUi(s) {
+            switch ((s || "").toString().toUpperCase()) {
+              case "COMPLETED": return { text: "Completada",  cls: "estado verde" };
+              case "PENDING":   return { text: "En proceso",  cls: "estado amarillo" };
+              case "FAILED":    return { text: "Fallida",     cls: "estado rojo" };
+              case "CANCELLED":
+              case "CANCELED":  return { text: "Cancelada",   cls: "estado azul" };
+              case "REFUNDED":  return { text: "Reembolsada", cls: "estado azul" };
+              default:          return { text: "En proceso",  cls: "estado amarillo" };
+            }
+          }
+
+
+          const ui = statusToUi(statusUp);
+
+          // Recarga realizada (mantén importe visible, status en la píldora)
+          const recargaTituloEl = document.querySelector("#card-recarga .titulo");
+          if (recargaTituloEl) {
+            const t =
+              (statusUp === "FAILED") ? "Recarga fallida" :
+              (statusUp === "CANCELLED" || statusUp === "CANCELED") ? "Recarga cancelada" :
+              (statusUp === "REFUNDED") ? "Recarga reembolsada" :
+              (statusUp === "COMPLETED") ? "Recarga completada" :
+              "Recarga en proceso";
+            safeSetText(recargaTituloEl, t);
+          }
+
+          const numeroTxt = (u && u.numero) ? u.numero : "";
+          const descTxt = `Recarga a ${numeroTxt}${importeTxtR ? ` | ${importeTxtR}` : ""}`;
+          safeSetText(descR, descTxt);
           safeSetText(fechaR, fechaTxt);
-          safeSetText(estadoR, importeTxtR);
-          safeSetClass(estadoR, "estado rojo");
+          safeSetText(estadoR, ui.text);
+          safeSetClass(estadoR, ui.cls);
 
           // Correo recibido (snapshot de email: NO cambies entre renders)
           const idTxt      = (u && u.id) ? u.id : "Sin ID";
           const emailTxt   = (sessionEmailSnapshot || localStorage.getItem("usuario") || emailUsuarioBase || "Sin correo registrado").toString();
-          const estadoBase = (u && u.estado ? u.estado : "").toString();
-          const estadoTxt  = (estadoBase === "OK") ? "Entregada" : "En proceso";
           const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
-          const correoDescTxt = `${emailTxt} | ${importeTxt} | ID: ${idTxt}`;
-          const correoEstadoClass = (estadoTxt === "Entregada") ? "estado verde" : "estado amarillo";
+          const numeroTxtC = (u && u.numero) ? u.numero : "";
+          const correoDescTxt = `${emailTxt} | ${importeTxt}${numeroTxtC ? ` | ${numeroTxtC}` : ""} | ID: ${idTxt}`;
 
           safeSetText(correoDesc, correoDescTxt);
           safeSetText(correoFecha, fechaTxt);
-          safeSetText(correoEstado, estadoTxt);
-          safeSetClass(correoEstado, correoEstadoClass);
+          // Ajusta título del card de correo según estado
+const correoTituloEl = document.querySelector("#card-correo .titulo");
+if (correoTituloEl) {
+  const t =
+    (statusUp === "FAILED") ? "Recarga fallida" :
+    (statusUp === "CANCELLED" || statusUp === "CANCELED") ? "Recarga cancelada" :
+    (statusUp === "REFUNDED") ? "Recarga reembolsada" :
+    (statusUp === "COMPLETED") ? "Recarga completada" :
+    "Correo recibido";
+  safeSetText(correoTituloEl, t);
+}
+
+
+          safeSetText(correoEstado, ui.text);
+          safeSetClass(correoEstado, ui.cls);
         }
 
         function renderCardsFromLista(allowSelectionChange) {
@@ -514,7 +591,7 @@
 
             safeSetText(descS, "Ingreso recibido");
             safeSetText(fechaS, normalizeFechaText(u));
-            safeSetText(estadoS, importeTxtS);
+            safeSetText(estadoS, `Importe: ${importeTxtS}`);
             safeSetClass(estadoS, "estado verde");
           }
         }
@@ -634,8 +711,18 @@
           const mapped = docs.map((d) => {
             const data = (d && typeof d.data === "function") ? (d.data() || {}) : {};
             const statusRaw = (data.status || data.estado || "").toString();
-            const status = statusRaw ? statusRaw.toUpperCase() : "";
-            const estado = (status === "OK" || status === "COMPLETED" || status === "SUCCESS") ? "OK" : (status || "");
+            const statusUp = statusRaw ? statusRaw.toUpperCase() : "";
+
+            // Status canónico para UI (PENDING/COMPLETED/FAILED/CANCELLED/REFUNDED)
+            let canonicalStatus = statusUp;
+            if (canonicalStatus === "OK" || canonicalStatus === "SUCCESS" || canonicalStatus === "PAID" || canonicalStatus === "DELIVERED") {
+              canonicalStatus = "COMPLETED";
+            } else if (canonicalStatus === "CANCELED") {
+              canonicalStatus = "CANCELLED";
+            }
+
+            // Legacy (lo que ya usa tu UI actual)
+            const estado = (canonicalStatus === "COMPLETED") ? "OK" : (canonicalStatus || "");
 
             const productIdRaw = (data.productId || data.product || "");
             const productIdNorm = String(productIdRaw || "").trim().toLowerCase();
@@ -668,6 +755,7 @@
               importe: importeNum,
               createdAtMs: createdAtMs,
               fecha: formatFechaFromCreatedAt(data.createdAt),
+              status: canonicalStatus,
               estado: estado
             };
           });
@@ -748,9 +836,52 @@
               const importe = Number(m.importe);
               const signo   = tipo === "saldo" ? "+" : "-";
               const impTxt  = isNaN(importe) ? "" : `${signo}${importe.toFixed(2)} €`;
+
+              let statusUp = (m && (m.status || m.estado) ? (m.status || m.estado) : "").toString().trim().toUpperCase();
+              if (statusUp === "OK" || statusUp === "SUCCESS") statusUp = "COMPLETED";
+
+              const parts = [];
+              const ft = normalizeFechaText(m) || "";
+              if (ft) parts.push(ft);
+              if (impTxt) parts.push(impTxt);
+              if (tipo === "recarga" && statusUp) {
+                const label =
+                  (statusUp === "COMPLETED") ? "Completada" :
+                  (statusUp === "PENDING") ? "En proceso" :
+                  (statusUp === "FAILED") ? "Fallida" :
+                  (statusUp === "CANCELLED") ? "Cancelada" :
+                  (statusUp === "REFUNDED") ? "Reembolsada" :
+                  statusUp;
+                parts.push(label);
+              }
+
               const fila = document.createElement("div");
               fila.className = "modal-item";
-              fila.textContent = `${normalizeFechaText(m) || ""} | ${impTxt}`;
+
+              const partsEs = (Array.isArray(parts) ? parts : []).map((p) => {
+                const s = (p == null) ? "" : String(p);
+                const up = s.trim().toUpperCase();
+                if (up === "COMPLETED") return "Completada";
+                if (up === "PENDING") return "En proceso";
+                if (up === "FAILED") return "Fallida";
+                if (up === "CANCELLED" || up === "CANCELED") return "Cancelada";
+                if (up === "REFUNDED") return "Reembolsada";
+                return s;
+              });
+
+              fila.textContent = partsEs.join(" | ");
+              // Traduce estados a ES si vienen como tokens canónicos
+              try {
+                const txt = (fila.textContent || "").toString();
+                fila.textContent = txt
+                  .replace(/\bCOMPLETED\b/g, "Completada")
+                  .replace(/\bPENDING\b/g, "En proceso")
+                  .replace(/\bFAILED\b/g, "Fallida")
+                  .replace(/\bCANCELLED\b/g, "Cancelada")
+                  .replace(/\bCANCELED\b/g, "Cancelada")
+                  .replace(/\bREFUNDED\b/g, "Reembolsada");
+              } catch (_) {}
+
               modalLista.appendChild(fila);
             });
           }
@@ -832,11 +963,31 @@
         // FIX: render único visible
         // - intentamos Firestore (rápido) con timeout
         // - luego un solo render + reveal (sin swaps)
+        // - y sincronizamos sesión localStorage aquí (sin 2º listener)
         // ==============================
         try {
           const fbUser = await getFirebaseUserOnce(8000);
+
           if (fbUser && fbUser.email) {
             sessionEmailSnapshot = String(fbUser.email).toLowerCase();
+
+            // Sync localStorage (antes estaba en el script final onAuthStateChanged)
+            try {
+              const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+              const datos = JSON.parse(raw);
+
+              const nuevo = {
+                ...(datos || {}),
+                nombre: (datos && datos.nombre) || fbUser.displayName || "",
+                email: sessionEmailSnapshot,
+                activo: true
+              };
+
+              localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+              localStorage.setItem("usuario", sessionEmailSnapshot);
+            } catch (e) {
+              console.error("Error sincronizando sesión en historial:", e);
+            }
           }
 
           if (fbUser && fbUser.uid) {
@@ -856,34 +1007,7 @@
     });
   </script>
 
-  <!-- B1.3: onAuthStateChanged para sincronizar sesión con Firebase en HISTORIAL -->
-  <script type="module">
-    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
-
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        localStorage.removeItem("usuario");
-        return;
-      }
-
-      try {
-        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
-        const datos = JSON.parse(raw);
-
-        const nuevo = {
-          ...(datos || {}),
-          nombre: (datos && datos.nombre) || user.displayName || "",
-          email: (user.email || "").toLowerCase(),
-          activo: true
-        };
-
-        localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
-        localStorage.setItem("usuario", (user.email || "").toLowerCase());
-      } catch (e) {
-        console.error("Error sincronizando sesión en historial:", e);
-      }
-    });
-  </script>
+  <!-- Session sync moved into main init to avoid duplicate onAuthStateChanged listeners -->
 
   <script type="module" src="js/app.js?v=r1"></script>
 </body>

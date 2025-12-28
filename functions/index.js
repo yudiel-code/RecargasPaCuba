@@ -543,6 +543,149 @@ exports.markOrderCancelled = onRequest(async (req, res) => {
 });
 
 /**
+ * Fase 3 (sandbox): markOrderRefunded
+ * - marca una orden PAID/COMPLETED -> REFUNDED (solo sandbox)
+ * - auth token-first (prod), body fallback (emulador)
+ * - valida ownership (uid debe coincidir con la orden)
+ * - idempotente: si ya está REFUNDED devuelve ok:true; si está FAILED/CANCELLED devuelve ok:true con terminalState:true
+ * - audit log: crea /orders/{orderId}/events/{autoId}
+ */
+exports.markOrderRefunded = onRequest(async (req, res) => {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).send("");
+  }
+  if (req.method !== "POST") {
+    return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+  }
+
+  const body = safeParseBody(req);
+  if (!body) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
+  }
+
+  let { uid, orderId } = body;
+
+  const uidBody = typeof uid === "string" ? uid.trim() : "";
+  orderId = typeof orderId === "string" ? orderId.trim() : "";
+
+  const uidRes = await resolveUid(req, uidBody);
+  if (!uidRes.ok) {
+    return sendJson(res, 401, { ok: false, error: uidRes.error });
+  }
+  uid = uidRes.uid;
+
+  if (!uid || uid.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
+  }
+  if (!orderId || orderId.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
+  }
+
+  try {
+    const orderRef = db.collection("orders").doc(orderId);
+    const snap = await orderRef.get();
+
+    if (!snap.exists) {
+      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
+    }
+
+    const data = snap.data() || {};
+    const ownerUid = typeof data.uid === "string" ? data.uid : "";
+    const status = typeof data.status === "string" ? data.status : "";
+    const channel = typeof data.channel === "string" ? data.channel : "";
+
+    if (channel !== "sandbox") {
+      return sendJson(res, 403, { ok: false, error: "NOT_ALLOWED_CHANNEL" });
+    }
+
+    if (!ownerUid || ownerUid !== uid) {
+      return sendJson(res, 403, { ok: false, error: "FORBIDDEN" });
+    }
+
+    const recargaRef = db.collection("recargas").doc(orderId);
+
+    // Idempotencia + REPARACIÓN: si ya está REFUNDED, aseguramos recargas.status=REFUNDED
+    if (status === "REFUNDED") {
+      const nowMs = Date.now();
+      const refundedAtMs = (typeof data.refundedAtMs === "number") ? data.refundedAtMs : nowMs;
+
+      await recargaRef.set({
+        orderId,
+        uid,
+        channel: "sandbox",
+        status: "REFUNDED",
+        refundedAt: FieldValue.serverTimestamp(),
+        refundedAtMs,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedAtMs: nowMs,
+      }, { merge: true });
+
+      return sendJson(res, 200, { ok: true, orderId, status, alreadyRefunded: true, recargaSynced: true });
+    }
+
+    // Estado terminal: CANCELLED o FAILED (no refund)
+    if (status === "CANCELLED" || status === "FAILED") {
+      return sendJson(res, 200, { ok: true, orderId, status, terminalState: true });
+    }
+
+    // Solo desde PAID o COMPLETED
+    if (status !== "PAID" && status !== "COMPLETED") {
+      return sendJson(res, 409, { ok: false, error: "INVALID_STATUS", status });
+    }
+
+    const nowMs = Date.now();
+
+    const eventRef = orderRef.collection("events").doc();
+    const batch = db.batch();
+
+    // 1) Order -> REFUNDED
+    batch.update(orderRef, {
+      status: "REFUNDED",
+      refundedAt: FieldValue.serverTimestamp(),
+      refundedAtMs: nowMs,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedAtMs: nowMs,
+    });
+
+    // 2) Audit event
+    batch.set(eventRef, {
+      type: "REFUNDED",
+      orderId,
+      uid,
+      channel: "sandbox",
+      statusFrom: status,
+      statusTo: "REFUNDED",
+      authSource: uidRes.source, // "token" | "body"
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+    });
+
+    // 3) Sync recarga -> REFUNDED (merge)
+    batch.set(recargaRef, {
+      orderId,
+      uid,
+      channel: "sandbox",
+      status: "REFUNDED",
+      refundedAt: FieldValue.serverTimestamp(),
+      refundedAtMs: nowMs,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedAtMs: nowMs,
+    }, { merge: true });
+
+    await batch.commit();
+
+    logger.info("markOrderRefunded OK", { orderId, uid, authSource: uidRes.source, eventId: eventRef.id });
+
+    return sendJson(res, 200, { ok: true, orderId, status: "REFUNDED" });
+  } catch (err) {
+    logger.error("markOrderRefunded error", err);
+    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+/**
  * Sandbox Fulfillment: cuando una order pasa a PAID, la completamos automáticamente.
  * - Solo channel: "sandbox"
  * - Solo transición PENDING -> PAID
