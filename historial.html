@@ -687,9 +687,16 @@ if (correoTituloEl) {
           if (!version) return [];
 
           const mod = await import(`https://www.gstatic.com/firebasejs/${version}/firebase-firestore.js`);
-          const { getFirestore, collection, query, where, orderBy, limit, getDocs } = mod;
+          const { getFirestore, connectFirestoreEmulator, collection, query, where, orderBy, limit, getDocs } = mod;
 
           const db = getFirestore();
+          try {
+            const h = (location && location.hostname) ? location.hostname : "";
+            if (h === "127.0.0.1" || h === "localhost") {
+              connectFirestoreEmulator(db, "127.0.0.1", 8080);
+            }
+          } catch (_) {}
+
           const col = collection(db, "recargas");
 
           let docs = [];
@@ -756,6 +763,87 @@ if (correoTituloEl) {
               createdAtMs: createdAtMs,
               fecha: formatFechaFromCreatedAt(data.createdAt),
               status: canonicalStatus,
+              estado: estado
+            };
+          });
+
+          mapped.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
+          return mapped.slice(0, 50);
+        }
+
+        async function fetchOrdersFromFirestore(uid) {
+          const version = (await getFirebaseSdkVersionFromFirebaseJs()) || null;
+          if (!version) return [];
+
+          const mod = await import(`https://www.gstatic.com/firebasejs/${version}/firebase-firestore.js`);
+          const { getFirestore, connectFirestoreEmulator, collection, query, where, orderBy, limit, getDocs } = mod;
+
+          const db = getFirestore();
+          try {
+            const h = (location && location.hostname) ? location.hostname : "";
+            if (h === "127.0.0.1" || h === "localhost") {
+              connectFirestoreEmulator(db, "127.0.0.1", 8080);
+            }
+          } catch (_) {}
+
+          const col = collection(db, "orders");
+
+          let docs = [];
+          try {
+            const q = query(col, where("uid", "==", uid), orderBy("createdAt", "desc"), limit(50));
+            const snap = await getDocs(q);
+            docs = snap && snap.docs ? snap.docs : [];
+          } catch (err1) {
+            try {
+              const q2 = query(col, where("uid", "==", uid), limit(200));
+              const snap2 = await getDocs(q2);
+              docs = snap2 && snap2.docs ? snap2.docs : [];
+            } catch (err2) {
+              console.error("Error leyendo Firestore (orders):", err2);
+              return [];
+            }
+          }
+
+          const mapped = docs.map((d) => {
+            const data = (d && typeof d.data === "function") ? (d.data() || {}) : {};
+
+            const statusRaw = (data.status || data.estado || "").toString();
+            let statusUp = statusRaw ? statusRaw.toUpperCase() : "";
+
+            // Normaliza a los estados que tu UI ya sabe pintar
+            if (statusUp === "OK" || statusUp === "SUCCESS" || statusUp === "DELIVERED") statusUp = "COMPLETED";
+            if (statusUp === "CANCELED") statusUp = "CANCELLED";
+
+            // Caso especial: PAID en orders = pagada pero aún “en pipeline” (mejor como En proceso)
+            if (statusUp === "PAID") statusUp = "PENDING";
+
+            const estado = (statusUp === "COMPLETED") ? "OK" : (statusUp || "");
+
+            const productIdRaw = (data.productId || data.product || "");
+            const productIdNorm = String(productIdRaw || "").trim().toLowerCase();
+
+            const importeRaw = (data.amount ?? data.importe ?? data.price ?? data.precio ?? data.valor);
+            let importeNum = undefined;
+            if (importeRaw !== undefined && importeRaw !== null && importeRaw !== "") {
+              const n = Number(String(importeRaw).replace(",", "."));
+              if (!isNaN(n)) importeNum = n;
+            }
+
+            const createdAtMs =
+              Number(data.createdAtMs || 0) ||
+              (toDateFromCreatedAt(data.createdAt)?.getTime() || 0);
+
+            const destino = (data.destination || data.destino || data.numero || "").toString();
+
+            return {
+              tipo: "recarga",
+              id: (d && d.id) ? d.id : (data.id || ""),
+              numero: destino,
+              productId: productIdNorm,
+              importe: importeNum,
+              createdAtMs: createdAtMs,
+              fecha: formatFechaFromCreatedAt(data.createdAt),
+              status: statusUp,
               estado: estado
             };
           });
@@ -991,9 +1079,25 @@ if (correoTituloEl) {
           }
 
           if (fbUser && fbUser.uid) {
-            const fsRecargasMaybe = await withTimeout(fetchRecargasFromFirestore(fbUser.uid), 1200);
+            const h = (location && location.hostname) ? location.hostname : "";
+            const timeoutMs = (h === "127.0.0.1" || h === "localhost") ? 8000 : 1200;
+
+            // 1) Leer recargas (fuente principal cuando existe: COMPLETED/REFUNDED)
+            const fsRecargasMaybe = await withTimeout(fetchRecargasFromFirestore(fbUser.uid), timeoutMs);
+
+            // 2) Leer orders (para PENDING/FAILED/CANCELLED que no crean /recargas)
+            const fsOrdersMaybe = await withTimeout(fetchOrdersFromFirestore(fbUser.uid), timeoutMs);
+
+            /* debug logs removed */
+
+            // Merge sin duplicados por id:
+            // - Preferimos recargas cuando existe (porque es el “fulfillment” final).
+            // - Luego añadimos orders que no tengan recarga.
             if (Array.isArray(fsRecargasMaybe) && fsRecargasMaybe.length) {
               lista = mergeByIdPreferFirst(fsRecargasMaybe, lista);
+            }
+            if (Array.isArray(fsOrdersMaybe) && fsOrdersMaybe.length) {
+              lista = mergeByIdPreferFirst(lista, fsOrdersMaybe);
             }
           }
         } catch (e) {

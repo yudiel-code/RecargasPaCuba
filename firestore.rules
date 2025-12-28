@@ -11,6 +11,17 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
       allow update, delete: if false;
     }
+    match /orders/{orderId} {
+      // Permite LIST/GET solo al dueño (por uid del doc)
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+
+      // Crear órdenes: solo el propio usuario puede crear con su uid
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+
+      // Updates/deletes desde cliente: cerrados (backend manda)
+      allow update, delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
