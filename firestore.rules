@@ -22,6 +22,11 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /catalog_products/{productId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
