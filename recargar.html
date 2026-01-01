@@ -116,6 +116,10 @@ body {
       margin-top: 4px;
       padding-bottom: 6px;
     }
+/* ✅ Oculta cards hasta que el catálogo dinámico esté listo */
+.cards { visibility: hidden; }
+body.catalog-ready .cards { visibility: visible; }
+
 
     .card-header {
       display: flex;
@@ -393,239 +397,12 @@ body {
     <!-- TARJETAS CUBACEL -->
     <section class="cards cards-cubacel">
 
-      <!-- OFERTA 1 -->
-      <article class="card card--gradient">
-        <div class="card-header">
-          <span class="badge">Recarga normal</span>
-          <span class="tag-operator">CUBACEL · Cuba</span>
-        </div>
-
-        <div class="card-main">
-          <div class="price-block">
-            <div class="price">10,42 €</div>
-            <div class="price-label">Precio final</div>
-          </div>
-          <div class="receive-block">
-            <div class="receive-label">Recibe</div>
-            <div class="receive-main">568 CUP + 2 GB</div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="benefits-row">
-            <div class="benefit">
-              <strong>568</strong>
-              CUP
-            </div>
-            <div class="benefit">
-              <strong>2 GB</strong>
-              Datos
-            </div>
-            <div class="benefit">
-              <strong>60</strong>
-              Min
-            </div>
-            <div class="benefit">
-              <strong>80</strong>
-              SMS
-            </div>
-          </div>
-          <div class="extra-info">
-            Ideal para uso mixto de llamadas, datos y SMS.
-          </div>
-          <div class="validity">
-            Validez estándar según condiciones de CUBACEL.
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <div class="fees">
-            Tasas e impuestos incluidos.
-          </div>
-          <button class="cta" data-product-id="cubacel-10">Entrar para comprar</button>
-        </div>
-      </article>
-
-      <!-- OFERTA 2 -->
-      <article class="card card--gradient">
-        <div class="card-header">
-          <span class="badge promo">Promo especial</span>
-          <span class="tag-operator">CUBACEL · Cuba</span>
-        </div>
-
-        <div class="card-main">
-          <div class="price-block">
-            <div class="price">20,84 €</div>
-            <div class="price-label">Precio final</div>
-          </div>
-          <div class="receive-block">
-            <div class="receive-label">Recibe</div>
-            <div class="receive-main">500 CUP + 4 GB</div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="benefits-row">
-            <div class="benefit">
-              <strong>500</strong>
-              CUP
-            </div>
-            <div class="benefit">
-              <strong>4 GB</strong>
-              Datos
-            </div>
-            <div class="benefit">
-              <strong>75</strong>
-              Min
-            </div>
-            <div class="benefit">
-              <strong>80</strong>
-              SMS
-            </div>
-          </div>
-          <div class="extra-info">
-            Recarga promocional con datos extra y minutos.
-          </div>
-          <div class="validity">
-            Vigencia estimada: 35 días desde la activación.
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <div class="fees">
-            Oferta sujeta a calendario de promociones.
-          </div>
-          <button class="cta" data-product-id="cubacel-20">Entrar para comprar</button>
-        </div>
-      </article>
-
-      <!-- OFERTA 3 -->
-      <article class="card card--gradient">
-        <div class="card-header">
-          <span class="badge promo">Promo limitada</span>
-          <span class="tag-operator">CUBACEL · Cuba</span>
-        </div>
-
-        <div class="card-main">
-          <div class="price-block">
-            <div class="price">25,01 €</div>
-            <div class="price-label">Precio final</div>
-          </div>
-          <div class="receive-block">
-            <div class="receive-label">Recibe</div>
-            <div class="receive-main">700 CUP + 4 GB LTE</div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="benefits-row">
-            <div class="benefit">
-              <strong>700</strong>
-              CUP
-            </div>
-            <div class="benefit">
-              <strong>4 GB</strong>
-              LTE
-            </div>
-            <div class="benefit">
-              <strong>60</strong>
-              Min
-            </div>
-            <div class="benefit">
-              <strong>—</strong>
-              Extra
-            </div>
-          </div>
-          <div class="extra-info">
-            Pensada para uso intensivo de datos y llamadas.
-          </div>
-          <div class="validity">
-            Vigencia estimada: 7 días desde la activación.
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <div class="fees">
-            Tasas incluidas. Oferta de corta duración.
-          </div>
-          <button class="cta" data-product-id="cubacel-25">Entrar para comprar</button>
-        </div>
-      </article>
 
     </section>
 
     <!-- TARJETAS NAUTA -->
     <section class="cards cards-nauta" style="display:none;">
 
-      <!-- NAUTA 1 -->
-      <article class="card card--gradient">
-        <div class="card-header">
-          <span class="badge">Recarga NAUTA</span>
-          <span class="tag-operator">NAUTA · Cuba</span>
-        </div>
-
-        <div class="card-main">
-          <div class="price-block">
-            <div class="price">10,00 €</div>
-            <div class="price-label">Precio final</div>
-          </div>
-          <div class="receive-block">
-            <div class="receive-label">Recibe</div>
-            <div class="receive-main">Saldo NAUTA equivalente</div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="extra-info">
-            Recarga básica para navegación NAUTA nacional e internacional.
-          </div>
-          <div class="validity">
-            Vigencia según condiciones de NAUTA.
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <div class="fees">
-            Tasas e impuestos incluidos.
-          </div>
-          <button class="cta" data-product-id="nauta-10">Entrar para comprar</button>
-        </div>
-      </article>
-
-      <!-- NAUTA 2 -->
-      <article class="card card--gradient">
-        <div class="card-header">
-          <span class="badge promo">Pack NAUTA</span>
-          <span class="tag-operator">NAUTA · Cuba</span>
-        </div>
-
-        <div class="card-main">
-          <div class="price-block">
-            <div class="price">20,00 €</div>
-            <div class="price-label">Precio final</div>
-          </div>
-          <div class="receive-block">
-            <div class="receive-label">Recibe</div>
-            <div class="receive-main">Saldo NAUTA ampliado</div>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <div class="extra-info">
-            Ideal para usuarios que se conectan con frecuencia desde zonas WiFi.
-          </div>
-          <div class="validity">
-            Vigencia según condiciones de NAUTA.
-          </div>
-        </div>
-
-        <div class="card-footer">
-          <div class="fees">
-            Tasas incluidas. Oferta sujeta a cambios.
-          </div>
-          <button class="cta" data-product-id="nauta-20">Entrar para comprar</button>
-        </div>
-      </article>
 
     </section>
 
@@ -710,7 +487,6 @@ body {
   </nav>
 
   <!-- ✅ Data local centralizada + tabla de productos -->
-  <script src="js/products.js?v=r1"></script>
   <script src="js/userData.js?v=r1"></script>
   <script src="js/validators.js?v=r1"></script>
 
@@ -1023,7 +799,7 @@ const resp = await fetch(url, {
         const receiveTxt = String(p.receiveText || "").trim();
 
         const badgeClass = isPromo ? "badge promo" : "badge";
-        const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo especial") : "Recarga normal";
+        const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal";
         const operatorTxt = `${category || "RECARGA"} · ${String(p.country || "Cuba")}`;
 
         const article = document.createElement("article");
@@ -1096,8 +872,11 @@ const resp = await fetch(url, {
         } catch (e) {
           console.warn("Catalog dynamic render skipped:", e && e.message ? e.message : e);
           // Fallback: se quedan tus cards hardcodeadas.
+        } finally {
+          document.body.classList.add("catalog-ready");
         }
       })();
+
 
       // Modal Recarga
       const modalBg = document.getElementById("modal-bg-recarga");
@@ -1175,23 +954,6 @@ const resp = await fetch(url, {
 
             // Tipo destino por categoría (NAUTA = email)
             tipoDestinoActual = (operadorActual === "NAUTA" || categoryBtn === "NAUTA") ? "nauta" : "msisdn";
-          } else if (productId && window.Products && typeof window.Products.getById === "function") {
-            // 2) Fallback: products.js (lo que ya tenías)
-            const producto = window.Products.getById(productId);
-            if (!producto) {
-              showToastError("No se encontró la oferta seleccionada. Inténtalo de nuevo.");
-              return;
-            }
-
-            productoActual = producto;
-            precioActual = Number(producto.importe) || 0;
-            beneficioActual = producto.recibe || producto.descripcion || "";
-            operadorActual = producto.operador || "";
-
-            precioTxt = producto.precioTexto || (precioActual.toFixed(2) + " €");
-            recibeTxt = producto.recibe || beneficioActual;
-
-            tipoDestinoActual = (productId && String(productId).startsWith("nauta-")) ? "nauta" : "msisdn";
           } else {
             showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
             return;
@@ -1412,26 +1174,5 @@ const resultado = await procesarRecarga({
   <script type="module" src="js/app.js?v=r1"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
