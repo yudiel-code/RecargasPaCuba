@@ -73,3 +73,7 @@ firebase-export-*/
 firebase-export-metadata.json
 firebase-debug.log
 firestore-debug.log
+
+# local emulator trash
+_emulator_trash/
+
