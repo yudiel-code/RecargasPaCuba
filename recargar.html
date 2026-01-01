@@ -821,7 +821,7 @@ const resp = await fetch(url, {
         ? validators.validarRecargaEntrada
         : null;
       // ✅ Capa de negocio de recarga (preparada para futuro backend)
-      async function procesarRecarga({ numero, importe, beneficio, operador, productoId }) {
+      async function procesarRecarga({ numero, importe, beneficio, operador, productoId, orderId }) {
         const saldoActual = getSaldo();
 
         if (saldoActual < importe) {
@@ -843,11 +843,14 @@ const resp = await fetch(url, {
           numero,
           operador: operador || "",
           productoId: productoId || "",
+          orderId: orderId || null,
+          status: "PENDING",
           descripcion: beneficio || "",
           extra: {
             beneficio: beneficio || "",
-            estado: "OK",
-            id: idConfirmacion
+            estado: "PENDING",
+            id: idConfirmacion,
+            orderId: orderId || null
           }
         });
 
@@ -1318,7 +1321,8 @@ const resultado = await procesarRecarga({
             importe: precioActual,
             beneficio: beneficioActual,
             operador: operadorActual || "",
-            productoId
+            productoId,
+            orderId
           });
 
 

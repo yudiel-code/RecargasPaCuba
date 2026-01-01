@@ -1090,15 +1090,80 @@ if (correoTituloEl) {
 
             /* debug logs removed */
 
+            // Index de estados por orderId (recargas > orders)
+            const __statusByOrderId = Object.create(null);
+
+            try {
+              if (Array.isArray(fsOrdersMaybe)) {
+                fsOrdersMaybe.forEach((o) => {
+                  const k = (o && o.id) ? String(o.id) : "";
+                  const s = (o && o.status) ? String(o.status).trim().toUpperCase() : "";
+                  if (k && s) __statusByOrderId[k] = s;
+                });
+              }
+              if (Array.isArray(fsRecargasMaybe)) {
+                fsRecargasMaybe.forEach((r) => {
+                  const k = (r && r.id) ? String(r.id) : "";
+                  const s = (r && r.status) ? String(r.status).trim().toUpperCase() : "";
+                  if (k && s) __statusByOrderId[k] = s; // override: recargas manda
+                });
+              }
+            } catch (_) {}
+
+            // Si ya existe un movimiento local con orderId, NO metas también el doc Firestore a lista.
+            const __existingOrderIds = new Set();
+            try {
+              if (Array.isArray(lista)) {
+                lista.forEach((m) => {
+                  const oid = (m && (m.orderId || (m.extra && m.extra.orderId)))
+                    ? String(m.orderId || (m.extra && m.extra.orderId))
+                    : "";
+                  if (oid) __existingOrderIds.add(oid);
+                });
+              }
+            } catch (_) {}
+
+            const fsRecargasForMerge = (Array.isArray(fsRecargasMaybe) ? fsRecargasMaybe : []).filter((r) => {
+              const id = (r && r.id) ? String(r.id) : "";
+              return id ? !__existingOrderIds.has(id) : true;
+            });
+
+            const fsOrdersForMerge = (Array.isArray(fsOrdersMaybe) ? fsOrdersMaybe : []).filter((o) => {
+              const id = (o && o.id) ? String(o.id) : "";
+              return id ? !__existingOrderIds.has(id) : true;
+            });
+
             // Merge sin duplicados por id:
-            // - Preferimos recargas cuando existe (porque es el “fulfillment” final).
-            // - Luego añadimos orders que no tengan recarga.
-            if (Array.isArray(fsRecargasMaybe) && fsRecargasMaybe.length) {
-              lista = mergeByIdPreferFirst(fsRecargasMaybe, lista);
+            // - Añade recargas/órdenes SOLO si no están ya representadas por un movimiento local con orderId.
+            if (fsRecargasForMerge.length) {
+              lista = mergeByIdPreferFirst(fsRecargasForMerge, lista);
             }
-            if (Array.isArray(fsOrdersMaybe) && fsOrdersMaybe.length) {
-              lista = mergeByIdPreferFirst(lista, fsOrdersMaybe);
+            if (fsOrdersForMerge.length) {
+              lista = mergeByIdPreferFirst(lista, fsOrdersForMerge);
             }
+
+            // Propaga estado real a movimientos locales que tengan orderId
+            try {
+              if (Array.isArray(lista)) {
+                lista.forEach((m) => {
+                  const oid = (m && (m.orderId || (m.extra && m.extra.orderId)))
+                    ? String(m.orderId || (m.extra && m.extra.orderId))
+                    : "";
+                  if (!oid) return;
+
+                  const st = __statusByOrderId[oid];
+                  if (!st) return;
+
+                  m.status = st;
+                  m.estado = (st === "COMPLETED") ? "OK" : st;
+
+                  if (m.extra && typeof m.extra === "object") {
+                    m.extra.estado = st;
+                    m.extra.status = st;
+                  }
+                });
+              }
+            } catch (_) {}
           }
         } catch (e) {
           console.error("Error preparando dataset Firestore:", e);

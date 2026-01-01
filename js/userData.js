@@ -88,7 +88,7 @@
     });
   }
 
-  function addMovimientoRecarga({ importe, numero, operador, productoId, descripcion, extra }) {
+  function addMovimientoRecarga({ importe, numero, operador, productoId, descripcion, orderId, status, extra }) {
     return addMovimiento({
       tipo: "recarga",
       importe: Number(importe) || 0,
@@ -96,6 +96,8 @@
       operador: operador || "",
       productoId: productoId || "",
       descripcion: descripcion || "",
+      orderId: orderId || null,
+      status: status || null,
       ...((extra && typeof extra === "object") ? extra : {})
     });
   }
