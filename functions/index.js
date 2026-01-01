@@ -166,7 +166,45 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
 
-  const product = PRODUCTS[productId];
+  // Resolver producto: legacy PRODUCTS primero; si no existe, leer catalog_products (Firestore)
+  let product = PRODUCTS[productId] || null;
+
+  if (!product) {
+    try {
+      const snap = await db.collection("catalog_products").doc(productId).get();
+      if (snap.exists) {
+        const p = snap.data() || {};
+
+        // Switch ON/OFF desde Firestore
+        if (p.publish === false) {
+          return sendJson(res, 400, { ok: false, error: "PRODUCT_NOT_PUBLISHED", productId });
+        }
+
+        // Detectar tipo (nauta/cubacel) por docId y/o category
+        const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
+        const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
+
+        // Importe desde catálogo (EUR)
+        const amt = Number(p.sendAmountEur);
+        if (!Number.isFinite(amt) || amt <= 0) {
+          return sendJson(res, 500, { ok: false, error: "INVALID_PRODUCT_AMOUNT", productId });
+        }
+
+        // Currency (si luego la guardas en el doc, la respetamos; si no, EUR)
+        let cur = "EUR";
+        if (typeof p.currency === "string" && p.currency.trim()) cur = p.currency.trim().toUpperCase();
+        else if (typeof p.sendAmountRaw === "string") {
+          const m = /^([A-Z]{3})\b/.exec(p.sendAmountRaw.trim());
+          if (m) cur = m[1];
+        }
+
+        product = { id: productId, kind, amount: amt, currency: cur };
+      }
+    } catch (e) {
+      logger.warn("catalog_products lookup failed", { productId, message: e && e.message ? e.message : String(e) });
+    }
+  }
+
   if (!product) {
     return sendJson(res, 400, { ok: false, error: "UNKNOWN_PRODUCT_ID", productId });
   }

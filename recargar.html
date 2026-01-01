@@ -934,6 +934,168 @@ const resp = await fetch(url, {
         });
       }
 
+      // ===== Catálogo Firestore (cards dinámicas) =====
+      // Source of truth: catalog_products (filtra por enabled/publish).
+      // Master ID: internalProductId (tu ID). providerProductId queda “en sombra”.
+      let rpcCatalogIndex = null; // { [internalProductId]: product }
+      const RPC_PROJECT_ID = "recargaspacuba-7aaa8";
+      const RPC_COLLECTION = "catalog_products";
+
+      function rpcIsLocalhost() {
+        return location.hostname === "localhost" || location.hostname === "127.0.0.1";
+      }
+
+      function rpcDecodeValue(v) {
+        if (!v || typeof v !== "object") return null;
+        if ("stringValue" in v) return v.stringValue;
+        if ("booleanValue" in v) return !!v.booleanValue;
+        if ("integerValue" in v) return Number(v.integerValue);
+        if ("doubleValue" in v) return Number(v.doubleValue);
+        if ("nullValue" in v) return null;
+        if ("mapValue" in v) {
+          const f = (v.mapValue && v.mapValue.fields) ? v.mapValue.fields : {};
+          return rpcDecodeFields(f);
+        }
+        if ("arrayValue" in v) {
+          const arr = (v.arrayValue && Array.isArray(v.arrayValue.values)) ? v.arrayValue.values : [];
+          return arr.map(rpcDecodeValue);
+        }
+        return null;
+      }
+
+      function rpcDecodeFields(fields) {
+        const out = {};
+        if (!fields) return out;
+        for (const k of Object.keys(fields)) out[k] = rpcDecodeValue(fields[k]);
+        return out;
+      }
+
+      function rpcFormatEur(n) {
+        const num = Number(n);
+        if (!isFinite(num)) return "";
+        try {
+          return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(num);
+        } catch (_) {
+          return num.toFixed(2).replace(".", ",") + " €";
+        }
+      }
+
+      async function rpcFetchCatalog(user) {
+        const base = rpcIsLocalhost()
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`;
+
+        const headers = { "Content-Type": "application/json" };
+        try {
+          // En prod: token ayuda a pasar rules si catalog_products está protegido
+          if (user && typeof user.getIdToken === "function") {
+            const t = await user.getIdToken();
+            if (t) headers["Authorization"] = `Bearer ${t}`;
+          }
+        } catch (_) {}
+
+        const resp = await fetch(base, { method: "GET", headers });
+        const data = await resp.json().catch(() => null);
+
+        if (!resp.ok || !data) {
+          const code = (data && data.error && data.error.message) ? data.error.message : ("HTTP_" + resp.status);
+          throw new Error(code);
+        }
+
+        const docs = Array.isArray(data.documents) ? data.documents : [];
+        return docs.map(d => {
+          const name = String(d.name || "");
+          const docId = name.split("/").pop();
+          const fields = rpcDecodeFields(d.fields || {});
+          return { __docId: docId, ...fields };
+        });
+      }
+
+      function rpcBuildCard(p) {
+        const internalId = String(p.internalProductId || "").trim();
+        const category = String(p.category || "").toUpperCase();
+        const isPromo = !!p.isPromo;
+        const variablePromo = !!p.variablePromo;
+        const priceTxt = rpcFormatEur(p.sendAmountEur);
+        const receiveTxt = String(p.receiveText || "").trim();
+
+        const badgeClass = isPromo ? "badge promo" : "badge";
+        const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo especial") : "Recarga normal";
+        const operatorTxt = `${category || "RECARGA"} · ${String(p.country || "Cuba")}`;
+
+        const article = document.createElement("article");
+        article.className = "card card--gradient";
+        article.innerHTML = `
+          <div class="card-header">
+            <span class="${badgeClass}">${badgeTxt}</span>
+            <span class="tag-operator">${operatorTxt}</span>
+          </div>
+
+          <div class="card-main">
+            <div class="price-block">
+              <div class="price">${priceTxt}</div>
+              <div class="price-label">Precio final</div>
+            </div>
+            <div class="receive-block">
+              <div class="receive-label">Recibe</div>
+              <div class="receive-main">${receiveTxt || "—"}</div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="extra-info">${variablePromo ? "Beneficios sujetos a promo vigente." : "Recarga directa según operador."}</div>
+            <div class="validity">Condiciones según ${category || "operador"}.</div>
+          </div>
+
+          <div class="card-footer">
+            <div class="fees">Tasas e impuestos incluidos.</div>
+            <button class="cta" data-product-id="${internalId}" data-category="${category}">Entrar para comprar</button>
+          </div>
+        `;
+        return article;
+      }
+
+      function rpcRenderCatalog(products) {
+        if (!cubacel || !nauta) return false;
+
+        const cub = [];
+        const nau = [];
+
+        for (const p of products) {
+          const cat = String(p.category || "").toUpperCase();
+          if (cat === "NAUTA") nau.push(p);
+          else cub.push(p);
+        }
+
+        // Solo reemplazamos si hay algo que renderizar (evita dejar la página vacía si falla).
+        if (!cub.length && !nau.length) return false;
+
+        cubacel.innerHTML = "";
+        nauta.innerHTML = "";
+
+        cub.forEach(p => cubacel.appendChild(rpcBuildCard(p)));
+        nau.forEach(p => nauta.appendChild(rpcBuildCard(p)));
+
+        return true;
+      }
+
+      (async function rpcLoadAndRenderCatalog() {
+        try {
+          const all = await rpcFetchCatalog(authUser);
+          const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
+          if (!visible.length) return;
+
+          rpcCatalogIndex = {};
+          visible.forEach(p => { rpcCatalogIndex[String(p.internalProductId).trim()] = p; });
+          window.__rpcCatalogIndex = rpcCatalogIndex; // debug rápido
+
+          rpcRenderCatalog(visible);
+        } catch (e) {
+          console.warn("Catalog dynamic render skipped:", e && e.message ? e.message : e);
+          // Fallback: se quedan tus cards hardcodeadas.
+        }
+      })();
+
       // Modal Recarga
       const modalBg = document.getElementById("modal-bg-recarga");
       const modalCobro = document.getElementById("modal-detalle-cobro");
@@ -980,66 +1142,80 @@ const resp = await fetch(url, {
       let productoActual = null;
 
       if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
-        const botonesCompra = document.querySelectorAll(".card .cta");
+        // Click handler único (sirve para cards hardcodeadas y dinámicas)
+        document.addEventListener("click", (e) => {
+          const btn = (e.target && e.target.closest) ? e.target.closest(".card .cta") : null;
+          if (!btn) return;
 
-        botonesCompra.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const productId = btn.getAttribute("data-product-id");
-            productoActual = null;
-            precioActual = 0;
-            beneficioActual = "";
-            operadorActual = "";
+          const productId = btn.getAttribute("data-product-id"); // internalProductId (tu ID)
+          const categoryBtn = String(btn.getAttribute("data-category") || "").toUpperCase();
 
-            let precioTxt = "";
-            let recibeTxt = "";
-            let operadorTxt = "";
+          productoActual = null;
+          precioActual = 0;
+          beneficioActual = "";
+          operadorActual = "";
 
-            if (productId && window.Products && typeof window.Products.getById === "function") {
-              const producto = window.Products.getById(productId);
-              if (!producto) {
-                showToastError("No se encontró la oferta seleccionada. Inténtalo de nuevo.");
-                return;
-              }
+          let precioTxt = "";
+          let recibeTxt = "";
 
-              productoActual = producto;
-              precioActual = Number(producto.importe) || 0;
-              beneficioActual = producto.recibe || producto.descripcion || "";
-              operadorActual = producto.operador || "";
+          // 1) Preferimos catálogo dinámico (Firestore)
+          const catProd = (productId && window.__rpcCatalogIndex) ? window.__rpcCatalogIndex[String(productId).trim()] : null;
 
-              precioTxt = producto.precioTexto || (precioActual.toFixed(2) + " €");
-              recibeTxt = producto.recibe || beneficioActual;
-              operadorTxt = (producto.operador || "").toUpperCase();
-            } else {
-              showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
+          if (catProd) {
+            productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
+            precioActual = Number(catProd.sendAmountEur) || 0;
+            beneficioActual = String(catProd.receiveText || "").trim();
+            operadorActual = String(catProd.category || "").toUpperCase();
+
+            precioTxt = rpcFormatEur(precioActual);
+            recibeTxt = beneficioActual;
+
+            // Tipo destino por categoría (NAUTA = email)
+            tipoDestinoActual = (operadorActual === "NAUTA" || categoryBtn === "NAUTA") ? "nauta" : "msisdn";
+          } else if (productId && window.Products && typeof window.Products.getById === "function") {
+            // 2) Fallback: products.js (lo que ya tenías)
+            const producto = window.Products.getById(productId);
+            if (!producto) {
+              showToastError("No se encontró la oferta seleccionada. Inténtalo de nuevo.");
               return;
             }
 
-            // Detectar tipo de destino por productId
-            tipoDestinoActual = (productId && productId.startsWith("nauta-")) ? "nauta" : "msisdn";
+            productoActual = producto;
+            precioActual = Number(producto.importe) || 0;
+            beneficioActual = producto.recibe || producto.descripcion || "";
+            operadorActual = producto.operador || "";
 
-            modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
-            modalRecibe.textContent = (tipoDestinoActual === "nauta")
-              ? `La cuenta NAUTA recibe: ${recibeTxt}`
-              : `El móvil recibe: ${recibeTxt}`;
+            precioTxt = producto.precioTexto || (precioActual.toFixed(2) + " €");
+            recibeTxt = producto.recibe || beneficioActual;
 
-            // Reset inputs
-            inputNum1.value = "";
-            inputNum2.value = "";
-            if (inputNauta1) inputNauta1.value = "";
-            if (inputNauta2) inputNauta2.value = "";
+            tipoDestinoActual = (productId && String(productId).startsWith("nauta-")) ? "nauta" : "msisdn";
+          } else {
+            showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
+            return;
+          }
 
-            // Toggle UI del modal según tipo
-            if (modalDestinoMsisdn) modalDestinoMsisdn.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
-            if (modalDestinoNauta) modalDestinoNauta.style.display = (tipoDestinoActual === "nauta") ? "block" : "none";
+          modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
+          modalRecibe.textContent = (tipoDestinoActual === "nauta")
+            ? `La cuenta NAUTA recibe: ${recibeTxt}`
+            : `El móvil recibe: ${recibeTxt}`;
 
-            // Recientes solo aplica a teléfono
-            if (modalRecientes) modalRecientes.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
-            if (tipoDestinoActual === "msisdn") {
-              renderNumerosRecientes();
-            }
+          // Reset inputs
+          inputNum1.value = "";
+          inputNum2.value = "";
+          if (inputNauta1) inputNauta1.value = "";
+          if (inputNauta2) inputNauta2.value = "";
 
-            abrirModalRecarga();
-          });
+          // Toggle UI del modal según tipo
+          if (modalDestinoMsisdn) modalDestinoMsisdn.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+          if (modalDestinoNauta) modalDestinoNauta.style.display = (tipoDestinoActual === "nauta") ? "block" : "none";
+
+          // Recientes solo aplica a teléfono
+          if (modalRecientes) modalRecientes.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+          if (tipoDestinoActual === "msisdn") {
+            renderNumerosRecientes();
+          }
+
+          abrirModalRecarga();
         });
 
         // Cerrar modal al tocar fuera
