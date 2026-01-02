@@ -24,21 +24,7 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-/**
- * Catálogo server-side (source of truth).
- * Ajusta/Completa con TODOS tus productId reales.
- */
-const PRODUCTS = {
-  // --- CUBACEL ---
-  "cubacel-10": { id: "cubacel-10", kind: "cubacel", amount: 10.42, currency: "EUR" },
-  "cubacel-20": { id: "cubacel-20", kind: "cubacel", amount: 20.84, currency: "EUR" },
-  "cubacel-25": { id: "cubacel-25", kind: "cubacel", amount: 25.01, currency: "EUR" },
-  "cubacel-30": { id: "cubacel-30", kind: "cubacel", amount: 31.26, currency: "EUR" },
-
-  // --- NAUTA (ejemplos; ajusta a tu catálogo real) ---
-  "nauta-5": { id: "nauta-5", kind: "nauta", amount: 5.0, currency: "EUR" },
-  "nauta-10": { id: "nauta-10", kind: "nauta", amount: 10.0, currency: "EUR" },
-};
+// Source of truth del catálogo: Firestore collection "catalog_products".
 
 function sendJson(res, status, payload) {
   res.status(status);
@@ -124,7 +110,8 @@ async function resolveUid(req, uidFromBody) {
 /**
  * Fase 2 (sandbox): createOrder (sin pago)
  * - valida server-side
- * - calcula importe en servidor (PRODUCTS)
+ * - resuelve producto desde Firestore "catalog_products"
+ * - calcula importe en servidor: sendAmountEur + 1.00 (EUR) y lo persiste en /orders.amount
  * - crea orden PENDING en /orders
  * - responde { orderId, amount, currency, status }
  */
@@ -166,43 +153,37 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
 
-  // Resolver producto: legacy PRODUCTS primero; si no existe, leer catalog_products (Firestore)
-  let product = PRODUCTS[productId] || null;
+  // Resolver producto: SOLO catalog_products (Firestore) — catalog-only
+  let product = null;
 
-  if (!product) {
-    try {
-      const snap = await db.collection("catalog_products").doc(productId).get();
-      if (snap.exists) {
-        const p = snap.data() || {};
+  try {
+    const snap = await db.collection("catalog_products").doc(productId).get();
+    if (snap.exists) {
+      const p = snap.data() || {};
 
-        // Switch ON/OFF desde Firestore
-        if (p.publish === false) {
-          return sendJson(res, 400, { ok: false, error: "PRODUCT_NOT_PUBLISHED", productId });
-        }
-
-        // Detectar tipo (nauta/cubacel) por docId y/o category
-        const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
-        const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
-
-        // Importe desde catálogo (EUR)
-        const amt = Number(p.sendAmountEur);
-        if (!Number.isFinite(amt) || amt <= 0) {
-          return sendJson(res, 500, { ok: false, error: "INVALID_PRODUCT_AMOUNT", productId });
-        }
-
-        // Currency (si luego la guardas en el doc, la respetamos; si no, EUR)
-        let cur = "EUR";
-        if (typeof p.currency === "string" && p.currency.trim()) cur = p.currency.trim().toUpperCase();
-        else if (typeof p.sendAmountRaw === "string") {
-          const m = /^([A-Z]{3})\b/.exec(p.sendAmountRaw.trim());
-          if (m) cur = m[1];
-        }
-
-        product = { id: productId, kind, amount: amt, currency: cur };
+      // Switch ON/OFF desde Firestore
+      if (p.publish === false) {
+        return sendJson(res, 400, { ok: false, error: "PRODUCT_NOT_PUBLISHED", productId });
       }
-    } catch (e) {
-      logger.warn("catalog_products lookup failed", { productId, message: e && e.message ? e.message : String(e) });
+
+      // Detectar tipo (nauta/cubacel) por docId y/o category
+      const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
+      const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
+
+      // Importe desde catálogo (EUR) + margen fijo (+1.00 EUR)
+      const baseEur = Number(p.sendAmountEur);
+      if (!Number.isFinite(baseEur) || baseEur <= 0) {
+        return sendJson(res, 500, { ok: false, error: "INVALID_PRODUCT_AMOUNT", productId });
+      }
+      const amt = Math.round((baseEur + 1.0 + Number.EPSILON) * 100) / 100;
+
+      // Currency: al usar sendAmountEur, la moneda es EUR
+      const cur = "EUR";
+
+      product = { id: productId, kind, amount: amt, currency: cur };
     }
+  } catch (e) {
+    logger.warn("catalog_products lookup failed", { productId, message: e && e.message ? e.message : String(e) });
   }
 
   if (!product) {

@@ -795,7 +795,9 @@ const resp = await fetch(url, {
         const category = String(p.category || "").toUpperCase();
         const isPromo = !!p.isPromo;
         const variablePromo = !!p.variablePromo;
-        const priceTxt = rpcFormatEur(p.sendAmountEur);
+        const baseEur = Number(p.sendAmountEur);
+const sellEur = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : NaN;
+const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
         const receiveTxt = String(p.receiveText || "").trim();
 
         const badgeClass = isPromo ? "badge promo" : "badge";
@@ -945,7 +947,8 @@ const resp = await fetch(url, {
 
           if (catProd) {
             productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
-            precioActual = Number(catProd.sendAmountEur) || 0;
+            const baseEur = Number(catProd.sendAmountEur);
+precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : 0;
             beneficioActual = String(catProd.receiveText || "").trim();
             operadorActual = String(catProd.category || "").toUpperCase();
 
