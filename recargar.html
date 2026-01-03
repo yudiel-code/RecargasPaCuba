@@ -512,9 +512,9 @@ const url = isLocal
   : "https://us-central1-recargaspacuba-7aaa8.cloudfunctions.net/createOrder";
 
         const auth = window.firebaseAuth;
-const user = (auth && auth.currentUser) || authUser;
+const user = auth && auth.currentUser;
 if (!user) throw new Error("firebase-no-auth");
-const token = await user.getIdToken();
+const token = await user.getIdToken(true);
 
 const resp = await fetch(url, {
   method: "POST",
@@ -1060,7 +1060,7 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
           try {
             const auth = window.firebaseAuth;
-            const user = (auth && auth.currentUser) || authUser;
+            const user = auth && auth.currentUser;
             if (!user) throw new Error("firebase-no-auth");
             if (!productoId) throw new Error("missing-productId");
 
