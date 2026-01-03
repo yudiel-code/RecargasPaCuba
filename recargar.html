@@ -492,12 +492,29 @@ body.catalog-ready .cards { visibility: visible; }
 
   <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN + UserData -->
   <script>
-    (function () { let recargarInitRun=false; window.__initRecargarPage=function __initRecargarPage(authUser){ if(recargarInitRun) return; recargarInitRun=true;
-      // Anti-flash
-      document.documentElement.classList.add("loaded");
+    (function () { 
+  let recargarInitRun=false; 
+  window.__initRecargarPage=function __initRecargarPage(authUser){ 
+    if(recargarInitRun) return; 
+    recargarInitRun=true;
 
-      // ✅ Control de sesión: si no hay usuario logueado, volver al login
-      
+    // Anti-flash
+    document.documentElement.classList.add("loaded");
+
+    // ✅ Seguridad inmediata: si no hay sesión real, salir antes de cualquier render
+    try {
+      const auth = window.firebaseAuth;
+      const user = auth && auth.currentUser;
+      if (!user) {
+        const v = new URLSearchParams(location.search).get("v") || sessionStorage.getItem("rpc_v") || "";
+        const redir = v ? `index.html?next=recargar.html&v=${encodeURIComponent(v)}` : "index.html?next=recargar.html";
+        window.location.replace(redir);
+        return;
+      }
+    } catch(_) {
+      window.location.replace("index.html?next=recargar.html");
+      return;
+    }
 
       // ✅ Inicializar EmailJS
       if (typeof emailjs !== "undefined") {
@@ -933,6 +950,15 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
         document.addEventListener("click", (e) => {
           const btn = (e.target && e.target.closest) ? e.target.closest(".card .cta") : null;
           if (!btn) return;
+
+          // ✅ Seguridad: aborta si no hay sesión
+          const auth = window.firebaseAuth;
+          if (!auth || !auth.currentUser) {
+            const v = new URLSearchParams(location.search).get("v") || sessionStorage.getItem("rpc_v") || "";
+            const redir = v ? `index.html?next=recargar.html&v=${encodeURIComponent(v)}` : "index.html?next=recargar.html";
+            window.location.replace(redir);
+            return;
+          }
 
           const productId = btn.getAttribute("data-product-id"); // internalProductId (tu ID)
           const categoryBtn = String(btn.getAttribute("data-category") || "").toUpperCase();
