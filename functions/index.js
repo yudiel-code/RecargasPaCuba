@@ -33,9 +33,24 @@ function sendJson(res, status, payload) {
 }
 
 function setCors(req, res) {
-  const origin = req.get("origin") || "*";
-  res.set("Access-Control-Allow-Origin", origin);
+  const origin = req.get("origin") || "";
+  const allowed = new Set([
+    "https://recargaspacuba.es",
+    "https://www.recargaspacuba.es",
+    "https://recargaspacuba.net",
+    "https://www.recargaspacuba.net",
+    "https://recargaspacuba.eu",
+    "https://www.recargaspacuba.eu",
+  ]);
+
+  // Evita cachés cruzados entre orígenes
   res.set("Vary", "Origin");
+
+  // CORS estricto: solo permitimos orígenes en allowlist
+  if (allowed.has(origin)) {
+    res.set("Access-Control-Allow-Origin", origin);
+  }
+
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.set("Access-Control-Max-Age", "3600");
