@@ -137,17 +137,35 @@ exports.createOrder = onRequest(async (req, res) => {
   productId = typeof productId === "string" ? productId.trim().toLowerCase() : "";
   destino = typeof destino === "string" ? destino.trim() : "";
 
-  // UID: token-first (prod), body fallback (emulador)
+    // UID: token-first (prod), body fallback (emulador)
   const uidRes = await resolveUid(req, uidBody);
   if (!uidRes.ok) {
     return sendJson(res, 401, { ok: false, error: uidRes.error });
   }
   uid = uidRes.uid;
 
-  // Validación UID final (por si en emulador vino vacío)
+  // ENFORCEMENT (PROD): requiere email verificado
+  if (!isRunningInEmulator()) {
+    const token = getBearerToken(req);
+    if (!token) {
+      return sendJson(res, 401, { ok: false, error: "MISSING_AUTH" });
+    }
+    try {
+      const decoded = await admin.auth().verifyIdToken(token);
+      const verified = !!(decoded && decoded.email_verified);
+      if (!verified) {
+        return sendJson(res, 403, { ok: false, error: "EMAIL_NOT_VERIFIED" });
+      }
+    } catch (e) {
+      return sendJson(res, 401, { ok: false, error: "INVALID_ID_TOKEN" });
+    }
+  }
+
+  // Validacion UID final (por si en emulador vino vaci­o)
   if (!uid || uid.length > 128) {
     return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
   }
+
 
   if (!productId || productId.length > 64) {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
