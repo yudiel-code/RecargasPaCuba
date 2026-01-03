@@ -1613,24 +1613,35 @@
 
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) {
-      logoutBtn.addEventListener("click", function() {
-        localStorage.removeItem("usuario");
-        if (window.firebaseSignOut) {
-          window.firebaseSignOut().catch(function() {});
+      logoutBtn.addEventListener("click", async function() {
+        // Bloqueo UX para evitar doble click
+        try { logoutBtn.disabled = true; } catch (_) {}
+
+        // 1) Cerrar sesión REAL en Firebase (esperar a que termine)
+        try {
+          if (window.firebaseSignOut) {
+            await window.firebaseSignOut();
+          }
+        } catch (_) {
+          // No frenamos el flujo: igual limpiamos y redirigimos
         }
+
+        // 2) Limpieza local mínima (tu app usa esto como “sesión”)
+        try { localStorage.removeItem("usuario"); } catch (_) {}
+
+        // 3) Redirect a login preservando v/next si aplica
         const currentParams = new URLSearchParams(window.location.search || "");
         const targetUrl = new URL("index.html", window.location.href);
+
         let vParam = currentParams.get("v");
         if (!vParam) {
           try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
         }
-        if (vParam) {
-          targetUrl.searchParams.set("v", vParam);
-        }
+        if (vParam) targetUrl.searchParams.set("v", vParam);
+
         const nextParam = currentParams.get("next");
-        if (nextParam) {
-          targetUrl.searchParams.set("next", nextParam);
-        }
+        if (nextParam) targetUrl.searchParams.set("next", nextParam);
+
         window.location.replace(targetUrl.toString());
       });
     }
