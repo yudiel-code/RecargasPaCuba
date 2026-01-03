@@ -17,6 +17,7 @@
       "**/.env*",
       "**/.*",
       "**/node_modules/**",
+      "admin/**",
       "functions/**",
       ".firebase/**",
       "_emulator_trash/**",
