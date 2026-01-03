@@ -24,6 +24,23 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
+async function requireAppCheck(req, res) {
+  const token = req.get("X-Firebase-AppCheck") || req.get("x-firebase-appcheck") || "";
+  if (!token) {
+    sendJson(res, 401, { ok: false, error: "APPCHECK_MISSING" });
+    return false;
+  }
+  try {
+    await admin.appCheck().verifyToken(token);
+    return true;
+  } catch (e) {
+    logger.warn("appcheck_verify_failed", { message: String(e && e.message ? e.message : e) });
+    sendJson(res, 401, { ok: false, error: "APPCHECK_INVALID" });
+    return false;
+  }
+}
+
+
 // Source of truth del catálogo: Firestore collection "catalog_products".
 
 function sendJson(res, status, payload) {
@@ -136,6 +153,9 @@ exports.createOrder = onRequest(async (req, res) => {
   if (req.method === "OPTIONS") {
     return res.status(204).send("");
   }
+
+  if (!(await requireAppCheck(req, res))) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
