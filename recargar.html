@@ -1138,6 +1138,29 @@ const resultado = await procesarRecarga({
     import { guardProtectedPage } from "./js/guard.js?v=r1";
     import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
 
+    // ✅ Fix rápido anti “Atrás tras logout” (BFCache): si el navegador restaura la página desde cache,
+    // y ya NO hay sesión, redirigimos inmediatamente al login con next=recargar.
+    function buildLoginNextUrl() {
+      const sp = new URLSearchParams(window.location.search || "");
+      const vInUrl = sp.get("v");
+      let v = vInUrl;
+
+      if (!v) {
+        try { v = sessionStorage.getItem("rpc_v"); } catch (_) {}
+      }
+
+      let url = "index.html?next=recargar.html";
+      if (v) url += `&v=${encodeURIComponent(v)}`;
+      return url;
+    }
+
+    window.addEventListener("pageshow", (e) => {
+      // Solo BFCache (botón Atrás / forward)
+      if (!e || !e.persisted) return;
+      if (!auth || !("currentUser" in auth)) return;
+      if (!auth.currentUser) window.location.replace(buildLoginNextUrl());
+    }, { passive: true });
+
     guardProtectedPage({
       auth,
       onAuthStateChanged,
