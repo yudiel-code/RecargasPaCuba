@@ -3,8 +3,30 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+      "firestore.rules",
+      "firestore.indexes.json",
+      "storage.rules",
+      "database.rules.json",
+      "README*",
+      "*.ps1",
+      "*.sh",
+      "*.bat",
+      "*.cmd",
+      "**/*.pem",
+      "**/*.key",
+      "**/.env*",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "functions/**",
+      ".firebase/**",
+      "_emulator_trash/**",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "firestore-debug.log",
+      "firestore-debug.*.log",
+      "firebase-export-*/**",
+      "**/firebase-export-*/**",
+      "**/*.log"
     ]
   },
   "functions": [

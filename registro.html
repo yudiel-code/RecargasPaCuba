@@ -260,9 +260,16 @@
         return;
       }
 
-      try {
+            try {
         const cred = await createUser(auth, email, pass1);
         await updateProfile(cred.user, { displayName: nombre });
+
+        // Enviar correo de verificacion (Firebase NO lo hace automatico)
+        const sendEmailVerification = window.firebaseSendEmailVerification;
+        if (typeof sendEmailVerification !== "function") {
+          throw new Error("sendEmailVerification-no-disponible");
+        }
+        await Promise.resolve(sendEmailVerification(cred.user));
 
         const usuarioMin = {
           nombre: nombre,
@@ -274,14 +281,15 @@
         localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
         localStorage.setItem("usuario", email);
 
-        showToastSuccess("Registro completado. Redirigiendo...");
+        showToastSuccess("Registro completado. Revisa tu correo para verificar y luego inicia sesion.");
         try {
           const signOut = window.firebaseSignOut || (window.firebaseAuth && window.firebaseAuth.signOut);
           if (typeof signOut === "function") {
-            await Promise.resolve(signOut()).catch(() => {});
+            // Modular SDK: signOut(auth)
+            await Promise.resolve(signOut(auth)).catch(() => {});
           }
         } catch (e) {
-          console.warn("No se pudo cerrar sesión tras registro:", e);
+          console.warn("No se pudo cerrar sesiÃ³n tras registro:", e);
         }
         localStorage.removeItem("usuario");
         localStorage.removeItem("usuarioRegistrado");
@@ -300,6 +308,7 @@
         }
         window.location.href = targetUrl.toString();
       } catch (error) {
+
         console.error("Error en registro:", error);
         let mensaje = "No se pudo completar el registro.";
         if (error.code === "auth/email-already-in-use") {

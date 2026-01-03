@@ -506,7 +506,10 @@ body.catalog-ready .cards { visibility: visible; }
 
       // ✅ FASE 2 (sandbox/emulador): helper para crear orden PENDING en backend
       async function createOrderSandbox({ uid, productId, destino }) {
-        const url = "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder";
+        const isLocal = (location.hostname === "localhost" || location.hostname === "127.0.0.1");
+const url = isLocal
+  ? "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder"
+  : "https://us-central1-recargaspacuba-7aaa8.cloudfunctions.net/createOrder";
 
         const auth = window.firebaseAuth;
 const user = (auth && auth.currentUser) || authUser;

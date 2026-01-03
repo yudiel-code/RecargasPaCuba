@@ -15,14 +15,56 @@ const path = require('path');
 const admin = require('firebase-admin');
 
 const DEFAULT_PROJECT_ID = process.env.GCLOUD_PROJECT || process.env.FIREBASE_PROJECT_ID || 'recargaspacuba-7aaa8';
-const EMULATOR_HOST = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
-process.env.FIRESTORE_EMULATOR_HOST = EMULATOR_HOST;
 
-const jsonArg = process.argv[2];
-const collectionArg = process.argv[3];
+// --- args parsing (flags + positional) ---
+const argv = process.argv.slice(2);
+const flags = {};
+const positionals = [];
+
+for (const a of argv) {
+  if (a.startsWith('--')) {
+    const [k, v] = a.replace(/^--/, '').split('=');
+    flags[k] = (v === undefined ? true : v);
+  } else {
+    positionals.push(a);
+  }
+}
+
+// target: emulator (default) | prod
+const target = String(flags.target || (flags.prod ? 'prod' : 'emulator')).toLowerCase();
+const projectId = String(flags.project || DEFAULT_PROJECT_ID);
+
+// emulator host (only used for emulator target)
+const emulatorHost = String(flags.emulatorHost || process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080');
+const EMULATOR_HOST = emulatorHost; // backward-compat for old references
+
+
+// positional compatibility: [jsonPath] [collection]
+const jsonArg = positionals[0];
+const collectionArg = positionals[1];
 
 const jsonPath = jsonArg ? path.resolve(jsonArg) : path.resolve(__dirname, 'catalog_v1_fixed_promos.json');
 const collectionName = collectionArg || 'catalog_products';
+
+// Safety latch for prod
+if (target === 'prod') {
+  const confirm = String(flags.confirm || '').toUpperCase();
+  if (confirm !== 'PROD') {
+    die('ERROR: Refusing to write to PRODUCTION. Re-run with --target=prod --confirm=PROD');
+  }
+  // Ensure we are NOT pointing at emulator
+  delete process.env.FIRESTORE_EMULATOR_HOST;
+} else {
+  // Default: emulator (safe)
+  process.env.FIRESTORE_EMULATOR_HOST = emulatorHost;
+}
+
+// Init Admin SDK
+if (target === 'prod') {
+  admin.initializeApp({ projectId, credential: admin.credential.applicationDefault() });
+} else {
+  admin.initializeApp({ projectId });
+}
 
 function die(msg) { console.error(msg); process.exit(1); }
 
@@ -34,7 +76,13 @@ catch (e) { die(`ERROR: Failed to parse JSON: ${e.message}`); }
 
 if (!payload || !Array.isArray(payload.items)) die('ERROR: JSON payload must contain { items: [...] }');
 
-admin.initializeApp({ projectId: DEFAULT_PROJECT_ID });
+if (!admin.apps.length) {
+  if (target === 'prod') {
+    admin.initializeApp({ projectId, credential: admin.credential.applicationDefault() });
+  } else {
+    admin.initializeApp({ projectId });
+  }
+}
 const db = admin.firestore();
 
 async function main() {

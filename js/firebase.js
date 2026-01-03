@@ -5,6 +5,7 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
@@ -14,7 +15,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 
-// Configuración única de Firebase para toda la app
+// Configuracion unica de Firebase para toda la app
 const firebaseConfig = {
   apiKey: "AIzaSyALcmOgNzahL1bjGAXW-WakTpJRzUC8NVg",
   authDomain: "recargaspacuba-7aaa8.firebaseapp.com",
@@ -30,7 +31,7 @@ const auth = getAuth(app);
 const functions = getFunctions(app);
 const callFunction = (name, data) => httpsCallable(functions, name)(data);
 
-// Exponer en window para scripts NO módulo
+// Exponer en window para scripts NO modulo
 window.firebaseApp = app;
 window.firebaseAuth = auth;
 window.firebaseFunctions = functions;
@@ -38,6 +39,7 @@ window.firebaseHttpsCallable = httpsCallable;
 window.firebaseCallFunction = callFunction;
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
+window.firebaseSendEmailVerification = sendEmailVerification;
 window.firebaseSignOut = signOut;
 window.firebaseOnAuthStateChanged = onAuthStateChanged;
 window.firebaseGoogleSignIn = async (authInstance) => {
@@ -56,6 +58,7 @@ export {
   auth,
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
+  sendEmailVerification,
   signOut,
   onAuthStateChanged,
   createUserWithEmailAndPassword,
