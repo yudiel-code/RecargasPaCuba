@@ -283,14 +283,17 @@
 
         showToastSuccess("Registro completado. Revisa tu correo para verificar y luego inicia sesion.");
         try {
-          const signOut = window.firebaseSignOut || (window.firebaseAuth && window.firebaseAuth.signOut);
-          if (typeof signOut === "function") {
-            // Modular SDK: signOut(auth)
-            await Promise.resolve(signOut(auth)).catch(() => {});
-          }
-        } catch (e) {
-          console.warn("No se pudo cerrar sesiÃ³n tras registro:", e);
-        }
+  // Preferente: Modular SDK wrapper expuesto en window.firebaseSignOut (signOut)
+  if (typeof window.firebaseSignOut === "function") {
+    await window.firebaseSignOut(auth);
+  } else if (window.firebaseAuth && typeof window.firebaseAuth.signOut === "function") {
+    // Compat SDK: método sin argumentos (mantiene su this)
+    await window.firebaseAuth.signOut();
+  }
+} catch (e) {
+  console.warn("No se pudo cerrar sesiÃ³n tras registro:", e);
+}
+
         localStorage.removeItem("usuario");
         localStorage.removeItem("usuarioRegistrado");
         const currentParams = new URLSearchParams(window.location.search || "");
