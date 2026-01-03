@@ -39,7 +39,7 @@ const callFunction = (name, data) => httpsCallable(functions, name)(data);
 // App Check (reCAPTCHA v3 invisible)
 // Pega aquí tu SITE KEY (pública), NO la secret.
 const appCheck = initializeAppCheck(app, {
-  provider: new ReCaptchaV3Provider(6LduKj8sAAAAAIBehDF4f5GIPXnnjOgA9LpZL5Wp),
+  provider: new ReCaptchaV3Provider("6LduKj8sAAAAAIBehDF4f5GIPXnnjOgA9LpZL5Wp"),
   isTokenAutoRefreshEnabled: true
 });
 
