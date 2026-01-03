@@ -52,7 +52,7 @@ function setCors(req, res) {
   }
 
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Firebase-AppCheck");
   res.set("Access-Control-Max-Age", "3600");
 }
 
