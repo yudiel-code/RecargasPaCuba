@@ -315,6 +315,9 @@ exports.markOrderPaid = onRequest(async (req, res) => {
   if (req.method === "OPTIONS") {
     return res.status(204).send("");
   }
+
+  if (!(await requireAppCheck(req, res))) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
@@ -404,6 +407,9 @@ exports.markOrderFailed = onRequest(async (req, res) => {
   if (req.method === "OPTIONS") {
     return res.status(204).send("");
   }
+
+  if (!(await requireAppCheck(req, res))) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
@@ -516,6 +522,9 @@ exports.markOrderCancelled = onRequest(async (req, res) => {
   if (req.method === "OPTIONS") {
     return res.status(204).send("");
   }
+
+  if (!(await requireAppCheck(req, res))) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
@@ -628,6 +637,9 @@ exports.markOrderRefunded = onRequest(async (req, res) => {
   if (req.method === "OPTIONS") {
     return res.status(204).send("");
   }
+
+  if (!(await requireAppCheck(req, res))) return;
+
   if (req.method !== "POST") {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
@@ -798,6 +810,8 @@ exports.onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
       uid,
       productId: after.productId || "",
       destination: after.destination || "",
+      numero: after.destination || "",
+      destino: after.destination || "",
       amount: after.amount,
       currency: after.currency || "EUR",
       status: "COMPLETED",
