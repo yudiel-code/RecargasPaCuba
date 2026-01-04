@@ -50,13 +50,9 @@ window.fetch = async (input, init = {}) => {
     const url = typeof input === "string" ? input : input?.url;
 
     const isTarget =
-  typeof url === "string" &&
-  (
-    // Cloud Functions HTTP classic
-    (url.includes("cloudfunctions.net") && (url.includes("/createOrder") || url.includes("/mark"))) ||
-    // Cloud Run (a.run.app) – tu caso actual
-    (url.includes(".a.run.app") && (url.includes("createorder-") || url.includes("mark")))
-  );
+      typeof url === "string" &&
+      url.includes("cloudfunctions.net") &&
+      (url.includes("/createOrder") || url.includes("/mark"));
 
 
     if (!isTarget) return _fetch(input, init);
