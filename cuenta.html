@@ -1908,10 +1908,15 @@
 
   <script type="module">
     import { guardProtectedPage } from "./js/guard.js?v=r1";
-    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+    import { auth, onAuthStateChanged, signOut } from "./js/firebase.js?v=r1";
 
     const v = (new URLSearchParams(location.search || "")).get("v") || sessionStorage.getItem("rpc_v") || "";
     const redirectTo = v ? `index.html?v=${encodeURIComponent(v)}` : "index.html";
+
+    // Exponemos signOut sin duplicar listeners (evita flash por doble onAuthStateChanged)
+    window.firebaseSignOut = function() {
+      return signOut(auth);
+    };
 
     guardProtectedPage({
       redirectTo,
@@ -1919,56 +1924,29 @@
       auth,
       onAuthStateChanged,
       onReady: (user) => {
+        // Sync local UNA sola vez antes de pintar
         try {
-          if (!localStorage.getItem("usuario")) localStorage.setItem("usuario", (user?.email || "").toLowerCase());
+          const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+          const datos = JSON.parse(raw);
+          const { pass, ...resto } = datos || {};
+
+          const nuevo = {
+            ...resto,
+            nombre: (datos && datos.nombre) || user.displayName || "Usuario",
+            email: (user.email || "").toLowerCase(),
+            activo: true
+          };
+
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+          localStorage.setItem("usuario", (user.email || "").toLowerCase());
         } catch (_) {}
+
         if (typeof window.__initCuentaPage === "function") window.__initCuentaPage(user);
       }
     });
   </script>
 
-  <!-- SCRIPT FIREBASE (centralizado con js/firebase.js) -->
-  <script type="module">
-    import { auth, onAuthStateChanged, signOut } from "./js/firebase.js?v=r1";
-
-    // Exponemos un signOut ya vinculado a este auth para el script no-módulo
-    window.firebaseSignOut = function() {
-      return signOut(auth);
-    };
-
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        try { localStorage.removeItem("usuario"); } catch (_) {}
-        return;
-      }
-
-      try {
-        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
-        const datos = JSON.parse(raw);
-
-        // B1.2: limpiamos cualquier rastro de pass al sincronizar
-        const { pass, ...resto } = datos || {};
-
-        const nuevo = {
-          ...resto,
-          nombre: (datos && datos.nombre) || user.displayName || "Usuario",
-          email: (user.email || "").toLowerCase(),
-          activo: true
-        };
-
-        localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
-        localStorage.setItem("usuario", (user.email || "").toLowerCase());
-
-        const nombreCab = document.getElementById("nombreUsuario");
-        const correoCab = document.getElementById("correoUsuario");
-
-        if (nombreCab)  nombreCab.textContent  = nuevo.nombre;
-        if (correoCab)  correoCab.textContent  = nuevo.email;
-      } catch (e) {
-        console.error("Error sincronizando cuenta con Firebase:", e);
-      }
-    });
-  </script>
+  <!-- SCRIPT FIREBASE (eliminado): evitamos doble onAuthStateChanged que provoca flash -->
 
   <script type="module" src="js/app.js?v=r1"></script>
 </body>
