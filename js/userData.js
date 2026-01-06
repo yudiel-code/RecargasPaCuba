@@ -23,16 +23,27 @@
 
   // ---------- SALDO ----------
 
+  const MAX_SALDO = 100;
+
   function getSaldo() {
     const raw = localStorage.getItem(KEYS.SALDO);
     const valor = parseFloat(raw);
-    return isNaN(valor) ? 0 : valor;
+    const num = isNaN(valor) ? 0 : valor;
+
+    // Normaliza valores fuera de rango (incluye saldo viejo inflado)
+    const capped = Math.min(MAX_SALDO, Math.max(0, num));
+    if (capped !== num) {
+      localStorage.setItem(KEYS.SALDO, capped.toFixed(2));
+    }
+    return capped;
   }
 
   function setSaldo(nuevoSaldo) {
-    const num = Number(nuevoSaldo) || 0;
-    localStorage.setItem(KEYS.SALDO, num.toFixed(2));
-    return num;
+    const num = Number(nuevoSaldo);
+    const safeNum = isNaN(num) ? 0 : num;
+    const capped = Math.min(MAX_SALDO, Math.max(0, safeNum));
+    localStorage.setItem(KEYS.SALDO, capped.toFixed(2));
+    return capped;
   }
 
   function addSaldo(importe, metodo) {
