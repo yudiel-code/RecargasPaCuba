@@ -34,19 +34,26 @@ html {
   position: relative;
   min-height: 100%;
   background-color: #0b63d1; /* fallback */
+  background-image: url("../assets/bg-playa.jpg"); /* fallback para bandas/safe-area */
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
 }
 
 /* Capa 1: imagen fija real (no depende de background-attachment) */
 html::before {
   content: "";
   position: fixed;
-  inset: 0;
+  inset: -140px; /* cubre safe-area y el “rubber band” del scroll en móvil */
   z-index: 0;
   background-image: url("../assets/bg-playa.jpg");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
-  transform: translateZ(0); /* reduce “jitter” en móvil */
+  -webkit-transform: translate3d(0,0,0);
+  transform: translate3d(0,0,0);
+  backface-visibility: hidden;
+  will-change: transform;
   pointer-events: none;
 }
 
@@ -66,7 +73,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: inherit;
+  background: transparent;
   position: relative;
   z-index: 1; /* contenido por encima del overlay */
 }
