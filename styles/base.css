@@ -21,43 +21,20 @@
   --bg-bottom: #1aa0c3;
 }
 
-/* Reset bÇ­sico + anti-flash */
+/* Reset bÇ­sico */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  animation: none !important;
-  transition: none !important;
 }
 
 html {
   position: relative;
   min-height: 100%;
-  background-color: #0b63d1; /* fallback */
-}
-
-/* Capa 1: imagen fija real (no depende de background-attachment) */
-html::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background-image: url("../assets/bg-playa.jpg");
+  background-color: var(--left); /* fallback sólido */
+  background-image: linear-gradient(135deg, var(--left) 0%, var(--right) 100%);
   background-repeat: no-repeat;
-  background-position: center;
   background-size: cover;
-  transform: translateZ(0); /* reduce “jitter” en móvil */
-  pointer-events: none;
-}
-
-/* Capa 2: overlay/gradiente por encima */
-html::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(135deg, rgba(11, 99, 209, 0.55) 0%, rgba(25, 198, 195, 0.35) 100%);
-  pointer-events: none;
 }
 
 body {
@@ -66,9 +43,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: inherit;
-  position: relative;
-  z-index: 1; /* contenido por encima del overlay */
+  background: transparent;
 }
 
 /* Contenedor base de la app */
