@@ -798,6 +798,39 @@ const resp = await fetch(url, {
         });
       }
 
+      function rpcToEsOfferText(input) {
+        let t = String(input || "").replace(/\s+/g, " ").trim();
+        if (!t) return "";
+
+        // Validity: "Valid for 30 Days" -> "Válido por 30 días"
+        t = t.replace(/Valid for\s*(\d+)\s*Day(s)?/gi, (_, n) => {
+          const num = String(n);
+          return `Válido por ${num} día${num === "1" ? "" : "s"}`;
+        });
+
+        // Key phrases
+        t = t.replace(/Unlimited internet/gi, "Internet ilimitado");
+        t = t.replace(/Unlimited data/gi, "datos ilimitados");
+        t = t.replace(/night\s*INTERNET\s*12am-7am/gi, "Internet nocturno de 12:00 a. m. a 7:00 a. m.");
+        t = t.replace(/night\s*Internet\s*12am-7am/gi, "Internet nocturno de 12:00 a. m. a 7:00 a. m.");
+        t = t.replace(/-?\s*50%\s*off/gi, "- 50% de descuento");
+
+        // Sentence structure (topups)
+        t = t.replace(/\bRecharge\b/gi, "Recarga");
+        t = t.replace(/\band get\b/gi, "y recibe");
+        t = t.replace(/\bin the main balance\b/gi, "en el saldo principal");
+        t = t.replace(/\bMain balance expires in\b/gi, "El saldo principal vence en");
+        t = t.replace(/\binternet expires in\b/gi, "el Internet vence en");
+        t = t.replace(/\bexpires in\s*(\d+)\s*days\b/gi, "vence en $1 días");
+        t = t.replace(/\bfor\s*(\d+)\s*days\b/gi, "por $1 días");
+        t = t.replace(/\bfor\s*(\d+)\s*hours\b/gi, "por $1 horas");
+        t = t.replace(/\band\b/gi, "y");
+
+        // Cleanup
+        t = t.replace(/\s+,/g, ",").replace(/\s+\./g, ".").replace(/\s+-\s+/g, " - ").trim();
+        return t;
+      }
+
       function rpcBuildCard(p) {
         const internalId = String(p.internalProductId || "").trim();
         const category = String(p.category || "").toUpperCase();
@@ -806,7 +839,7 @@ const resp = await fetch(url, {
         const baseEur = Number(p.sendAmountEur);
 const sellEur = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : NaN;
 const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
-        const receiveTxt = String(p.receiveText || "").trim();
+        const receiveTxt = rpcToEsOfferText(p.receiveText);
 
         const badgeClass = isPromo ? "badge promo" : "badge";
         const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal";
