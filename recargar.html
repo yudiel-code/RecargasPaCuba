@@ -826,6 +826,12 @@ const resp = await fetch(url, {
         t = t.replace(/\bfor\s*(\d+)\s*hours\b/gi, "por $1 horas");
         t = t.replace(/\band\b/gi, "y");
 
+        // Catch-all: "30 Days", "330 days", "1 day"
+        t = t.replace(/\b(\d+)\s*day(s)?\b/gi, (_, n) => {
+          const num = String(n);
+          return `${num} día${num === "1" ? "" : "s"}`;
+        });
+
         // Cleanup
         t = t.replace(/\s+,/g, ",").replace(/\s+\./g, ".").replace(/\s+-\s+/g, " - ").trim();
         return t;
