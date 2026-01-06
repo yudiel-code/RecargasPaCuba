@@ -33,17 +33,21 @@
 html {
   position: relative;
   min-height: 100%;
-  background: linear-gradient(135deg, #0b63d1 0%, #19c6c3 100%);
+  background-color: #0b63d1; /* fallback */
+  background-image: url("../assets/bg-playa.jpg");
   background-repeat: no-repeat;
+  background-position: center;
   background-size: cover;
+  background-attachment: fixed;
 }
 
 html::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: -1;
-  background: inherit;
+  z-index: 0; /* overlay por encima del fondo */
+  background: linear-gradient(135deg, rgba(11, 99, 209, 0.55) 0%, rgba(25, 198, 195, 0.35) 100%);
+  pointer-events: none;
 }
 
 body {
@@ -53,6 +57,8 @@ body {
   display: flex;
   flex-direction: column;
   background: inherit;
+  position: relative;
+  z-index: 1; /* contenido por encima del overlay */
 }
 
 /* Contenedor base de la app */
