@@ -36,14 +36,25 @@
   }
 
   function addSaldo(importe, metodo) {
+    const MAX_SALDO = 100;
+
     const valor = Number(importe) || 0;
     if (valor < 10) return getSaldo();
 
     const saldoActual = getSaldo();
-    const nuevoSaldo = saldoActual + valor;
+
+    // Si ya está al máximo, no hacer nada
+    if (saldoActual >= MAX_SALDO) return saldoActual;
+
+    // Cap: no permitir superar 100 €
+    const nuevoSaldo = Math.min(MAX_SALDO, saldoActual + valor);
+    const agregadoReal = +(nuevoSaldo - saldoActual).toFixed(2);
+
+    // Si por redondeos no se agrega nada, salir
+    if (agregadoReal <= 0) return saldoActual;
 
     setSaldo(nuevoSaldo);
-    addMovimientoSaldo(valor, metodo || "manual");
+    addMovimientoSaldo(agregadoReal, metodo || "manual");
 
     // Actualizar monedas en base al historial
     recalcularMonedas();
