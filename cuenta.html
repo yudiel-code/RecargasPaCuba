@@ -1797,17 +1797,66 @@
           return;
         }
 
-        const saldoActual = getSaldo();
-        const nuevoSaldo = saldoActual + valor;
-        setSaldo(nuevoSaldo);
-
         const metodoActual = getMetodoPagoActual() || "manual";
-        guardarMovimientoSaldo(valor, metodoActual);
+
+        // Camino único recomendado: UserData.addSaldo (cap + movimiento + meta)
+        if (window.UserData && typeof window.UserData.addSaldo === "function") {
+          window.UserData.addSaldo(valor, metodoActual);
+
+          const meta = window.__rpc_last_add_saldo;
+
+          if (!meta || !meta.ok) {
+            if (meta && meta.reason === "MAX_REACHED") {
+              showToastError("Límite de saldo alcanzado (100.00 €).");
+            } else if (meta && meta.reason === "MIN_AMOUNT") {
+              showToastError("El importe mínimo para agregar saldo es de 10 €.");
+            } else {
+              showToastError("No se pudo añadir saldo.");
+            }
+            // No cerramos el modal si falló
+            cargarSaldo();
+            cargarUltimoMovimiento();
+            calcularMonedas();
+            return;
+          }
+
+          // OK
+          if (meta.reason === "CAPPED") {
+            showToastSuccess(`Se añadieron ${Number(meta.applied || 0).toFixed(2)} € (límite 100.00 €).`);
+          } else {
+            showToastSuccess("Saldo actualizado correctamente.");
+          }
+
+          cargarSaldo();
+          cargarUltimoMovimiento();
+          calcularMonedas();
+          cerrarModalSaldo();
+          return;
+        }
+
+        // Fallback (si UserData.addSaldo no existiera): mover movimiento ANTES del setSaldo
+        const saldoActual = getSaldo();
+        const headroom = Math.max(0, 100 - saldoActual);
+        const aplicado = Math.min(valor, headroom);
+
+        if (aplicado <= 0) {
+          showToastError("Límite de saldo alcanzado (100.00 €).");
+          return;
+        }
+
+        guardarMovimientoSaldo(aplicado, metodoActual);
+        setSaldo(saldoActual + aplicado);
 
         cargarSaldo();
         cargarUltimoMovimiento();
         calcularMonedas();
-        showToastSuccess("Saldo actualizado correctamente.");
+
+        if (aplicado < valor) {
+          showToastSuccess(`Se añadieron ${Number(aplicado).toFixed(2)} € (límite 100.00 €).`);
+        } else {
+          showToastSuccess("Saldo actualizado correctamente.");
+        }
+
         cerrarModalSaldo();
       });
     }
