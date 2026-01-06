@@ -961,7 +961,7 @@
         <div class="barra-progreso-wrap">
           <div class="barra-progreso-label">
             <span>Progreso hacia el canje</span>
-            <span id="monedasProgresoTexto">0 / 1399</span>
+            <span id="monedasProgresoTexto">0 / 999</span>
           </div>
           <div class="barra-progreso">
             <div id="barraProgresoInner" class="barra-progreso-inner"></div>
@@ -1012,7 +1012,7 @@
           </li>
           <li>
             <span class="bullet"></span>
-            <span>Al llegar a <strong>1399 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
+            <span>Al llegar a <strong>999 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
           </li>
           <li>
             <span class="bullet"></span>
@@ -1022,11 +1022,11 @@
 
         <div class="canje-wrap">
           <div class="canje-info">
-            <strong>Canje disponible a partir de 1399 monedas.</strong><br>
+            <strong>Canje disponible a partir de 999 monedas.</strong><br>
             Una vez canjeado, el saldo promocional se sumará a tu balance para futuras recargas.
           </div>
           <button id="btnCanje" class="btn-canje">
-            Canjear 1399 monedas por 20 €
+            Canjear 999 monedas por 20 €
           </button>
         </div>
       </section>
@@ -1733,7 +1733,7 @@
       const barraProgresoInner    = document.getElementById("barraProgresoInner");
 
       if (monedasActualesEl)    monedasActualesEl.textContent = totalMonedas;
-      const objetivo = 1399;
+      const objetivo = 999;
       const progreso = Math.min(100, (totalMonedas / objetivo) * 100);
 
       if (monedasProgresoTexto) {
@@ -1747,10 +1747,10 @@
       if (btnCanjeLocal) {
         if (totalMonedas >= objetivo) {
           btnCanjeLocal.classList.add("activo");
-          btnCanjeLocal.textContent = "Canjear ahora 1399 monedas por 20 €";
+          btnCanjeLocal.textContent = "Canjear ahora 999 monedas por 20 €";
         } else {
           btnCanjeLocal.classList.remove("activo");
-          btnCanjeLocal.textContent = "Canjear 1399 monedas por 20 €";
+          btnCanjeLocal.textContent = "Canjear 999 monedas por 20 €";
         }
       }
     }
