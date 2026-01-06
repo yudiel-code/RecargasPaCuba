@@ -47,29 +47,51 @@
   }
 
   function addSaldo(importe, metodo) {
-    const MAX_SALDO = 100;
-
     const valor = Number(importe) || 0;
-    if (valor < 10) return getSaldo();
-
     const saldoActual = getSaldo();
 
+    // Telemetría simple para que la UI pueda decidir qué toast mostrar (sin romper compatibilidad)
+    function setLast(ok, reason, requested, applied, saldo) {
+      global.__rpc_last_add_saldo = {
+        ok: !!ok,
+        reason: String(reason || ""),
+        requested: +Number(requested || 0).toFixed(2),
+        applied: +Number(applied || 0).toFixed(2),
+        saldo: +Number(saldo || 0).toFixed(2),
+        at: new Date().toISOString()
+      };
+    }
+
+    if (valor < 10) {
+      setLast(false, "MIN_AMOUNT", valor, 0, saldoActual);
+      return saldoActual;
+    }
+
+    const headroom = +(MAX_SALDO - saldoActual).toFixed(2);
+
     // Si ya está al máximo, no hacer nada
-    if (saldoActual >= MAX_SALDO) return saldoActual;
+    if (headroom <= 0) {
+      setLast(false, "MAX_REACHED", valor, 0, saldoActual);
+      return saldoActual;
+    }
 
-    // Cap: no permitir superar 100 €
-    const nuevoSaldo = Math.min(MAX_SALDO, saldoActual + valor);
-    const agregadoReal = +(nuevoSaldo - saldoActual).toFixed(2);
+    // Solo aplicar lo que realmente cabe
+    const aplicado = +Math.min(headroom, valor).toFixed(2);
 
-    // Si por redondeos no se agrega nada, salir
-    if (agregadoReal <= 0) return saldoActual;
+    if (aplicado <= 0) {
+      setLast(false, "NO_APPLIED", valor, 0, saldoActual);
+      return saldoActual;
+    }
 
-    setSaldo(nuevoSaldo);
-    addMovimientoSaldo(agregadoReal, metodo || "manual");
+    // IMPORTANTE: registrar movimiento ANTES de setSaldo para que no se anule al llegar a 100
+    addMovimientoSaldo(aplicado, metodo || "manual");
+
+    const nuevoSaldo = setSaldo(saldoActual + aplicado);
 
     // Actualizar monedas en base al historial
     recalcularMonedas();
 
+    setLast(true, aplicado < valor ? "CAPPED" : "OK", valor, aplicado, nuevoSaldo);
     return nuevoSaldo;
   }
 
@@ -103,9 +125,19 @@
   }
 
   function addMovimientoSaldo(importe, metodo) {
+    const imp = Number(importe) || 0;
+    if (imp <= 0) return null;
+
+    // Guardrail: nunca registrar "saldo añadido" si no cabe en el saldo actual
+    const saldoActual = getSaldo();
+    const headroom = +(MAX_SALDO - saldoActual).toFixed(2);
+    const aplicado = +Math.min(imp, Math.max(0, headroom)).toFixed(2);
+
+    if (aplicado <= 0) return null;
+
     return addMovimiento({
       tipo: "saldo",
-      importe: Number(importe) || 0,
+      importe: aplicado,
       metodo: metodo || "manual"
     });
   }
