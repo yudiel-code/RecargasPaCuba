@@ -439,12 +439,13 @@ body.page-legal li {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 100%;
+  width: min(100vw, 480px);
   max-width: 480px;
   padding: 8px 14px 14px;
   box-sizing: border-box;
   z-index: 50;
 }
+
 
 .nav-inner {
   background: linear-gradient(135deg, #16a34a, #38bdf8);
