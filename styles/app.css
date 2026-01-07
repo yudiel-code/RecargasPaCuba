@@ -61,12 +61,20 @@
   color: #0f172a;
 }
 
+/* Auth: fuerza separación aunque exista CSS inline duplicado (registro/cambiar-password) */
+body.page-auth .input-pill {
+  margin-top: 18px !important;
+}
+
+/* Password pills: separa por el wrapper (evita que queden pegadas) */
 .password-wrap {
   position: relative;
   width: 100%;
+  margin-top: 18px;
 }
 
 .password-wrap .input-pill {
+  margin-top: 0 !important;   /* la separación la controla el wrapper */
   padding-right: 46px;
 }
 
@@ -108,6 +116,11 @@
   justify-content: center;
   align-items: center;
   z-index: 3000;
+
+  /* Scroll/padding del overlay (antes estaba duplicado en el bloque global de modales) */
+  overflow-y: auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
 }
 
 .modal-recuperar {
@@ -115,8 +128,53 @@
   padding: 22px 20px;
   border-radius: 20px;
   width: 360px;
+  max-width: calc(100vw - 32px);
   text-align: center;
   color: #ffffff;
+
+  /* Scroll del contenido (antes estaba duplicado en el bloque global de modales) */
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Separación entre píldoras dentro del modal Recuperar */
+.modal-recuperar .input-pill {
+  margin-bottom: 12px;
+}
+
+/* Fix: SOLO el botón Cancelar del modal Recuperar (no toca “Copiar y usar”) */
+#btn-cerrar-recuperar {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+
+  /* proporcional al texto, pero en su propia línea */
+  display: block;
+  width: fit-content;
+  margin: 10px auto 0;
+
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.2;
+
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+#btn-cerrar-recuperar:hover {
+  text-decoration: underline;
+}
+
+#btn-cerrar-recuperar:focus,
+#btn-cerrar-recuperar:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .temp-pass-box {
@@ -374,16 +432,14 @@ body.page-legal li {
 
 /* ===== Modales: scroll para ver todas las notificaciones ===== */
 .modal-bg,
-.modal-overlay,
-.modal-bg-recuperar {
+.modal-overlay {
   overflow-y: auto;
   padding: 24px 16px;
 }
 
 .modal,
 .modal-content,
-.modal-card,
-.modal-recuperar {
+.modal-card {
   max-height: calc(100vh - 120px);
   overflow-y: auto;
 }
