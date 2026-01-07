@@ -61,20 +61,12 @@
   color: #0f172a;
 }
 
-/* Auth: fuerza separación aunque exista CSS inline duplicado (registro/cambiar-password) */
-body.page-auth .input-pill {
-  margin-top: 18px !important;
-}
-
-/* Password pills: separa por el wrapper (evita que queden pegadas) */
 .password-wrap {
   position: relative;
   width: 100%;
-  margin-top: 18px;
 }
 
 .password-wrap .input-pill {
-  margin-top: 0 !important;   /* la separación la controla el wrapper */
   padding-right: 46px;
 }
 
