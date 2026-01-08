@@ -1,84 +1,168 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
   <title>Política de Reembolsos | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root{
+      --max: 980px;
+      --pad: clamp(16px, 3.2vw, 28px);
+      --text: #101828;
+      --muted: #475467;
+      --line: rgba(16,24,40,.12);
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --surface2: #eef2f6;
+      --accent: #0b63d1;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 28px rgba(16,24,40,.10);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      line-height:1.65;
+      color:var(--text);
+      background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 26%);
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:var(--max); margin:0 auto; padding:calc(var(--pad) + 8px) var(--pad) 56px}
+    header{display:flex; flex-direction:column; gap:10px; padding:18px 18px 14px; border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.86); backdrop-filter:saturate(120%) blur(8px); box-shadow:var(--shadow)}
+    header .kicker{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+    header h1{margin:0; font-size:clamp(22px, 3.1vw, 34px); line-height:1.15}
+    header .meta{display:flex; flex-wrap:wrap; gap:10px 14px; font-size:13px; color:var(--muted)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; background:var(--surface2); border:1px solid var(--line); border-radius:999px}
+    .grid{display:grid; gap:16px; margin-top:16px}
+    @media (min-width: 860px){ .grid{grid-template-columns: 1fr 320px; align-items:start} }
+    .card{border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.94); box-shadow:var(--shadow); overflow:hidden}
+    .card .card-h{padding:14px 16px; border-bottom:1px solid var(--line); background:rgba(248,250,252,.8)}
+    .card .card-b{padding:14px 16px}
+    .card h2, .card h3{margin:0}
+    .toc ol{margin:0; padding-left:18px}
+    .toc li{margin:6px 0; font-size:14px}
+    .toc a{color:var(--text)}
+    .toc a:hover{color:var(--accent)}
+    main{margin-top:16px}
+    section{padding:18px 18px; border-top:1px solid var(--line)}
+    section:first-of-type{border-top:none}
+    h2{margin:0 0 10px; font-size:18px; line-height:1.25}
+    h3{margin:14px 0 8px; font-size:15px; line-height:1.25}
+    p{margin:10px 0}
+    ul,ol{margin:8px 0 0; padding-left:18px}
+    li{margin:6px 0}
+    .muted{color:var(--muted)}
+    .callout{
+      border-left:4px solid var(--accent);
+      background:linear-gradient(180deg, rgba(11,99,209,.07), rgba(11,99,209,.02));
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(11,99,209,.18);
+    }
+    .defs{display:grid; gap:10px; margin:0}
+    .defs div{display:grid; gap:2px}
+    .defs dt{font-weight:700}
+    .defs dd{margin:0; color:var(--muted)}
+    code{background:rgba(16,24,40,.06); padding:2px 6px; border-radius:8px}
+    footer{padding:14px 16px; border-top:1px solid var(--line); background:rgba(248,250,252,.8); font-size:13px; color:var(--muted)}
+    .legal-note{font-size:12.5px; color:var(--muted)}
+    </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <div class="kicker">RecargasPaCuba · Documentación legal</div>
+      <h1>Política de Reembolsos – RecargasPaCuba</h1>
+      <div class="meta">
+        <span class="pill">Última actualización: <strong>[DD/MM/AAAA]</strong></span>
+        <span class="pill">Versión: <strong>v3</strong></span> <span class="pill">Soporte: <strong>[EMAIL SOPORTE]</strong></span>
+      </div>
+    </header>
 
-<h1>Política de Reembolsos – RecargasPaCuba</h1>
+    <div class="grid">
+      <div class="card">
+        <div class="card-h"><h2>En resumen</h2></div>
+        <div class="card-b">
+          <div class="callout">
+            <p style="margin:0">Política operativa de reembolsos: una recarga entregada es servicio consumido; si no hay entrega o hay fallo trazable, se aplica solución (reintento/abono/reembolso) según verificación.</p>
+          </div>
+        </div>
+      </div>
 
-<p>La presente Política de Reembolsos regula de forma estricta las condiciones aplicables a cualquier devolución, reintegro o compensación relacionada con los servicios ofrecidos por <strong>RecargasPaCuba</strong>, plataforma que actúa exclusivamente como intermediario tecnológico entre el usuario y proveedores externos de recargas y servicios en Cuba.</p>
+      <aside class="card toc">
+        <div class="card-h"><h2>Índice</h2></div>
+        <div class="card-b">
+          <ol>
+  <li><a href="#1-regla-general">1) Regla general</a></li>
+  <li><a href="#2-casos-en-los-que-si-procede-reembolso-o-solucion-equivalen">2) Casos en los que SÍ procede reembolso o solución equivalente</a></li>
+  <li><a href="#3-casos-en-los-que-no-procede-reembolso">3) Casos en los que NO procede reembolso</a></li>
+  <li><a href="#4-plazos-y-procedimiento-de-reclamacion">4) Plazos y procedimiento de reclamación</a></li>
+  <li><a href="#5-limite-de-reembolso">5) Límite de reembolso</a></li>
+  <li><a href="#6-prevencion-de-fraude">6) Prevención de fraude</a></li>
+  <li><a href="#7-legislacion-y-jurisdiccion">7) Legislación y jurisdicción</a></li>
+</ol>
+        </div>
+      </aside>
+    </div>
 
-<hr>
+    <main class="card">
+      <div class="card-b">
+<div class="callout"><p><strong>Idea fuerza:</strong> una recarga entregada es un servicio digital consumido. El reembolso solo entra en juego cuando <strong>no hay entrega</strong> o hay un error atribuible al flujo de la Plataforma/proveedor confirmado.</p>
+</div>
+</div>
+<section>
+<h2 id="1-regla-general">1) Regla general</h2>
+<p>Como norma general, <strong>no se admiten reembolsos</strong> una vez que la operación haya sido <strong>ejecutada y confirmada como <code>COMPLETED</code></strong> por el proveedor/operador de destino.</p>
 
-<h2>1. Regla general: no se aceptan reembolsos</h2>
-<p>Como norma general, <strong>no se aceptarán devoluciones ni reembolsos</strong> una vez que una recarga haya sido enviada, procesada o entregada al operador de destino en Cuba, con independencia de que el usuario haya utilizado o no el saldo recibido.</p>
+<p>El Usuario solicita expresamente el <strong>inicio inmediato</strong> de la ejecución del servicio digital tras confirmar la operación, y reconoce las consecuencias que ello puede tener sobre el derecho de desistimiento cuando la ejecución ya ha comenzado.</p>
+</section>
+<section>
+<h2 id="2-casos-en-los-que-si-procede-reembolso-o-solucion-equivalen">2) Casos en los que SÍ procede reembolso o solución equivalente</h2>
+<p>Podrá proceder, tras verificación, alguna de estas soluciones: <strong>reintento sin coste</strong>, <strong>abono a saldo</strong> o <strong>reembolso al método de pago original</strong>, cuando concurra alguna de las siguientes situaciones:</p>
 
-<p>El usuario entiende y acepta que todas las operaciones son <strong>definitivas e irreversibles</strong> una vez confirmadas.</p>
-
-<hr>
-
-<h2>2. Errores imputables directamente a RecargasPaCuba</h2>
-<p>Únicamente podrá valorarse un posible reembolso en el caso de que quede acreditado, de forma fehaciente, que la recarga no se procesó por un <strong>fallo técnico exclusivamente imputable a los sistemas internos de RecargasPaCuba</strong>.</p>
-
-<p>En este supuesto excepcional, RecargasPaCuba podrá, a su sola discreción:</p>
 <ul>
-  <li>Repetir la operación sin coste adicional, o</li>
-  <li>Reintegrar exclusivamente el importe abonado por el usuario.</li>
+  <li><strong>Cobro sin ejecución</strong>: se ha cobrado al Usuario, pero la operación no llegó a registrarse/enviarse al proveedor (fallo técnico trazable).</li>
+  <li><strong>Operación <code>FAILED</code> o <code>CANCELLED</code></strong>: el proveedor rechaza/declina y no existe entrega.</li>
+  <li><strong>Duplicidad imputable a sistema</strong>: se genera un cargo duplicado por error técnico confirmado (mismo destino, mismo producto, ventana temporal corta).</li>
+  <li><strong>No entrega confirmada</strong>: tras investigación con el proveedor, se confirma que no hubo entrega y no es un error de datos del Usuario.</li>
 </ul>
-
-<p>En ningún caso se reembolsarán comisiones, gastos de gestión, ni importes superiores al valor de la recarga.</p>
-
-<hr>
-
-<h2>3. Incidencias ajenas a RecargasPaCuba</h2>
-<p>No procederá ningún tipo de reembolso, compensación ni devolución si la incidencia se debe, entre otros, a:</p>
-
+</section>
+<section>
+<h2 id="3-casos-en-los-que-no-procede-reembolso">3) Casos en los que NO procede reembolso</h2>
 <ul>
-  <li>Errores del usuario al introducir el número de teléfono o datos del destinatario.</li>
-  <li>Bloqueos, restricciones o sanciones impuestas por autoridades en Cuba.</li>
-  <li>Fallos de red, caídas eléctricas, saturaciones o errores de los operadores cubanos.</li>
-  <li>Errores de proveedores externos o intermediarios internacionales.</li>
-  <li>Caducidad, consumo o modificaciones del saldo por parte del operador de destino.</li>
+  <li>Destino (teléfono/email) incorrecto introducido por el Usuario.</li>
+  <li>Operación confirmada como <code>COMPLETED</code> y reflejada por el operador/proveedor.</li>
+  <li>Incidencias externas: caídas de red, bloqueos, restricciones regulatorias, políticas del operador, eventos de fuerza mayor en Cuba, etc., cuando el proveedor confirme ejecución o no sea posible revertir.</li>
+  <li>Uso abusivo/fraude, chargebacks de mala fe, o incumplimiento de los Términos.</li>
 </ul>
-
-<p>En todos estos casos, el usuario renuncia expresamente a cualquier reclamación contra RecargasPaCuba.</p>
-
-<hr>
-
-<h2>4. Procedimiento de evaluación</h2>
-<p>En caso de que el usuario considere que se ha producido un error imputable exclusivamente a RecargasPaCuba, deberá comunicarlo por los canales habilitados en la plataforma, aportando toda la información requerida.</p>
-
-<p>RecargasPaCuba evaluará cada caso de forma individual y se reserva el derecho exclusivo de aceptar o rechazar cualquier solicitud de reembolso.</p>
-
-<hr>
-
-<h2>5. Limitación absoluta de responsabilidad</h2>
-<p>En ningún caso la responsabilidad de RecargasPaCuba por un eventual reembolso superará el importe exacto abonado por el usuario en la operación concreta que dio lugar a la reclamación.</p>
-
-<p>Quedan expresamente excluidos daños indirectos, perjuicios económicos, lucro cesante, pérdidas comerciales o cualquier otro tipo de indemnización adicional.</p>
-
-<hr>
-
-<h2>6. Protección frente a fraude y uso abusivo</h2>
-<p>RecargasPaCuba podrá denegar cualquier reembolso cuando detecte indicios de fraude, uso abusivo de la plataforma, duplicidad de reclamaciones, intento de estafa o actuaciones de mala fe por parte del usuario.</p>
-
-<p>En estos casos, RecargasPaCuba podrá bloquear la cuenta de forma inmediata y sin previo aviso.</p>
-
-<hr>
-
-<h2>7. Aceptación expresa</h2>
-<p>El uso de los servicios de RecargasPaCuba implica la aceptación plena, expresa y sin reservas de la presente Política de Reembolsos.</p>
-
-<hr>
-
-<h2>8. Jurisdicción y ley aplicable</h2>
-<p>La presente Política de Reembolsos se rige por la legislación española. Para cualquier controversia, las partes se someten a los Juzgados y Tribunales de España.</p>
-
+</section>
+<section>
+<h2 id="4-plazos-y-procedimiento-de-reclamacion">4) Plazos y procedimiento de reclamación</h2>
+<ul>
+  <li>El Usuario deberá reportar la incidencia en un plazo máximo de <strong>[48 horas]</strong> desde la operación, aportando: email de cuenta, ID de operación, destino, producto y comprobante de pago (si aplica).</li>
+  <li>RecargasPaCuba iniciará verificación con el proveedor. El tiempo de resolución depende del proveedor, pero el objetivo operativo es resolver en <strong>[X] días hábiles</strong>.</li>
+  <li>Si procede reembolso, se realizará por el método de pago original cuando sea posible, o mediante abono a saldo si el Usuario lo acepta o si la operativa del proveedor de pago lo exige.</li>
+</ul>
+</section>
+<section>
+<h2 id="5-limite-de-reembolso">5) Límite de reembolso</h2>
+<p>Cualquier reembolso, cuando proceda, estará limitado al <strong>importe efectivamente cobrado</strong> en la operación afectada. Se excluyen daños indirectos, lucro cesante y cualquier compensación adicional.</p>
+</section>
+<section>
+<h2 id="6-prevencion-de-fraude">6) Prevención de fraude</h2>
+<p>Para proteger el negocio (y a los usuarios legítimos), RecargasPaCuba podrá solicitar información adicional, suspender cuentas y denegar reembolsos cuando existan indicios razonables de fraude o uso abusivo.</p>
+</section>
+<section>
+<h2 id="7-legislacion-y-jurisdiccion">7) Legislación y jurisdicción</h2>
+<p>Esta política se rige por la legislación española, sin perjuicio de los derechos imperativos del consumidor cuando resulten aplicables.</p>
+</section>
+      <footer>
+        <p class="legal-note" style="margin:0">Si eres consumidor, se respetan los derechos imperativos aplicables. Si actúas como profesional/empresa, aplican los términos pactados y los límites de responsabilidad descritos.</p>
+      </footer>
+    </main>
+  </div>
 </body>
 </html>
-
-
-

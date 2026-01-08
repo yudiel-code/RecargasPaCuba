@@ -1,107 +1,195 @@
-﻿<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
   <title>Política de Privacidad | RecargasPaCuba</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root{
+      --max: 980px;
+      --pad: clamp(16px, 3.2vw, 28px);
+      --text: #101828;
+      --muted: #475467;
+      --line: rgba(16,24,40,.12);
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --surface2: #eef2f6;
+      --accent: #0b63d1;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 28px rgba(16,24,40,.10);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      line-height:1.65;
+      color:var(--text);
+      background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 26%);
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:var(--max); margin:0 auto; padding:calc(var(--pad) + 8px) var(--pad) 56px}
+    header{display:flex; flex-direction:column; gap:10px; padding:18px 18px 14px; border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.86); backdrop-filter:saturate(120%) blur(8px); box-shadow:var(--shadow)}
+    header .kicker{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+    header h1{margin:0; font-size:clamp(22px, 3.1vw, 34px); line-height:1.15}
+    header .meta{display:flex; flex-wrap:wrap; gap:10px 14px; font-size:13px; color:var(--muted)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; background:var(--surface2); border:1px solid var(--line); border-radius:999px}
+    .grid{display:grid; gap:16px; margin-top:16px}
+    @media (min-width: 860px){ .grid{grid-template-columns: 1fr 320px; align-items:start} }
+    .card{border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.94); box-shadow:var(--shadow); overflow:hidden}
+    .card .card-h{padding:14px 16px; border-bottom:1px solid var(--line); background:rgba(248,250,252,.8)}
+    .card .card-b{padding:14px 16px}
+    .card h2, .card h3{margin:0}
+    .toc ol{margin:0; padding-left:18px}
+    .toc li{margin:6px 0; font-size:14px}
+    .toc a{color:var(--text)}
+    .toc a:hover{color:var(--accent)}
+    main{margin-top:16px}
+    section{padding:18px 18px; border-top:1px solid var(--line)}
+    section:first-of-type{border-top:none}
+    h2{margin:0 0 10px; font-size:18px; line-height:1.25}
+    h3{margin:14px 0 8px; font-size:15px; line-height:1.25}
+    p{margin:10px 0}
+    ul,ol{margin:8px 0 0; padding-left:18px}
+    li{margin:6px 0}
+    .muted{color:var(--muted)}
+    .callout{
+      border-left:4px solid var(--accent);
+      background:linear-gradient(180deg, rgba(11,99,209,.07), rgba(11,99,209,.02));
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(11,99,209,.18);
+    }
+    .defs{display:grid; gap:10px; margin:0}
+    .defs div{display:grid; gap:2px}
+    .defs dt{font-weight:700}
+    .defs dd{margin:0; color:var(--muted)}
+    code{background:rgba(16,24,40,.06); padding:2px 6px; border-radius:8px}
+    footer{padding:14px 16px; border-top:1px solid var(--line); background:rgba(248,250,252,.8); font-size:13px; color:var(--muted)}
+    .legal-note{font-size:12.5px; color:var(--muted)}
+    </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <div class="kicker">RecargasPaCuba · Documentación legal</div>
+      <h1>Política de Privacidad – RecargasPaCuba</h1>
+      <div class="meta">
+        <span class="pill">Última actualización: <strong>[DD/MM/AAAA]</strong></span>
+        <span class="pill">Versión: <strong>v3</strong></span> <span class="pill">Privacidad: <strong>[EMAIL PRIVACIDAD]</strong></span>
+      </div>
+    </header>
 
-<h1>Política de Privacidad – RecargasPaCuba</h1>
+    <div class="grid">
+      <div class="card">
+        <div class="card-h"><h2>En resumen</h2></div>
+        <div class="card-b">
+          <div class="callout">
+            <p style="margin:0">Transparencia RGPD sin paja: qué datos tratamos, para qué, con qué base legal, con quién se comparten y cómo ejercer tus derechos.</p>
+          </div>
+        </div>
+      </div>
 
-<p>La presente Política de Privacidad regula el tratamiento de los datos personales recabados a través de la plataforma <strong>RecargasPaCuba</strong>, de conformidad con el Reglamento (UE) 2016/679 (RGPD) y la normativa española vigente en materia de protección de datos.</p>
+      <aside class="card toc">
+        <div class="card-h"><h2>Índice</h2></div>
+        <div class="card-b">
+          <ol>
+  <li><a href="#1-responsable-del-tratamiento">1) Responsable del tratamiento</a></li>
+  <li><a href="#2-que-datos-tratamos">2) Qué datos tratamos</a></li>
+  <li><a href="#3-finalidades-y-base-juridica">3) Finalidades y base jurídica</a></li>
+  <li><a href="#4-destinatarios-encargados-y-transferencias-internacionales">4) Destinatarios, encargados y transferencias internacionales</a></li>
+  <li><a href="#5-plazos-de-conservacion">5) Plazos de conservación</a></li>
+  <li><a href="#6-derechos-del-usuario">6) Derechos del usuario</a></li>
+  <li><a href="#7-medidas-de-seguridad">7) Medidas de seguridad</a></li>
+  <li><a href="#8-cookies-y-tecnologias-similares">8) Cookies y tecnologías similares</a></li>
+  <li><a href="#9-cambios-en-esta-politica">9) Cambios en esta política</a></li>
+  <li><a href="#10-legislacion-aplicable">10) Legislación aplicable</a></li>
+</ol>
+        </div>
+      </aside>
+    </div>
 
-<p>RecargasPaCuba actúa exclusivamente como <strong>intermediario tecnológico</strong> y trata únicamente los datos estrictamente necesarios para la prestación del servicio.</p>
-
-<hr>
-
-<h2>1. Datos personales recopilados</h2>
-<p>RecargasPaCuba podrá recopilar, de forma estrictamente limitada, los siguientes datos:</p>
+    <main class="card">
+      <div class="card-b">
+<div class="callout">
+</div>
+<section>
+<h2 id="1-responsable-del-tratamiento">1) Responsable del tratamiento</h2>
+<p><strong>Responsable:</strong> [NOMBRE/RAZÓN SOCIAL]</p>
+  <p><strong>NIF/CIF:</strong> [NIF/CIF]</p>
+  <p><strong>Domicilio:</strong> [DIRECCIÓN COMPLETA], España</p>
+  <p><strong>Contacto privacidad:</strong> [EMAIL PRIVACIDAD]</p>
+  <p><strong>Delegado de Protección de Datos (si aplica):</strong> [DPO / NO APLICA]</p>
+</div>
+</section>
+<section>
+<h2 id="2-que-datos-tratamos">2) Qué datos tratamos</h2>
 <ul>
-  <li>Nombre y apellidos o nombre de usuario.</li>
-  <li>Correo electrónico.</li>
-  <li>Número de teléfono del destinatario de la recarga.</li>
-  <li>Datos técnicos de acceso (IP, dispositivo, navegador).</li>
+  <li>Datos de cuenta: nombre/alias, email, identificadores de autenticación.</li>
+  <li>Datos de operación: producto/paquete, destino (teléfono/email), importes, estado e identificadores técnicos.</li>
+  <li>Datos de soporte: comunicaciones e información necesaria para gestionar incidencias.</li>
+  <li>Datos técnicos: IP, dispositivo, navegador, logs de seguridad y antifraude.</li>
+</ul>
+<p class="muted">No tratamos categorías especiales de datos (art. 9 RGPD) con carácter general.</p>
+</section>
+<section>
+<h2 id="3-finalidades-y-base-juridica">3) Finalidades y base jurídica</h2>
+<ul>
+  <li><strong>Prestación del servicio</strong> (gestionar cuenta, procesar operaciones, soporte): ejecución de contrato o medidas precontractuales.</li>
+  <li><strong>Seguridad y antifraude</strong> (prevención de abuso, protección de la plataforma): interés legítimo.</li>
+  <li><strong>Cumplimiento legal</strong> (obligaciones fiscales/contables, atención a reclamaciones): obligación legal.</li>
+  <li><strong>Comunicaciones comerciales</strong> (si se habilitan): consentimiento, con posibilidad de baja en cualquier momento.</li>
+</ul>
+</section>
+<section>
+<h2 id="4-destinatarios-encargados-y-transferencias-internacionales">4) Destinatarios, encargados y transferencias internacionales</h2>
+<p>Para operar, RecargasPaCuba utiliza proveedores tecnológicos (encargados del tratamiento) y proveedores de recarga (terceros) estrictamente necesarios para ejecutar la operación.</p>
+
+<ul>
+  <li><strong>Infraestructura y autenticación</strong>: [Firebase/Google u otros] (hosting, base de datos, auth).</li>
+  <li><strong>Correo transaccional</strong>: [EmailJS u otro proveedor] (confirmaciones e incidencias).</li>
+  <li><strong>Pagos</strong> (si aplica): [Stripe/PayPal/Bizum/otros] como responsables independientes o encargados según el caso.</li>
+  <li><strong>Proveedores de recarga</strong>: agregadores/partners que ejecutan la entrega al operador en Cuba.</li>
 </ul>
 
-<p>No se solicitan datos especialmente protegidos. El usuario garantiza que los datos facilitados son veraces y actualizados.</p>
-
-<hr>
-
-<h2>2. Finalidad del tratamiento</h2>
-<p>Los datos se utilizan exclusivamente para:</p>
+<p>Algunos proveedores pueden estar ubicados fuera del Espacio Económico Europeo. En ese caso, se aplicarán mecanismos legales como cláusulas contractuales tipo u otros instrumentos válidos conforme al RGPD.</p>
+</section>
+<section>
+<h2 id="5-plazos-de-conservacion">5) Plazos de conservación</h2>
 <ul>
-  <li>Gestionar el acceso del usuario a la plataforma.</li>
-  <li>Procesar recargas y operaciones.</li>
-  <li>Resolver incidencias técnicas.</li>
-  <li>Cumplir obligaciones legales.</li>
+  <li>Datos de cuenta: mientras exista relación activa; posteriormente, se conservarán bloqueados el tiempo necesario para atender responsabilidades legales.</li>
+  <li>Datos de operaciones y facturación: durante los plazos exigidos por normativa fiscal/contable.</li>
+  <li>Logs de seguridad: durante un periodo proporcional para prevención de fraude y seguridad (p. ej., <code>[6-12 meses]</code>), salvo obligación de conservación superior.</li>
 </ul>
+</section>
+<section>
+<h2 id="6-derechos-del-usuario">6) Derechos del usuario</h2>
+<p>Puedes ejercer los derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad contactando con <strong>[EMAIL PRIVACIDAD]</strong> e indicando “Protección de Datos” en el asunto.</p>
 
-<p>En ningún caso se utilizarán los datos con fines publicitarios sin consentimiento expreso.</p>
-
-<hr>
-
-<h2>3. Conservación de los datos</h2>
-<p>Los datos personales se conservarán únicamente durante el tiempo imprescindible para cumplir la finalidad para la que fueron recabados o mientras exista una obligación legal de conservación.</p>
-
-<p>RecargasPaCuba podrá conservar datos mínimos bloqueados durante los plazos legalmente exigidos para atender responsabilidades legales.</p>
-
-<hr>
-
-<h2>4. Cesión de datos y transferencias</h2>
-<p>RecargasPaCuba no vende, alquila ni cede datos personales a terceros con fines comerciales.</p>
-
-<p>Los datos podrán ser comunicados únicamente a:</p>
-<ul>
-  <li>Proveedores tecnológicos necesarios para la prestación del servicio.</li>
-  <li>Autoridades públicas cuando exista obligación legal.</li>
-</ul>
-
-<p>Al operar con proveedores internacionales, algunos datos podrían estar sujetos a transferencias internacionales, aceptadas expresamente por el usuario.</p>
-
-<hr>
-
-<h2>5. Seguridad de la información</h2>
-<p>RecargasPaCuba adopta medidas técnicas y organizativas razonables para garantizar la seguridad de los datos y evitar accesos no autorizados, pérdidas o alteraciones.</p>
-
-<p>No obstante, el usuario reconoce que ninguna plataforma es completamente invulnerable en internet.</p>
-
-<hr>
-
-<h2>6. Derechos del usuario</h2>
-<p>El usuario puede ejercer los derechos de:</p>
-<ul>
-  <li>Acceso</li>
-  <li>Rectificación</li>
-  <li>Supresión</li>
-  <li>Limitación</li>
-  <li>Portabilidad</li>
-  <li>Oposición</li>
-</ul>
-
-<p>Podrá ejercer estos derechos mediante comunicación a través de los canales habilitados en la plataforma.</p>
-
-<hr>
-
-<h2>7. Responsabilidad del usuario</h2>
-<p>El usuario es el único responsable del uso correcto de sus credenciales de acceso. RecargasPaCuba no se responsabiliza del acceso indebido causado por negligencia del usuario.</p>
-
-<hr>
-
-<h2>8. Aceptación expresa</h2>
-<p>El registro y uso continuado de RecargasPaCuba implican la aceptación plena y expresa de esta Política de Privacidad.</p>
-
-<hr>
-
-<h2>9. Modificaciones</h2>
-<p>RecargasPaCuba se reserva el derecho de modificar esta Política de Privacidad en cualquier momento por adaptación legal o técnica.</p>
-
-<hr>
-
-<h2>10. Legislación y jurisdicción</h2>
-<p>La presente política se rige por la legislación española. Las partes se someten a los juzgados y tribunales de España.</p>
-
+<p>Si consideras que no hemos atendido correctamente tu solicitud, puedes presentar una reclamación ante la <strong>Agencia Española de Protección de Datos (AEPD)</strong>.</p>
+</section>
+<section>
+<h2 id="7-medidas-de-seguridad">7) Medidas de seguridad</h2>
+<p>Aplicamos medidas técnicas y organizativas razonables: control de accesos, cifrado en tránsito (HTTPS), segregación de entornos, trazabilidad y monitorización antifraude. Aun así, ningún sistema es infalible; por eso, también te toca jugar en defensa: contraseña robusta y no compartir credenciales.</p>
+</section>
+<section>
+<h2 id="8-cookies-y-tecnologias-similares">8) Cookies y tecnologías similares</h2>
+<p>La Plataforma puede usar cookies técnicas necesarias para el funcionamiento y, si se habilitan analíticas/marketing, se solicitará consentimiento conforme corresponda. Detalles en: <strong>[ENLACE A POLÍTICA DE COOKIES / BANNER]</strong>.</p>
+</section>
+<section>
+<h2 id="9-cambios-en-esta-politica">9) Cambios en esta política</h2>
+<p>Podremos actualizar esta política por cambios legales o técnicos. Publicaremos la versión vigente con su fecha de actualización.</p>
+</section>
+<section>
+<h2 id="10-legislacion-aplicable">10) Legislación aplicable</h2>
+<p>Esta política se rige por el RGPD y la normativa española aplicable.</p>
+</section>
+      <footer>
+        <p class="legal-note" style="margin:0">Si eres consumidor, se respetan los derechos imperativos aplicables. Si actúas como profesional/empresa, aplican los términos pactados y los límites de responsabilidad descritos.</p>
+      </footer>
+    </main>
+  </div>
 </body>
 </html>
-
-
