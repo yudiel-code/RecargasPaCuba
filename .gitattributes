@@ -1,0 +1,4 @@
+firestore.rules text eol=lf
+tools/rules-test/*.mjs text eol=lf
+tools/rules-test/package.json text eol=lf
+tools/rules-test/package-lock.json text eol=lf
