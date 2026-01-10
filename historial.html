@@ -1203,7 +1203,7 @@ if (correoTituloEl) {
 
           if (fbUser && fbUser.uid) {
             const h = (location && location.hostname) ? location.hostname : "";
-            const timeoutMs = (h === "127.0.0.1" || h === "localhost") ? 8000 : 1200;
+            const timeoutMs = (h === "127.0.0.1" || h === "localhost") ? 12000 : 6000;
 
             // 1) Leer recargas (fuente principal cuando existe: COMPLETED/REFUNDED)
             const fsRecargasMaybe = await withTimeout(fetchRecargasFromFirestore(fbUser.uid), timeoutMs);
