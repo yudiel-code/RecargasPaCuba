@@ -400,7 +400,7 @@ body.catalog-ready .cards { visibility: visible; }
  <!-- ✅ MODAL RECARGA -->
   <div id="modal-bg-recarga" class="modal-bg-recarga">
     <div class="modal-recarga">
-      <div class="modal-titulo">Confirma tu recarga</div>
+      <div class="modal-titulo">Confirmar pedido (beta)</div>
       <div id="modal-detalle-cobro" class="modal-linea"></div>
       <div id="modal-detalle-recibe" class="modal-linea" style="margin-bottom:8px;"></div>
 
@@ -439,10 +439,25 @@ body.catalog-ready .cards { visibility: visible; }
       </div>
 
       <div class="modal-aviso">
+        Tiempo estimado: en minutos (depende del operador/proveedor). Máximo 2 pedidos al día por usuario.
+      </div>
+
+      <div class="modal-aviso">
         Verifica el destino, las recargas no se pueden revertir.
       </div>
 
-      <button id="btnRealizarRecarga">Realizar recarga</button>
+      <!-- ✅ MÉTODO DE PAGO (dentro del mismo modal) -->
+      <div id="modal-pago" class="modal-recientes" style="text-align:center;">
+        <div class="modal-recientes-titulo" style="text-align:center;">Método de pago</div>
+        <div id="modal-pago-lista" class="modal-recientes-lista" style="justify-content:center;">
+          <button type="button" class="modal-recientes-item" data-pay="PAYPAL">PayPal</button>
+          <button type="button" class="modal-recientes-item" data-pay="REVOLUT">Revolut</button>
+          <button type="button" class="modal-recientes-item" data-pay="BIZUM">Bizum</button>
+        </div>
+        <div id="modal-pago-hint" class="modal-aviso" style="margin-top:6px; display:none;"></div>
+      </div>
+
+      <button id="btnRealizarRecarga">Continuar</button>
     </div>
   </div>
 
@@ -464,8 +479,7 @@ body.catalog-ready .cards { visibility: visible; }
     </div>
   </nav>
 
-  <!-- ✅ Data local centralizada + tabla de productos -->
-  <script src="js/userData.js?v=r1"></script>
+  <!-- ✅ Validadores de entrada -->
   <script src="js/validators.js?v=r1"></script>
 
   <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN + UserData -->
@@ -499,145 +513,31 @@ body.catalog-ready .cards { visibility: visible; }
         emailjs.init("flObIaDu0VCKDBP7i");
       }
 
-      // ✅ FASE 2 (sandbox/emulador): helper para crear orden PENDING en backend
-      async function createOrderSandbox({ uid, productId, destino }) {
-        const isLocal = (location.hostname === "localhost" || location.hostname === "127.0.0.1");
-const url = isLocal
-  ? "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder"
-  : "https://us-central1-recargaspacuba-7aaa8.cloudfunctions.net/createOrder";
+      // ✅ Manual-beta: NO usamos backend para crear órdenes. OrderID es local.
 
-        const auth = window.firebaseAuth;
-const user = auth && auth.currentUser;
-if (!user) throw new Error("firebase-no-auth");
-const token = await user.getIdToken(true);
+      // ✅ Manual-beta: CONFIG CENTRAL de pagos (NO dentro del snapshot)
+      // Rellena aquí el Bizum de negocio y los links PayPal por producto (internalProductId).
+                  const RPC_MB_PAYMENT = {
+        revolut: { tag: "@recargaspacuba", url: "https://revolut.me/recargaspacuba" },
+        bizum: { number: null }, // TODO: número de negocio (NO personal)
+        paypalLinksByProduct: {
+          // Cubacel 32.08 €
+          "cubacel-bundle-10gb-30d": "https://www.paypal.com/ncp/payment/URZC5Z7NEMYKY",
 
-const resp = await fetch(url, {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-  body: JSON.stringify({ uid, productId, destino })
-});
-
-
-        let data = null;
-        try { data = await resp.json(); } catch (_) {}
-
-        if (!resp.ok || !data || data.ok !== true) {
-          const code = (data && data.error) ? data.error : ("HTTP_" + resp.status);
-          throw new Error(code);
+          // Nauta 14.40 € (si tienes más de una NAUTA a 14.40, puedes apuntarlas al mismo link)
+          "nauta-topup-600cup-30d": "https://www.paypal.com/ncp/payment/WRZSUUFMHL7CS",
+          "nauta-unlimited-30d-promo": "https://www.paypal.com/ncp/payment/WRZSUUFMHL7CS"
         }
+      };
 
-        return data; // { ok, orderId, amount, currency, status }
-      }
+
 
       const datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
-
-      // =========================
-      // SISTEMA DE SALDO / HISTORIAL CENTRALIZADO EN UserData
-      // =========================
-      if (!window.UserData) {
-        console.warn("UserData no disponible; usando fallback mínimo.");
-      }
-
-      function getSaldo() {
-        if (window.UserData && typeof window.UserData.getSaldo === "function") {
-          return window.UserData.getSaldo();
-        }
-        const raw = localStorage.getItem("rpc_saldo");
-        const n = parseFloat(raw);
-        return isNaN(n) ? 0 : n;
-      }
-
-      function setSaldo(nuevoSaldo) {
-        if (window.UserData && typeof window.UserData.setSaldo === "function") {
-          window.UserData.setSaldo(nuevoSaldo);
-        } else {
-          const num = Number(nuevoSaldo) || 0;
-          localStorage.setItem("rpc_saldo", num.toFixed(2));
-        }
-      }
-
-      function registrarRecargaEnHistorial(payload) {
-        if (window.UserData && typeof window.UserData.addMovimientoRecarga === "function") {
-          // Estructura estándar para el motor de monedas
-          return window.UserData.addMovimientoRecarga(payload);
-        }
-
-        // Fallback por si falla UserData
-        const raw = localStorage.getItem("rpc_historial") || "[]";
-        let lista;
-        try {
-          lista = JSON.parse(raw);
-          if (!Array.isArray(lista)) lista = [];
-        } catch (e) {
-          lista = [];
-        }
-
-        const item = {
-          fecha: new Date().toISOString(),
-          tipo: "recarga",
-          ...payload
-        };
-
-        lista.unshift(item);
-        localStorage.setItem("rpc_historial", JSON.stringify(lista));
-        return item;
-      }
-
-      function recalcularMonedas() {
-        if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
-          return window.UserData.recalcularMonedas();
-        }
-        return 0;
-      }
 
       const validators = (window.Validators && typeof window.Validators === "object") ? window.Validators : {};
       const validarRecargaEntrada = typeof validators.validarRecargaEntrada === "function"
         ? validators.validarRecargaEntrada
         : null;
-      // ✅ Capa de negocio de recarga (preparada para futuro backend)
-      async function procesarRecarga({ numero, importe, beneficio, operador, productoId, orderId }) {
-        const saldoActual = getSaldo();
-
-        if (saldoActual < importe) {
-          return {
-            success: false,
-            reason: "SALDO_INSUFICIENTE",
-            message: "Saldo insuficiente. Agrega saldo primero."
-          };
-        }
-
-        const nuevoSaldo = saldoActual - importe;
-        setSaldo(nuevoSaldo);
-
-        const idConfirmacion = "RPC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
-
-        // Registrar en historial usando la capa centralizada
-        const movimiento = registrarRecargaEnHistorial({
-          importe,
-          numero,
-          operador: operador || "",
-          productoId: productoId || "",
-          orderId: orderId || null,
-          status: "PENDING",
-          descripcion: beneficio || "",
-          extra: {
-            beneficio: beneficio || "",
-            estado: "PENDING",
-            id: idConfirmacion,
-            orderId: orderId || null
-          }
-        });
-
-        // Recalcular monedas después de la recarga
-        recalcularMonedas();
-
-        return {
-          success: true,
-          idConfirmacion,
-          movimiento,
-          nuevoSaldo
-        };
-      }
 
       // =========================
       // NÚMEROS RECIENTES
@@ -962,6 +862,34 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
       let operadorActual = "";
       let productoActual = null;
 
+      // ===== Manual-beta: selección de método de pago (estado mínimo) =====
+      let rpcMbSelectedPay = null; // "PAYPAL" | "REVOLUT" | "BIZUM"
+
+      function rpcMbSetPay(method) {
+        rpcMbSelectedPay = method || null;
+
+        const list = document.getElementById("modal-pago-lista");
+        if (list) {
+          list.querySelectorAll("[data-pay]").forEach((b) => {
+            const isActive = (String(b.getAttribute("data-pay") || "") === String(rpcMbSelectedPay || ""));
+            b.setAttribute("aria-pressed", isActive ? "true" : "false");
+            // Estado visual sin tocar CSS global
+            b.style.opacity = isActive ? "1" : "0.75";
+            b.style.transform = isActive ? "scale(1.02)" : "";
+          });
+        }
+
+        const hint = document.getElementById("modal-pago-hint");
+        if (hint) hint.style.display = "none";
+      }
+
+      // Click en botones de pago (delegación)
+      document.addEventListener("click", (ev) => {
+        const btn = (ev.target && ev.target.closest) ? ev.target.closest("#modal-pago-lista [data-pay]") : null;
+        if (!btn) return;
+        rpcMbSetPay(btn.getAttribute("data-pay"));
+      });
+
       if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
         // Click handler único (sirve para cards hardcodeadas y dinámicas)
         document.addEventListener("click", (e) => {
@@ -1029,6 +957,15 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             renderNumerosRecientes();
           }
 
+          // Preselección de pago: PayPal si existe link por producto, si no Revolut
+          try {
+            const pid = productoActual && productoActual.id ? String(productoActual.id) : "";
+            const pp = (pid && RPC_MB_PAYMENT && RPC_MB_PAYMENT.paypalLinksByProduct) ? RPC_MB_PAYMENT.paypalLinksByProduct[pid] : null;
+            rpcMbSetPay(pp ? "PAYPAL" : "REVOLUT");
+          } catch (_) {
+            rpcMbSetPay("REVOLUT");
+          }
+
           abrirModalRecarga();
         });
 
@@ -1041,7 +978,10 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
         // Botón Realizar recarga (UserData + Email + recientes + VALIDACIÓN)
         btnRealizar.addEventListener("click", async () => {
-          if (navigator.onLine === false) {
+          if (window.__rpcMbBusy) return;
+          window.__rpcMbBusy = true;
+          try {
+            if (navigator.onLine === false) {
             if (typeof showToastError === 'function') {
               showToastError('No tienes conexión, no puedes realizar recargas ahora.');
             } else {
@@ -1097,8 +1037,7 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
           const productoId = productoActual ? productoActual.id : null;
 
-          // ✅ FASE 2 (sandbox/emulador): crear ORDEN PENDING en backend (Cloud Function createOrder)
-          let orderResp = null;
+          // ✅ Manual-beta: OrderID LOCAL (sin backend). Solo registro para conciliación.
           let orderId = null;
 
           try {
@@ -1107,6 +1046,20 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             if (!user) throw new Error("firebase-no-auth");
             if (!productoId) throw new Error("missing-productId");
 
+            // ✅ Manual-beta: máximo 2 pedidos al día por usuario
+            const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+            const dailyKey = `rpc_mb_orders_${user.uid}_${today}`;
+            const dailyCount = parseInt(localStorage.getItem(dailyKey) || "0", 10) || 0;
+
+            if (dailyCount >= 2) {
+              if (typeof showToastError === "function") {
+                showToastError("Límite diario alcanzado (2 pedidos).");
+              } else {
+                alert("Límite diario alcanzado (2 pedidos).");
+              }
+              return;
+            }
+
             const destinoForOrder = String(
               destinoFinal ||
                 (isNauta
@@ -1114,63 +1067,260 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
                   : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
             );
 
-            orderResp = await createOrderSandbox({
-              uid: user.uid,
-              productId: String(productoId),
-              destino: destinoForOrder
-            });
+            // ✅ Generar OrderID local (único y legible)
+            orderId = `MB-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+            // ✅ Manual-beta: orden creada localmente (sin backend)
 
-            orderId = orderResp && orderResp.orderId ? String(orderResp.orderId) : null;
+            // ✅ Manual-beta: incrementa contador del día
+            try { localStorage.setItem(dailyKey, String(dailyCount + 1)); } catch (_) {}
+
+            // ✅ Manual-beta: snapshot local para conciliación (OrderID + datos clave)
+            try {
+              // ✅ Manual-beta: opciones de pago centralizadas (RPC_MB_PAYMENT)
+              const paypalLink =
+                (RPC_MB_PAYMENT.paypalLinksByProduct && RPC_MB_PAYMENT.paypalLinksByProduct[String(productoId)])
+                  ? RPC_MB_PAYMENT.paypalLinksByProduct[String(productoId)]
+                  : null;
+
+              const rpcMbPaymentOptions = {
+                revolut: RPC_MB_PAYMENT.revolut,
+                bizum: RPC_MB_PAYMENT.bizum,
+                paypal: { link: paypalLink }
+              };
+
+              const entry = {
+                orderId,
+                uid: user.uid,
+                productId: String(productoId),
+                operator: String(operadorActual || ""),
+                destinationType: (isNauta ? "NAUTA" : "CUBACEL"),
+                destination: String(destinoForOrder),
+                offerText: String(beneficioActual || ""),
+                displayPrice: (typeof rpcFormatEur === "function") ? rpcFormatEur(precioActual) : (String(precioActual || "")),
+                amount: precioActual,
+                currency: "EUR",
+                status: "PENDING",
+                paymentMethod: rpcMbPaymentOptions.paypal.link ? "PAYPAL" : null, // default si hay link por oferta
+                paymentLink: rpcMbPaymentOptions.paypal.link, // hint por oferta (si existe)
+                paymentOptions: rpcMbPaymentOptions, // para conciliación interna
+                clientEmail: (datosUsuario && datosUsuario.email) ? String(datosUsuario.email).toLowerCase() : "",
+                createdAt: new Date().toISOString(),
+                createdAtMs: Date.now()
+              };
+
+              localStorage.setItem("rpc_mb_last_order", JSON.stringify(entry));
+
+              const raw = localStorage.getItem("rpc_mb_orders_log") || "[]";
+              let log;
+              try { log = JSON.parse(raw); if (!Array.isArray(log)) log = []; } catch (_) { log = []; }
+              log.unshift(entry);
+              if (log.length > 100) log = log.slice(0, 100);
+              localStorage.setItem("rpc_mb_orders_log", JSON.stringify(log));
+            } catch (_) {}
           } catch (e) {
-            console.error("createOrderSandbox failed:", e);
-            showToastError("No se pudo crear la orden. Inténtalo de nuevo.");
+            console.error("manual-beta local order failed:", e);
+            showToastError("No se pudo registrar el pedido. Inténtalo de nuevo.");
             return;
           }
 
-const resultado = await procesarRecarga({
-            numero: destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""))),
-            importe: precioActual,
-            beneficio: beneficioActual,
-            operador: operadorActual || "",
-            productoId,
-            orderId
-          });
+          // ✅ Manual-beta: NO saldo / NO historial. Solo registrar pedido (OrderID) y notificar.
+          const idConfirmacion = orderId;
 
+          // ✅ Manual-beta: marcar snapshot/log local como "REQUESTED" (pedido capturado en web)
+          try {
+            const nowIso = new Date().toISOString();
+            const clientEmail = (datosUsuario && datosUsuario.email) ? String(datosUsuario.email).toLowerCase() : "";
 
-          if (!resultado || !resultado.success) {
-            const msg = resultado && resultado.message
-              ? resultado.message
-              : "No se pudo procesar la recarga. Inténtalo de nuevo.";
-            showToastError(msg);
-            return;
-          }
+            const update = {
+              confirmationId: idConfirmacion,
+              clientStatus: "REQUESTED",
+              requestedAt: nowIso,
+              clientEmail
+            };
 
-          const { idConfirmacion, movimiento } = resultado;
+            // Actualiza last_order si coincide
+            const lastRaw = localStorage.getItem("rpc_mb_last_order");
+            if (lastRaw) {
+              const last = JSON.parse(lastRaw);
+              if (last && last.orderId && String(last.orderId) === String(orderId)) {
+                localStorage.setItem("rpc_mb_last_order", JSON.stringify({ ...last, ...update }));
+              }
+            }
+
+            // Actualiza también el log
+            const logRaw = localStorage.getItem("rpc_mb_orders_log") || "[]";
+            let log;
+            try { log = JSON.parse(logRaw); if (!Array.isArray(log)) log = []; } catch (_) { log = []; }
+            const idx = log.findIndex(x => x && x.orderId && String(x.orderId) === String(orderId));
+            if (idx >= 0) log[idx] = { ...log[idx], ...update };
+            localStorage.setItem("rpc_mb_orders_log", JSON.stringify(log));
+          } catch (_) {}
 
           // ? Guardar número reciente
           if (!isNauta && destinoFinal) {
             guardarNumeroReciente(String(destinoFinal).replace(/^\+?53/, ""));
           }
 
+          // ✅ Resolver método de pago seleccionado (PayPal/Revolut/Bizum)
+          const rpcNormalizePayMethod = (s) => {
+            const t = String(s || "").trim().toUpperCase();
+            if (!t) return "";
+            if (t === "PAYPAL" || t.includes("PAYPAL")) return "PAYPAL";
+            if (t === "REVOLUT" || t.includes("REVOLUT")) return "REVOLUT";
+            if (t === "BIZUM" || t.includes("BIZUM")) return "BIZUM";
+            return "";
+          };
+
+          let selectedPayMethod = "";
+          try {
+            selectedPayMethod = rpcNormalizePayMethod(
+              window.__rpcMbPaymentMethod ||
+              window.__rpcMbSelectedPaymentMethod ||
+              window.__rpcMbPayMethod ||
+              localStorage.getItem("rpc_mb_payment_method") ||
+              ""
+            );
+          } catch (_) {}
+
+          if (!selectedPayMethod) {
+            try {
+              const pressed = modalBg && modalBg.querySelector ? modalBg.querySelector('button[aria-pressed="true"]') : null;
+              if (pressed) {
+                selectedPayMethod = rpcNormalizePayMethod(
+                  (pressed.dataset && pressed.dataset.method) ? pressed.dataset.method : pressed.textContent
+                );
+              }
+            } catch (_) {}
+          }
+
+          if (!selectedPayMethod) {
+            try {
+              const activeBtn = modalBg && modalBg.querySelector ? modalBg.querySelector('button.selected, button.active, .selected, .active, .is-selected') : null;
+              if (activeBtn) {
+                selectedPayMethod = rpcNormalizePayMethod(
+                  (activeBtn.dataset && activeBtn.dataset.method) ? activeBtn.dataset.method : activeBtn.textContent
+                );
+              }
+            } catch (_) {}
+          }
+
+          // ✅ Leer el PayPal link del snapshot (si existe)
+          let paypalPaymentLink = "";
+          try {
+            const last = JSON.parse(localStorage.getItem("rpc_mb_last_order") || "null");
+            if (last && last.orderId && String(last.orderId) === String(idConfirmacion) && last.paymentLink) {
+              paypalPaymentLink = String(last.paymentLink);
+            }
+          } catch (_) {}
+
+          if (!selectedPayMethod) {
+            selectedPayMethod = paypalPaymentLink ? "PAYPAL" : "REVOLUT";
+          }
+
+          // ✅ Determinar URL destino (solo PayPal/Revolut)
+          let redirectUrl = "";
+          if (selectedPayMethod === "PAYPAL") {
+            redirectUrl = paypalPaymentLink ? String(paypalPaymentLink) : "";
+          } else if (selectedPayMethod === "REVOLUT") {
+            redirectUrl = (RPC_MB_PAYMENT && RPC_MB_PAYMENT.revolut && RPC_MB_PAYMENT.revolut.url)
+              ? String(RPC_MB_PAYMENT.revolut.url)
+              : "";
+          }
+
+          // ✅ Persistir método seleccionado en snapshot/log (para conciliación)
+          try {
+            const nowIso2 = new Date().toISOString();
+            const payUpdate = {
+              paymentMethod: selectedPayMethod,
+              paymentLink: (selectedPayMethod === "PAYPAL") ? (paypalPaymentLink || "") : (redirectUrl || ""),
+              paymentSelectedAt: nowIso2
+            };
+
+            const lastRaw2 = localStorage.getItem("rpc_mb_last_order");
+            if (lastRaw2) {
+              const last2 = JSON.parse(lastRaw2);
+              if (last2 && last2.orderId && String(last2.orderId) === String(orderId)) {
+                localStorage.setItem("rpc_mb_last_order", JSON.stringify({ ...last2, ...payUpdate }));
+              }
+            }
+
+            const logRaw2 = localStorage.getItem("rpc_mb_orders_log") || "[]";
+            let log2;
+            try { log2 = JSON.parse(logRaw2); if (!Array.isArray(log2)) log2 = []; } catch (_) { log2 = []; }
+            const idx2 = log2.findIndex(x => x && x.orderId && String(x.orderId) === String(orderId));
+            if (idx2 >= 0) log2[idx2] = { ...log2[idx2], ...payUpdate };
+            localStorage.setItem("rpc_mb_orders_log", JSON.stringify(log2));
+
+            try { localStorage.setItem("rpc_mb_payment_method", String(selectedPayMethod)); } catch (_) {}
+          } catch (_) {}
+
           // ? Correo al cliente (EmailJS)
           if (datosUsuario && datosUsuario.email && typeof emailjs !== "undefined") {
+            const destinoEmail = destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")));
+
+            // ✅ Manual-beta: adjuntar link de pago correcto (según oferta) desde el snapshot local
+            let paymentLink = "";
+            try {
+              const last = JSON.parse(localStorage.getItem("rpc_mb_last_order") || "null");
+              if (last && last.orderId && String(last.orderId) === String(idConfirmacion) && last.paymentLink) {
+                paymentLink = String(last.paymentLink);
+              }
+            } catch (_) {}
+
             try {
               await emailjs.send("service_ryvafj3", "template_k5t8asf", {
                 to_email: datosUsuario.email,
-                numero: (destinoFinal || (movimiento && movimiento.numero) || ""),
-                importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
-                beneficio: movimiento.beneficio || beneficioActual,
-                fecha: movimiento.fecha || new Date().toLocaleString(),
-                                id_confirmacion: (orderId || idConfirmacion)
-
+                numero: (destinoEmail || ""),
+                importe: Number(precioActual || 0).toFixed(2) + " €",
+                beneficio: beneficioActual,
+                fecha: new Date().toLocaleString(),
+                id_confirmacion: idConfirmacion,
+                payment_link: paymentLink
               });
             } catch (err) {
               console.error("Error enviando correo de recarga:", err);
             }
           }
 
-          showToastSuccess("¡ Recarga registrada correctamente\nID: " + (orderId || idConfirmacion));
+          showToastSuccess("¡ Pedido registrado correctamente\nID: " + idConfirmacion);
           cerrarModalRecarga();
+
+          // ✅ Redirección según método seleccionado
+          if (selectedPayMethod === "PAYPAL") {
+            if (!redirectUrl) {
+              showToastError("PayPal no está configurado para esta oferta.");
+              return;
+            }
+            window.location.assign(redirectUrl);
+            return;
+          }
+
+          if (selectedPayMethod === "REVOLUT") {
+            if (!redirectUrl) {
+              showToastError("Revolut no está configurado.");
+              return;
+            }
+            window.location.assign(redirectUrl);
+            return;
+          }
+
+          if (selectedPayMethod === "BIZUM") {
+            const bizumNumber = (RPC_MB_PAYMENT && RPC_MB_PAYMENT.bizum && RPC_MB_PAYMENT.bizum.number)
+              ? String(RPC_MB_PAYMENT.bizum.number).trim()
+              : "";
+            if (!bizumNumber) {
+              showToastError("Bizum aún no está configurado.");
+              return;
+            }
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+              try { await navigator.clipboard.writeText(bizumNumber); } catch (_) {}
+            }
+            showToastSuccess("Bizum: envía el pago al número " + bizumNumber);
+            return;
+          }
+          } finally {
+            window.__rpcMbBusy = false;
+          }
         });
       }
     }; })();
