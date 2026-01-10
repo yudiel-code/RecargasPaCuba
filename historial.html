@@ -186,15 +186,7 @@
       <div class="estado verde" id="recarga-estado">Sin movimientos</div>
     </div>
 
-    <div class="card card--gradient" id="card-saldo" role="button" tabindex="0" aria-label="Ver historial de saldos">
-      <div class="icono">💰</div>
-      <div class="contenido">
-        <div class="titulo">Saldo agregado</div>
-        <div class="descripcion" id="saldo-desc">Aún no tienes movimientos</div>
-        <div class="fecha" id="saldo-fecha"></div>
-      </div>
-      <div class="estado verde" id="saldo-estado">Sin movimientos</div>
-    </div>
+    <!-- Manual-beta: tarjeta "Saldo agregado" eliminada -->
 
     <div class="card card--gradient" id="card-correo" role="button" tabindex="0" aria-label="Ver historial de correos">
       <div class="icono">📧</div>
@@ -268,22 +260,98 @@
       const emailUsuarioBase = (localStorage.getItem("usuario") || "").toString();
       let sessionEmailSnapshot = (localStorage.getItem("usuario") || emailUsuarioBase || "").toString();
 
-      function getHistorial() {
-        if (window.UserData && typeof window.UserData.getHistorial === "function") {
-          return window.UserData.getHistorial();
-        }
+      function getManualBetaOrdersLog() {
         try {
-          const raw = localStorage.getItem("rpc_historial") || "[]";
-          const lista = JSON.parse(raw);
-          return Array.isArray(lista) ? lista : [];
+          const raw = localStorage.getItem("rpc_mb_orders_log") || "[]";
+          const arr = JSON.parse(raw);
+          const list = Array.isArray(arr) ? arr : [];
+
+          const out = [];
+          const seen = new Set();
+
+          function idToMs(orderId) {
+            try {
+              const s = String(orderId || "").trim();
+              const m = s.match(/^MB-(\d{10,})-/i);
+              if (!m) return 0;
+              const n = Number(m[1]);
+              if (!Number.isFinite(n)) return 0;
+              // si viene en segundos, conviértelo; si viene en ms, déjalo
+              return (n < 1e12) ? (n * 1000) : n;
+            } catch (_) {
+              return 0;
+            }
+          }
+
+          function mapOne(o) {
+            const oid = String((o && (o.orderId || o.orderID || o.id)) || "").trim();
+            if (!oid || seen.has(oid)) return null;
+            seen.add(oid);
+
+            const destino = String((o && (o.destino || o.destination || o.numero || o.to)) || "").trim();
+
+            const productIdRaw = (o && (o.productId || o.product || o.offerId || o.itemId)) || "";
+            const productIdNorm = String(productIdRaw || "").trim().toLowerCase();
+
+            let amountRaw = (o && (o.amount ?? o.importe ?? o.price ?? o.total ?? o.precio)) ?? undefined;
+            let importeNum = undefined;
+            if (amountRaw !== undefined && amountRaw !== null && amountRaw !== "") {
+              const n = Number(String(amountRaw).replace(",", "."));
+              if (!isNaN(n)) importeNum = n;
+            }
+
+            const createdAtMs =
+              Number((o && o.createdAtMs) || 0) ||
+              idToMs(oid) ||
+              0;
+
+            const fecha = String((o && (o.fecha || o.createdAt)) || "").trim();
+
+            return {
+              tipo: "recarga",
+              id: oid,
+              orderId: oid,
+              numero: destino,
+              productId: productIdNorm,
+              importe: importeNum,
+              createdAtMs: createdAtMs,
+              fecha: fecha,
+              status: (o && (o.status || o.clientStatus)) ? String(o.status || o.clientStatus) : "",
+              estado: "",
+              extra: {
+                paymentMethod: String((o && (o.paymentMethod || o.method)) || "").trim(),
+                paymentLink: String((o && (o.paymentLink || o.payment_link || o.link)) || "").trim(),
+                clientStatus: String((o && o.clientStatus) || "").trim(),
+                productName: String((o && (o.productName || o.offerName || o.title)) || "").trim()
+              }
+            };
+          }
+
+          // 1) last_order primero (si existe)
+          try {
+            const lastRaw = localStorage.getItem("rpc_mb_last_order") || "";
+            if (lastRaw) {
+              const lastObj = JSON.parse(lastRaw);
+              const mapped = mapOne(lastObj);
+              if (mapped) out.push(mapped);
+            }
+          } catch (_) {}
+
+          // 2) log completo
+          for (let i = 0; i < list.length; i++) {
+            const mapped = mapOne(list[i]);
+            if (mapped) out.push(mapped);
+          }
+
+          return out.slice(0, 120);
         } catch (e) {
-          console.error("Error leyendo historial, devolviendo lista vacía:", e);
+          console.error("Error leyendo rpc_mb_orders_log / rpc_mb_last_order:", e);
           return [];
         }
       }
 
       (async () => {
-        let lista = getHistorial();
+        let lista = getManualBetaOrdersLog();
 
         // Espera a auth-ready para evitar renders pre-auth (failsafe timeout).
         try {
@@ -465,72 +533,89 @@
 
           const fechaTxt = normalizeFechaText(u);
 
-          // Status canónico (prefer u.status; fallback a u.estado)
+          // Manual-beta UI: SOLO RECIBIDO / COMPLETADO (no mostrar estados legacy)
           let statusUp = (u && u.status ? u.status : "").toString().trim().toUpperCase();
           if (!statusUp) {
             const legacyUp = (u && u.estado ? u.estado : "").toString().trim().toUpperCase();
-            if (legacyUp === "OK" || legacyUp === "SUCCESS" || legacyUp === "PAID" || legacyUp === "DELIVERED") statusUp = "COMPLETED";
-            else if (legacyUp === "CANCELED") statusUp = "CANCELLED";
-            else if (legacyUp) statusUp = legacyUp;
-            else statusUp = "PENDING";
-          } else {
-            if (statusUp === "OK" || statusUp === "SUCCESS" || statusUp === "PAID" || statusUp === "DELIVERED") statusUp = "COMPLETED";
-            else if (statusUp === "CANCELED") statusUp = "CANCELLED";
+            statusUp = legacyUp || "";
           }
 
-                    function statusToUi(s) {
-            switch ((s || "").toString().toUpperCase()) {
-              case "COMPLETED": return { text: "Completada",  cls: "estado verde" };
-              case "PENDING":   return { text: "En proceso",  cls: "estado amarillo" };
-              case "FAILED":    return { text: "Fallida",     cls: "estado rojo" };
-              case "CANCELLED":
-              case "CANCELED":  return { text: "Cancelada",   cls: "estado azul" };
-              case "REFUNDED":  return { text: "Reembolsada", cls: "estado azul" };
-              default:          return { text: "En proceso",  cls: "estado amarillo" };
-            }
-          }
+          const isCompleted =
+            statusUp === "COMPLETED" ||
+            statusUp === "COMPLETADO" ||
+            statusUp === "OK" ||
+            statusUp === "SUCCESS" ||
+            statusUp === "DELIVERED" ||
+            (((u && u.estado) ? String(u.estado).trim().toUpperCase() : "") === "OK");
 
-
-          const ui = statusToUi(statusUp);
+          const uiState = isCompleted ? "COMPLETADO" : "RECIBIDO";
+          const ui = isCompleted
+            ? { text: "COMPLETADO", cls: "estado verde" }
+            : { text: "RECIBIDO",   cls: "estado azul" };
 
           // Recarga realizada (mantén importe visible, status en la píldora)
           const recargaTituloEl = document.querySelector("#card-recarga .titulo");
           if (recargaTituloEl) {
-            const t =
-              (statusUp === "FAILED") ? "Recarga fallida" :
-              (statusUp === "CANCELLED" || statusUp === "CANCELED") ? "Recarga cancelada" :
-              (statusUp === "REFUNDED") ? "Recarga reembolsada" :
-              (statusUp === "COMPLETED") ? "Recarga completada" :
-              "Recarga en proceso";
+            const t = (uiState === "COMPLETADO") ? "Recarga completada" : "Recarga recibida";
             safeSetText(recargaTituloEl, t);
           }
 
-          const numeroTxt = (u && u.numero) ? u.numero : "";
-          const descTxt = `Recarga a ${numeroTxt}${importeTxtR ? ` | ${importeTxtR}` : ""}`;
+          const orderIdTxt = (u && (u.orderId || u.id)) ? String(u.orderId || u.id) : "";
+          const numeroTxt = (u && u.numero) ? String(u.numero) : "";
+
+          const metodoRaw =
+            (u && (u.paymentMethod || (u.extra && u.extra.paymentMethod) || u.method))
+              ? (u.paymentMethod || (u.extra && u.extra.paymentMethod) || u.method)
+              : "";
+          let metodoTxt = (metodoRaw == null) ? "" : String(metodoRaw).trim();
+          if (metodoTxt) {
+            const up = metodoTxt.toUpperCase();
+            if (up === "PAYPAL") metodoTxt = "PayPal";
+            else if (up === "REVOLUT") metodoTxt = "Revolut";
+            else if (up === "BIZUM") metodoTxt = "Bizum";
+          }
+
+          const ofertaRaw =
+            (u && (u.productName || (u.extra && u.extra.productName)))
+              ? (u.productName || (u.extra && u.extra.productName))
+              : "";
+          let ofertaTxt = (ofertaRaw == null) ? "" : String(ofertaRaw).trim();
+          if (!ofertaTxt) ofertaTxt = (u && u.productId) ? String(u.productId).trim() : "";
+
+          const partsDesc = [];
+          if (ofertaTxt) partsDesc.push(ofertaTxt);
+          if (metodoTxt) partsDesc.push(metodoTxt);
+          if (numeroTxt) partsDesc.push(`Recarga a ${numeroTxt}`);
+          if (importeTxtR) partsDesc.push(importeTxtR);
+          if (orderIdTxt) partsDesc.push(`ID: ${orderIdTxt}`);
+
+          const descTxt = partsDesc.length ? partsDesc.join(" | ") : "Aún no tienes movimientos";
           safeSetText(descR, descTxt);
           safeSetText(fechaR, fechaTxt);
           safeSetText(estadoR, ui.text);
           safeSetClass(estadoR, ui.cls);
 
           // Correo recibido (snapshot de email: NO cambies entre renders)
-          const idTxt      = (u && u.id) ? u.id : "Sin ID";
+          const idTxt      = (u && (u.orderId || u.id)) ? String(u.orderId || u.id) : "Sin ID";
           const emailTxt   = (sessionEmailSnapshot || localStorage.getItem("usuario") || emailUsuarioBase || "Sin correo registrado").toString();
           const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
-          const numeroTxtC = (u && u.numero) ? u.numero : "";
-          const correoDescTxt = `${emailTxt} | ${importeTxt}${numeroTxtC ? ` | ${numeroTxtC}` : ""} | ID: ${idTxt}`;
+          const numeroTxtC = (u && u.numero) ? String(u.numero) : "";
+
+          const partsCorreo = [];
+          partsCorreo.push(emailTxt);
+          if (metodoTxt) partsCorreo.push(metodoTxt);
+          if (importeTxt) partsCorreo.push(importeTxt);
+          if (numeroTxtC) partsCorreo.push(numeroTxtC);
+          partsCorreo.push(`ID: ${idTxt}`);
+
+          const correoDescTxt = partsCorreo.join(" | ");
 
           safeSetText(correoDesc, correoDescTxt);
           safeSetText(correoFecha, fechaTxt);
-          // Ajusta título del card de correo según estado
+          // Manual-beta: el card de correo siempre es “Correo recibido”
 const correoTituloEl = document.querySelector("#card-correo .titulo");
 if (correoTituloEl) {
-  const t =
-    (statusUp === "FAILED") ? "Recarga fallida" :
-    (statusUp === "CANCELLED" || statusUp === "CANCELED") ? "Recarga cancelada" :
-    (statusUp === "REFUNDED") ? "Recarga reembolsada" :
-    (statusUp === "COMPLETED") ? "Recarga completada" :
-    "Correo recibido";
-  safeSetText(correoTituloEl, t);
+  safeSetText(correoTituloEl, "Correo recibido");
 }
 
 
@@ -540,29 +625,43 @@ if (correoTituloEl) {
 
         function renderCardsFromLista(allowSelectionChange) {
           const recargas = lista.filter(m => m && m.tipo === "recarga");
-          const saldos   = lista.filter(m => m && m.tipo === "saldo");
-
           recargas.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
-          saldos.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
+
+          // Empty-state coherente (Manual-beta)
+          if (!recargas.length) {
+            try { selectedRecargaId = null; } catch (_) {}
+            try { __lastRecargaFingerprint = null; } catch (_) {}
+
+            const descR   = document.getElementById("recarga-desc");
+            const fechaR  = document.getElementById("recarga-fecha");
+            const estadoR = document.getElementById("recarga-estado");
+
+            const correoDesc   = document.getElementById("correo-desc");
+            const correoFecha  = document.getElementById("correo-fecha");
+            const correoEstado = document.getElementById("correo-estado");
+
+            const recargaTituloEl = document.querySelector("#card-recarga .titulo");
+            if (recargaTituloEl) safeSetText(recargaTituloEl, "Recarga realizada");
+
+            const correoTituloEl = document.querySelector("#card-correo .titulo");
+            if (correoTituloEl) safeSetText(correoTituloEl, "Correo recibido");
+
+            safeSetText(descR, "Aún no tienes movimientos");
+            safeSetText(fechaR, "");
+            safeSetText(estadoR, "Sin movimientos");
+            safeSetClass(estadoR, "estado verde");
+
+            safeSetText(correoDesc, "Aún no tienes movimientos");
+            safeSetText(correoFecha, "");
+            safeSetText(correoEstado, "Sin movimientos");
+            safeSetClass(correoEstado, "estado azul");
+
+            return;
+          }
 
           const selectedRecarga = getSelectedRecarga(recargas, !!allowSelectionChange);
           if (selectedRecarga) {
             updateRecargaAndCorreoAtomic(selectedRecarga);
-          }
-
-          if (saldos.length) {
-            const u = saldos[0];
-            const descS   = document.getElementById("saldo-desc");
-            const fechaS  = document.getElementById("saldo-fecha");
-            const estadoS = document.getElementById("saldo-estado");
-
-            const importeS = Number(u.importe);
-            const importeTxtS = isNaN(importeS) ? "-" : `+${importeS.toFixed(2)} €`;
-
-            safeSetText(descS, "Ingreso recibido");
-            safeSetText(fechaS, normalizeFechaText(u));
-            safeSetText(estadoS, `Importe: ${importeTxtS}`);
-            safeSetClass(estadoS, "estado verde");
           }
         }
 
@@ -724,9 +823,12 @@ if (correoTituloEl) {
 
             const createdAtMs = (toDateFromCreatedAt(data.createdAt)?.getTime() || msFromPendId(d && d.id));
 
+            const orderIdResolved = String((data.orderId || data.orderID || data.id || (d && d.id) || "")).trim() || ((d && d.id) ? String(d.id) : "");
+
             return {
               tipo: "recarga",
-              id: (d && d.id) ? d.id : (data.id || ""),
+              id: orderIdResolved,
+              orderId: orderIdResolved,
               numero: data.destino || data.numero || "",
               productId: productIdNorm,
               importe: importeNum,
@@ -784,8 +886,8 @@ if (correoTituloEl) {
             if (statusUp === "OK" || statusUp === "SUCCESS" || statusUp === "DELIVERED") statusUp = "COMPLETED";
             if (statusUp === "CANCELED") statusUp = "CANCELLED";
 
-            // Caso especial: PAID en orders = pagada pero aún “en pipeline” (mejor como En proceso)
-            if (statusUp === "PAID") statusUp = "PENDING";
+            // Manual-beta: PAID = pago recibido (UI lo colapsa a RECIBIDO)
+            // (no convertir a PENDING)
 
             const estado = (statusUp === "COMPLETED") ? "OK" : (statusUp || "");
 
@@ -805,9 +907,12 @@ if (correoTituloEl) {
 
             const destino = (data.destination || data.destino || data.numero || "").toString();
 
+            const orderIdResolved = String((data.orderId || data.orderID || data.id || (d && d.id) || "")).trim() || ((d && d.id) ? String(d.id) : "");
+
             return {
               tipo: "recarga",
-              id: (d && d.id) ? d.id : (data.id || ""),
+              id: orderIdResolved,
+              orderId: orderIdResolved,
               numero: destino,
               productId: productIdNorm,
               importe: importeNum,
@@ -895,49 +1000,72 @@ if (correoTituloEl) {
               const signo   = tipo === "saldo" ? "+" : "-";
               const impTxt  = isNaN(importe) ? "" : `${signo}${importe.toFixed(2)} €`;
 
+              const orderIdTxt = String((m && (m.orderId || m.id)) || "").trim();
+
+              const destinoTxt = String((m && (m.numero || m.destino || m.destination)) || "").trim();
+
+              const metodoRaw =
+                (m && (m.paymentMethod || (m.extra && m.extra.paymentMethod) || m.method))
+                  ? (m.paymentMethod || (m.extra && m.extra.paymentMethod) || m.method)
+                  : "";
+              let metodoTxt = (metodoRaw == null) ? "" : String(metodoRaw).trim();
+              if (metodoTxt) {
+                const up = metodoTxt.toUpperCase();
+                if (up === "PAYPAL") metodoTxt = "PayPal";
+                else if (up === "REVOLUT") metodoTxt = "Revolut";
+                else if (up === "BIZUM") metodoTxt = "Bizum";
+              }
+
+              const ofertaRaw =
+                (m && (m.productName || (m.extra && m.extra.productName)))
+                  ? (m.productName || (m.extra && m.extra.productName))
+                  : "";
+              let ofertaTxt = (ofertaRaw == null) ? "" : String(ofertaRaw).trim();
+              if (!ofertaTxt) ofertaTxt = String((m && m.productId) || "").trim();
+
+              const linkRaw =
+                (m && (m.paymentLink || (m.extra && m.extra.paymentLink) || m.payment_link))
+                  ? (m.paymentLink || (m.extra && m.extra.paymentLink) || m.payment_link)
+                  : "";
+              const paymentLinkTxt = (linkRaw == null) ? "" : String(linkRaw).trim();
+
               let statusUp = (m && (m.status || m.estado) ? (m.status || m.estado) : "").toString().trim().toUpperCase();
-              if (statusUp === "OK" || statusUp === "SUCCESS") statusUp = "COMPLETED";
+              if (statusUp === "OK" || statusUp === "SUCCESS" || statusUp === "DELIVERED") statusUp = "COMPLETED";
+              const isCompleted = (statusUp === "COMPLETED" || statusUp === "COMPLETADO");
 
               const parts = [];
               const ft = normalizeFechaText(m) || "";
               if (ft) parts.push(ft);
+              if (ofertaTxt) parts.push(ofertaTxt);
+              if (metodoTxt) parts.push(metodoTxt);
+              if (destinoTxt) parts.push(`A ${destinoTxt}`);
               if (impTxt) parts.push(impTxt);
-              if (tipo === "recarga" && statusUp) {
-                const label =
-                  (statusUp === "COMPLETED") ? "Completada" :
-                  (statusUp === "PENDING") ? "En proceso" :
-                  (statusUp === "FAILED") ? "Fallida" :
-                  (statusUp === "CANCELLED") ? "Cancelada" :
-                  (statusUp === "REFUNDED") ? "Reembolsada" :
-                  statusUp;
-                parts.push(label);
+
+              if (tipo === "recarga") {
+                parts.push(isCompleted ? "COMPLETADO" : "RECIBIDO");
               }
+              if (orderIdTxt) parts.push(`ID: ${orderIdTxt}`);
+
+              // Manual-beta: payment_link SOLO en el modal (si existe)
+              if (paymentLinkTxt) parts.push(`Link: ${paymentLinkTxt}`);
 
               const fila = document.createElement("div");
               fila.className = "modal-item";
 
-              const partsEs = (Array.isArray(parts) ? parts : []).map((p) => {
-                const s = (p == null) ? "" : String(p);
-                const up = s.trim().toUpperCase();
-                if (up === "COMPLETED") return "Completada";
-                if (up === "PENDING") return "En proceso";
-                if (up === "FAILED") return "Fallida";
-                if (up === "CANCELLED" || up === "CANCELED") return "Cancelada";
-                if (up === "REFUNDED") return "Reembolsada";
-                return s;
-              });
-
-              fila.textContent = partsEs.join(" | ");
-              // Traduce estados a ES si vienen como tokens canónicos
+              fila.textContent = parts.join(" | ");
+              // Manual-beta: colapsa cualquier token raro a RECIBIDO/COMPLETADO
               try {
                 const txt = (fila.textContent || "").toString();
                 fila.textContent = txt
-                  .replace(/\bCOMPLETED\b/g, "Completada")
-                  .replace(/\bPENDING\b/g, "En proceso")
-                  .replace(/\bFAILED\b/g, "Fallida")
-                  .replace(/\bCANCELLED\b/g, "Cancelada")
-                  .replace(/\bCANCELED\b/g, "Cancelada")
-                  .replace(/\bREFUNDED\b/g, "Reembolsada");
+                  .replace(/\bCOMPLETED\b/g, "COMPLETADO")
+                  .replace(/\bCOMPLETADO\b/g, "COMPLETADO")
+                  .replace(/\bPENDING\b/g, "RECIBIDO")
+                  .replace(/\bFAILED\b/g, "RECIBIDO")
+                  .replace(/\bCANCELLED\b/g, "RECIBIDO")
+                  .replace(/\bCANCELED\b/g, "RECIBIDO")
+                  .replace(/\bREFUNDED\b/g, "RECIBIDO")
+                  .replace(/\bREQUESTED\b/g, "RECIBIDO")
+                  .replace(/\bPAID\b/g, "RECIBIDO");
               } catch (_) {}
 
               modalLista.appendChild(fila);
@@ -960,17 +1088,51 @@ if (correoTituloEl) {
             modalLista.innerHTML = '<div class="modal-item">No hay correos enviados</div>';
           } else {
             recargasLocal.forEach(m => {
-              const idTxt      = m.id || "Sin ID";
+              const idTxt      = String((m && (m.orderId || m.id)) || "").trim() || "Sin ID";
               const emailTxt   = (sessionEmailSnapshot || localStorage.getItem("usuario") || emailUsuarioBase || "Sin correo").toString();
               const importe    = Number(m.importe);
               const importeTxt = isNaN(importe) ? "" : `${importe.toFixed(2)} €`;
-              const estadoBase = (m.estado || "").toString();
-              const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
+
+              const destinoTxt = String((m && (m.numero || m.destino || m.destination)) || "").trim();
+
+              const metodoRaw =
+                (m && (m.paymentMethod || (m.extra && m.extra.paymentMethod) || m.method))
+                  ? (m.paymentMethod || (m.extra && m.extra.paymentMethod) || m.method)
+                  : "";
+              let metodoTxt = (metodoRaw == null) ? "" : String(metodoRaw).trim();
+              if (metodoTxt) {
+                const mup = metodoTxt.toUpperCase();
+                if (mup === "PAYPAL") metodoTxt = "PayPal";
+                else if (mup === "REVOLUT") metodoTxt = "Revolut";
+                else if (mup === "BIZUM") metodoTxt = "Bizum";
+              }
+
+              const linkRaw =
+                (m && (m.paymentLink || (m.extra && m.extra.paymentLink) || m.payment_link))
+                  ? (m.paymentLink || (m.extra && m.extra.paymentLink) || m.payment_link)
+                  : "";
+              const paymentLinkTxt = (linkRaw == null) ? "" : String(linkRaw).trim();
+
+              const statusRaw = (m && (m.status || m.estado)) ? String(m.status || m.estado) : "";
+              const up = statusRaw.trim().toUpperCase();
+              const estadoTxt = (up === "OK" || up === "SUCCESS" || up === "COMPLETED" || up === "COMPLETADO" || up === "DELIVERED") ? "COMPLETADO" : "RECIBIDO";
+
+              const parts = [];
+              const ft = normalizeFechaText(m) || "";
+              if (ft) parts.push(ft);
+              parts.push(emailTxt);
+              if (metodoTxt) parts.push(metodoTxt);
+              if (importeTxt) parts.push(importeTxt);
+              if (destinoTxt) parts.push(destinoTxt);
+              parts.push(estadoTxt);
+              parts.push(`ID: ${idTxt}`);
+
+              // Manual-beta: link SOLO en modales
+              if (paymentLinkTxt) parts.push(`Link: ${paymentLinkTxt}`);
 
               const fila = document.createElement("div");
               fila.className = "modal-item";
-              fila.textContent =
-                `${normalizeFechaText(m) || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | ID: ${idTxt}`;
+              fila.textContent = parts.join(" | ");
               modalLista.appendChild(fila);
             });
           }
@@ -979,7 +1141,6 @@ if (correoTituloEl) {
         }
 
         const cardRecarga = document.getElementById("card-recarga");
-        const cardSaldo   = document.getElementById("card-saldo");
         const cardCorreo  = document.getElementById("card-correo");
 
         if (cardRecarga) {
@@ -992,15 +1153,7 @@ if (correoTituloEl) {
           });
         }
 
-        if (cardSaldo) {
-          cardSaldo.onclick = () => abrirModal("saldo", "Historial de saldos");
-          cardSaldo.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              if (e.key === " ") e.preventDefault();
-              abrirModal("saldo", "Historial de saldos");
-            }
-          });
-        }
+        /* Manual-beta: sin tarjeta saldo */
 
         if (cardCorreo) {
           cardCorreo.onclick = () => abrirModalCorreos();
@@ -1063,17 +1216,27 @@ if (correoTituloEl) {
             // Index de estados por orderId (recargas > orders)
             const __statusByOrderId = Object.create(null);
 
+            function __pickOrderId(x) {
+              try {
+                if (!x) return "";
+                const oid = (x.orderId || (x.extra && x.extra.orderId) || x.id || x.orderID || "");
+                return String(oid || "").trim();
+              } catch (_) {
+                return "";
+              }
+            }
+
             try {
               if (Array.isArray(fsOrdersMaybe)) {
                 fsOrdersMaybe.forEach((o) => {
-                  const k = (o && o.id) ? String(o.id) : "";
+                  const k = __pickOrderId(o);
                   const s = (o && o.status) ? String(o.status).trim().toUpperCase() : "";
                   if (k && s) __statusByOrderId[k] = s;
                 });
               }
               if (Array.isArray(fsRecargasMaybe)) {
                 fsRecargasMaybe.forEach((r) => {
-                  const k = (r && r.id) ? String(r.id) : "";
+                  const k = __pickOrderId(r);
                   const s = (r && r.status) ? String(r.status).trim().toUpperCase() : "";
                   if (k && s) __statusByOrderId[k] = s; // override: recargas manda
                 });
@@ -1085,9 +1248,7 @@ if (correoTituloEl) {
             try {
               if (Array.isArray(lista)) {
                 lista.forEach((m) => {
-                  const oid = (m && (m.orderId || (m.extra && m.extra.orderId)))
-                    ? String(m.orderId || (m.extra && m.extra.orderId))
-                    : "";
+                  const oid = __pickOrderId(m);
                   if (oid) __existingOrderIds.add(oid);
                 });
               }
