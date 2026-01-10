@@ -22,6 +22,17 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /mb_orders/{orderId} {
+      // Permite LIST/GET solo al dueño (por uid del doc)
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+
+      // Cliente NO crea órdenes: solo backend (Admin SDK) vía Cloud Functions
+      allow create: if false;
+
+      // Updates/deletes desde cliente: cerrados (backend manda)
+      allow update, delete: if false;
+    }
+
     match /catalog_products/{productId} {
   allow read: if true;
   allow write: if false;
