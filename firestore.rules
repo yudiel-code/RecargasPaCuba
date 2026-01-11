@@ -26,8 +26,10 @@ service cloud.firestore {
       // Permite LIST/GET solo al dueño (por uid del doc)
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
 
-      // Cliente NO crea órdenes: solo backend (Admin SDK) vía Cloud Functions
-      allow create: if false;
+      // Cliente crea órdenes SOLO si es el dueño y status REQUESTED
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == "REQUESTED";
 
       // Updates/deletes desde cliente: cerrados (backend manda)
       allow update, delete: if false;

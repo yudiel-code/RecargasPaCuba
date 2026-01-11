@@ -351,7 +351,7 @@
       }
 
       (async () => {
-        let lista = getManualBetaOrdersLog();
+        let lista = [];
 
         // Espera a auth-ready para evitar renders pre-auth (failsafe timeout).
         try {
@@ -749,6 +749,89 @@ if (correoTituloEl) {
           });
 
           return out;
+        }
+
+        async function fetchMbOrdersFromFirestore(uid) {
+          const version = (await getFirebaseSdkVersionFromFirebaseJs()) || null;
+          if (!version) return [];
+
+          const mod = await import(`https://www.gstatic.com/firebasejs/${version}/firebase-firestore.js`);
+          const { getFirestore, connectFirestoreEmulator, collection, query, where, orderBy, limit, getDocs } = mod;
+
+          const db = getFirestore();
+          try {
+            const h = (location && location.hostname) ? location.hostname : "";
+            if (h === "127.0.0.1" || h === "localhost") {
+              connectFirestoreEmulator(db, "127.0.0.1", 8080);
+            }
+          } catch (_) {}
+
+          const col = collection(db, "mb_orders");
+
+          let docs = [];
+          try {
+            const q = query(col, where("uid", "==", uid), orderBy("createdAt", "desc"), limit(120));
+            const snap = await getDocs(q);
+            docs = snap && snap.docs ? snap.docs : [];
+          } catch (err1) {
+            // Fallback sin orderBy (por si pide índice)
+            try {
+              const q2 = query(col, where("uid", "==", uid), limit(200));
+              const snap2 = await getDocs(q2);
+              docs = snap2 && snap2.docs ? snap2.docs : [];
+            } catch (err2) {
+              console.error("Error leyendo Firestore (mb_orders):", err2);
+              return [];
+            }
+          }
+
+          const mapped = docs.map((d) => {
+            const data = (d && typeof d.data === "function") ? (d.data() || {}) : {};
+
+            const orderIdResolved = (d && d.id) ? String(d.id) : "";
+            const destino = String((data.destination || data.destino || data.numero || "")).trim();
+
+            const productIdRaw = (data.productId || data.product || "");
+            const productIdNorm = String(productIdRaw || "").trim().toLowerCase();
+
+            const statusRaw = (data.status || "").toString();
+            const statusUp = statusRaw ? statusRaw.trim().toUpperCase() : "";
+
+            // Manual-beta: solo REQUESTED/COMPLETED, colapsa lo demás a REQUESTED
+            const canonicalStatus = (statusUp === "COMPLETED") ? "COMPLETED" : "REQUESTED";
+            const estado = (canonicalStatus === "COMPLETED") ? "OK" : canonicalStatus;
+
+            const importeRaw = (data.amount ?? data.importe ?? data.price ?? data.precio ?? data.valor);
+            let importeNum = undefined;
+            if (importeRaw !== undefined && importeRaw !== null && importeRaw !== "") {
+              const n = Number(String(importeRaw).replace(",", "."));
+              if (!isNaN(n)) importeNum = n;
+            }
+
+            const createdAtDate = toDateFromCreatedAt(data.createdAt);
+            const createdAtMs = createdAtDate ? createdAtDate.getTime() : 0;
+
+            return {
+              tipo: "recarga",
+              id: orderIdResolved,
+              orderId: orderIdResolved,
+              numero: destino,
+              productId: productIdNorm,
+              importe: importeNum,
+              createdAtMs: createdAtMs,
+              fecha: formatFechaFromCreatedAt(data.createdAt),
+              status: canonicalStatus,
+              estado: estado,
+              extra: {
+                paymentMethod: String((data.paymentMethod || data.method || "")).trim(),
+                paymentLink: String((data.paymentLink || data.payment_link || "")).trim(),
+                productName: String((data.productName || data.offerName || data.title || "")).trim()
+              }
+            };
+          });
+
+          mapped.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
+          return mapped.slice(0, 120);
         }
 
         async function fetchRecargasFromFirestore(uid) {
@@ -1205,96 +1288,9 @@ if (correoTituloEl) {
             const h = (location && location.hostname) ? location.hostname : "";
             const timeoutMs = (h === "127.0.0.1" || h === "localhost") ? 12000 : 6000;
 
-            // 1) Leer recargas (fuente principal cuando existe: COMPLETED/REFUNDED)
-            const fsRecargasMaybe = await withTimeout(fetchRecargasFromFirestore(fbUser.uid), timeoutMs);
-
-            // 2) Leer orders (para PENDING/FAILED/CANCELLED que no crean /recargas)
-            const fsOrdersMaybe = await withTimeout(fetchOrdersFromFirestore(fbUser.uid), timeoutMs);
-
-            /* debug logs removed */
-
-            // Index de estados por orderId (recargas > orders)
-            const __statusByOrderId = Object.create(null);
-
-            function __pickOrderId(x) {
-              try {
-                if (!x) return "";
-                const oid = (x.orderId || (x.extra && x.extra.orderId) || x.id || x.orderID || "");
-                return String(oid || "").trim();
-              } catch (_) {
-                return "";
-              }
-            }
-
-            try {
-              if (Array.isArray(fsOrdersMaybe)) {
-                fsOrdersMaybe.forEach((o) => {
-                  const k = __pickOrderId(o);
-                  const s = (o && o.status) ? String(o.status).trim().toUpperCase() : "";
-                  if (k && s) __statusByOrderId[k] = s;
-                });
-              }
-              if (Array.isArray(fsRecargasMaybe)) {
-                fsRecargasMaybe.forEach((r) => {
-                  const k = __pickOrderId(r);
-                  const s = (r && r.status) ? String(r.status).trim().toUpperCase() : "";
-                  if (k && s) __statusByOrderId[k] = s; // override: recargas manda
-                });
-              }
-            } catch (_) {}
-
-            // Si ya existe un movimiento local con orderId, NO metas también el doc Firestore a lista.
-            const __existingOrderIds = new Set();
-            try {
-              if (Array.isArray(lista)) {
-                lista.forEach((m) => {
-                  const oid = __pickOrderId(m);
-                  if (oid) __existingOrderIds.add(oid);
-                });
-              }
-            } catch (_) {}
-
-            const fsRecargasForMerge = (Array.isArray(fsRecargasMaybe) ? fsRecargasMaybe : []).filter((r) => {
-              const id = (r && r.id) ? String(r.id) : "";
-              return id ? !__existingOrderIds.has(id) : true;
-            });
-
-            const fsOrdersForMerge = (Array.isArray(fsOrdersMaybe) ? fsOrdersMaybe : []).filter((o) => {
-              const id = (o && o.id) ? String(o.id) : "";
-              return id ? !__existingOrderIds.has(id) : true;
-            });
-
-            // Merge sin duplicados por id:
-            // - Añade recargas/órdenes SOLO si no están ya representadas por un movimiento local con orderId.
-            if (fsRecargasForMerge.length) {
-              lista = mergeByIdPreferFirst(fsRecargasForMerge, lista);
-            }
-            if (fsOrdersForMerge.length) {
-              lista = mergeByIdPreferFirst(lista, fsOrdersForMerge);
-            }
-
-            // Propaga estado real a movimientos locales que tengan orderId
-            try {
-              if (Array.isArray(lista)) {
-                lista.forEach((m) => {
-                  const oid = (m && (m.orderId || (m.extra && m.extra.orderId)))
-                    ? String(m.orderId || (m.extra && m.extra.orderId))
-                    : "";
-                  if (!oid) return;
-
-                  const st = __statusByOrderId[oid];
-                  if (!st) return;
-
-                  m.status = st;
-                  m.estado = (st === "COMPLETED") ? "OK" : st;
-
-                  if (m.extra && typeof m.extra === "object") {
-                    m.extra.estado = st;
-                    m.extra.status = st;
-                  }
-                });
-              }
-            } catch (_) {}
+            // Manual-beta: ledger único desde Firestore /mb_orders (sin mezclar localStorage / recargas / orders)
+            const fsMbOrdersMaybe = await withTimeout(fetchMbOrdersFromFirestore(fbUser.uid), timeoutMs);
+            lista = Array.isArray(fsMbOrdersMaybe) ? fsMbOrdersMaybe : [];
           }
         } catch (e) {
           console.error("Error preparando dataset Firestore:", e);

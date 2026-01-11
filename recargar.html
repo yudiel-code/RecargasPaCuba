@@ -622,6 +622,69 @@ body.catalog-ready .cards { visibility: visible; }
         return location.hostname === "localhost" || location.hostname === "127.0.0.1";
       }
 
+      // ===== Manual-beta: Firestore writer (mb_orders) =====
+      // Crea mb_orders/{orderId} con createdAt = serverTimestamp() via REST commit + REQUEST_TIME transform.
+      async function rpcMbCreateFirestoreOrder({ orderId, user, data }) {
+        if (!orderId) throw new Error("missing-orderId");
+        if (!user || typeof user.getIdToken !== "function") throw new Error("missing-auth-user");
+        if (!data || !data.uid) throw new Error("missing-data-uid");
+
+        const dbId = "(default)";
+        const docName = `projects/${RPC_PROJECT_ID}/databases/${dbId}/documents/mb_orders/${String(orderId)}`;
+
+        const commitUrl = rpcIsLocalhost()
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/${dbId}/documents:commit`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/${dbId}/documents:commit`;
+
+        const token = await user.getIdToken();
+        const headers = {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        };
+
+        const amountNum = Number(data.amount);
+        const fields = {
+          uid: { stringValue: String(data.uid) },
+          status: { stringValue: "REQUESTED" },
+          destination: { stringValue: String(data.destination || "") },
+          productId: { stringValue: String(data.productId || "") },
+          amount: { doubleValue: Number.isFinite(amountNum) ? amountNum : 0 },
+          paymentMethod: { stringValue: String(data.paymentMethod || "") },
+          channel: { stringValue: "manual-beta" }
+        };
+
+        const body = {
+          writes: [
+            {
+              update: { name: docName, fields },
+              currentDocument: { exists: false } // fuerza CREATE (si existe, falla)
+            },
+            {
+              transform: {
+                document: docName,
+                fieldTransforms: [
+                  { fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" }
+                ]
+              }
+            }
+          ]
+        };
+
+        const resp = await fetch(commitUrl, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body)
+        });
+
+        const out = await resp.json().catch(() => null);
+        if (!resp.ok) {
+          const msg = (out && out.error && out.error.message) ? out.error.message : ("HTTP_" + resp.status);
+          throw new Error(msg);
+        }
+
+        return out;
+      }
+
       function rpcDecodeValue(v) {
         if (!v || typeof v !== "object") return null;
         if ("stringValue" in v) return v.stringValue;
@@ -1037,8 +1100,9 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
           const productoId = productoActual ? productoActual.id : null;
 
-          // ✅ Manual-beta: OrderID LOCAL (sin backend). Solo registro para conciliación.
+          // ✅ M          // ✅ Manual-beta: OrderID LOCAL (sin backend). Solo registro para conciliación.
           let orderId = null;
+          let destinoForOrder = "";
 
           try {
             const auth = window.firebaseAuth;
@@ -1060,7 +1124,7 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
               return;
             }
 
-            const destinoForOrder = String(
+            destinoForOrder = String(
               destinoFinal ||
                 (isNauta
                   ? (e1 || "").trim()
@@ -1174,6 +1238,7 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
           let selectedPayMethod = "";
           try {
             selectedPayMethod = rpcNormalizePayMethod(
+              rpcMbSelectedPay ||
               window.__rpcMbPaymentMethod ||
               window.__rpcMbSelectedPaymentMethod ||
               window.__rpcMbPayMethod ||
@@ -1184,10 +1249,10 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
           if (!selectedPayMethod) {
             try {
-              const pressed = modalBg && modalBg.querySelector ? modalBg.querySelector('button[aria-pressed="true"]') : null;
+              const pressed = modalBg && modalBg.querySelector ? modalBg.querySelector('#modal-pago-lista [aria-pressed="true"]') : null;
               if (pressed) {
                 selectedPayMethod = rpcNormalizePayMethod(
-                  (pressed.dataset && pressed.dataset.method) ? pressed.dataset.method : pressed.textContent
+                  (pressed.dataset && pressed.dataset.pay) ? pressed.dataset.pay : pressed.textContent
                 );
               }
             } catch (_) {}
@@ -1253,6 +1318,70 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
             try { localStorage.setItem("rpc_mb_payment_method", String(selectedPayMethod)); } catch (_) {}
           } catch (_) {}
+
+          // ✅ Manual-beta: Firestore source of truth (mb_orders/{orderId})
+          // Crea el doc con createdAt = serverTimestamp() usando REST commit + REQUEST_TIME.
+          try {
+            const auth = window.firebaseAuth;
+            const user = auth && auth.currentUser;
+            if (!user || typeof user.getIdToken !== "function") throw new Error("firebase-no-auth");
+
+            const dbId = "(default)";
+            const commitUrl = rpcIsLocalhost()
+              ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/${dbId}/documents:commit`
+              : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/${dbId}/documents:commit`;
+
+            const token = await user.getIdToken();
+            const headers = {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            };
+
+            const destinationForFirestore = String(
+              destinoFinal ||
+                (isNauta
+                  ? (e1 || "").trim()
+                  : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
+            );
+
+            const amountNum = Number(precioActual);
+            const docName = `projects/${RPC_PROJECT_ID}/databases/${dbId}/documents/mb_orders/${String(orderId)}`;
+
+            const body = {
+              writes: [
+                {
+                  update: {
+                    name: docName,
+                    fields: {
+                      uid: { stringValue: String(user.uid) },
+                      status: { stringValue: "REQUESTED" },
+                      destination: { stringValue: destinationForFirestore },
+                      productId: { stringValue: String(productoId || "") },
+                      amount: { doubleValue: Number.isFinite(amountNum) ? amountNum : 0 },
+                      paymentMethod: { stringValue: String(selectedPayMethod || "") },
+                      channel: { stringValue: "manual-beta" }
+                    }
+                  },
+                  currentDocument: { exists: false },
+                  updateTransforms: [
+                    { fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" }
+                  ]
+                }
+              ]
+            };
+
+            const resp = await fetch(commitUrl, { method: "POST", headers, body: JSON.stringify(body) });
+            const out = await resp.json().catch(() => null);
+
+            if (!resp.ok) {
+              const msg = (out && out.error && out.error.message) ? out.error.message : ("HTTP_" + resp.status);
+              throw new Error(msg);
+            }
+          } catch (err) {
+            console.error("mb_orders create failed:", err);
+            showToastError("No se pudo registrar el pedido en servidor. Inténtalo de nuevo.");
+            return;
+          }
 
           // ? Correo al cliente (EmailJS)
           if (datosUsuario && datosUsuario.email && typeof emailjs !== "undefined") {
