@@ -521,14 +521,18 @@ body.catalog-ready .cards { visibility: visible; }
         revolut: { tag: "@recargaspacuba", url: "https://revolut.me/recargaspacuba" },
         bizum: { number: null }, // TODO: número de negocio (NO personal)
         paypalLinksByProduct: {
-          // Cubacel 32.08 €
+          // Cubacel 32,08 €
           "cubacel-bundle-10gb-30d": "https://www.paypal.com/ncp/payment/URZC5Z7NEMYKY",
           // Cubacel 42,44 €
           "cubacel-bundle-16gb-30d": "https://www.paypal.com/ncp/payment/V9VK922NYQ9NS",
 
-          // Nauta 14.40 € (si tienes más de una NAUTA a 14.40, puedes apuntarlas al mismo link)
+          // Nauta 14,40 € (si tienes más de una NAUTA a 14.40, puedes apuntarlas al mismo link)
           "nauta-topup-600cup-30d": "https://www.paypal.com/ncp/payment/WRZSUUFMHL7CS",
           "nauta-unlimited-30d-promo": "https://www.paypal.com/ncp/payment/WRZSUUFMHL7CS"
+          },
+          revolutLinksByProduct: {
+          // Cubacel 42,44 €
+           "cubacel-bundle-16gb-30d": "https://checkout.revolut.com/pay/15c28ad7-9814-456e-bc85-13751cdbbde9"
         }
       };
 
@@ -1273,10 +1277,20 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
           // ✅ Leer el PayPal link del snapshot (si existe)
           let paypalPaymentLink = "";
+          let revolutProductLink = "";
           try {
             const last = JSON.parse(localStorage.getItem("rpc_mb_last_order") || "null");
-            if (last && last.orderId && String(last.orderId) === String(idConfirmacion) && last.paymentLink) {
-              paypalPaymentLink = String(last.paymentLink);
+            if (last && last.orderId && String(last.orderId) === String(idConfirmacion)) {
+              // PayPal: solo si el link realmente es de PayPal (evita confusiones si paymentLink fue Revolut)
+              if (last.paymentLink && String(last.paymentLink).includes("paypal.com/ncp/payment/")) {
+                paypalPaymentLink = String(last.paymentLink);
+              }
+
+              // Revolut: preferir link por producto (importe fijo) si existe; si no, fallback al general
+              const pid = (last.productId || last.internalProductId || "");
+              if (pid && RPC_MB_PAYMENT && RPC_MB_PAYMENT.revolutLinksByProduct && RPC_MB_PAYMENT.revolutLinksByProduct[pid]) {
+                revolutProductLink = String(RPC_MB_PAYMENT.revolutLinksByProduct[pid]);
+              }
             }
           } catch (_) {}
 
@@ -1289,9 +1303,11 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
           if (selectedPayMethod === "PAYPAL") {
             redirectUrl = paypalPaymentLink ? String(paypalPaymentLink) : "";
           } else if (selectedPayMethod === "REVOLUT") {
-            redirectUrl = (RPC_MB_PAYMENT && RPC_MB_PAYMENT.revolut && RPC_MB_PAYMENT.revolut.url)
-              ? String(RPC_MB_PAYMENT.revolut.url)
-              : "";
+            redirectUrl = revolutProductLink
+              ? String(revolutProductLink)
+              : ((RPC_MB_PAYMENT && RPC_MB_PAYMENT.revolut && RPC_MB_PAYMENT.revolut.url)
+                  ? String(RPC_MB_PAYMENT.revolut.url)
+                  : "");
           }
 
           // ✅ Persistir método seleccionado en snapshot/log (para conciliación)
