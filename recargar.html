@@ -461,6 +461,27 @@ body.catalog-ready .cards { visibility: visible; }
     </div>
   </div>
 
+  <!-- ✅ MINI-MODAL BIZUM (instrucciones) -->
+  <div id="modal-bg-bizum" class="modal-bg-recarga">
+    <div class="modal-recarga">
+      <div class="modal-titulo">Pago por Bizum</div>
+      <div class="modal-linea">Abre tu app del banco, entra en Bizum y envía el pago.</div>
+      <div id="bizum-importe" class="modal-linea"></div>
+      <div id="bizum-enviar-a" class="modal-linea"></div>
+      <div id="bizum-concepto" class="modal-linea"></div>
+
+      <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:10px;">
+        <button type="button" id="btnCopiarBizumNumero" style="margin-top:0;">Copiar número</button>
+        <button type="button" id="btnCopiarBizumConcepto" style="margin-top:0;">Copiar concepto</button>
+      </div>
+
+      <div class="modal-aviso">
+        Importante: el importe y el concepto deben coincidir. Si no coinciden, la recarga puede retrasarse o no procesarse hasta poder identificar el pago.
+      </div>
+      <button id="btnCerrarBizum">Ya envié el Bizum</button>
+    </div>
+  </div>
+
   <!-- Barra inferior unificada -->
   <nav class="app-nav">
     <div class="nav-inner">
@@ -519,7 +540,7 @@ body.catalog-ready .cards { visibility: visible; }
       // Rellena aquí el Bizum de negocio y los links PayPal por producto (internalProductId).
                   const RPC_MB_PAYMENT = {
         revolut: { tag: "@recargaspacuba", url: "https://revolut.me/recargaspacuba" },
-        bizum: { number: null }, // TODO: número de negocio (NO personal)
+        bizum: { number: "+34687795568", alias: "RecargasPacuba" },
         paypalLinksByProduct: {
           // Cubacel 32,08 €
           "cubacel-bundle-10gb-30d": "https://www.paypal.com/ncp/payment/URZC5Z7NEMYKY",
@@ -953,6 +974,31 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
       let lastFocusedElement = null;
       let tipoDestinoActual = "msisdn"; // "msisdn" | "nauta"
 
+      // Mini-modal Bizum (instrucciones)
+      const bizumModalBg = document.getElementById("modal-bg-bizum");
+      const bizumImporteEl = document.getElementById("bizum-importe");
+      const bizumEnviarEl = document.getElementById("bizum-enviar-a");
+      const bizumConceptoEl = document.getElementById("bizum-concepto");
+      const btnCerrarBizum = document.getElementById("btnCerrarBizum");
+      const btnCopiarBizumNumero = document.getElementById("btnCopiarBizumNumero");
+      const btnCopiarBizumConcepto = document.getElementById("btnCopiarBizumConcepto");
+      const bizumDlg = bizumModalBg ? bizumModalBg.querySelector(".modal-recarga") : null;
+
+      let rpcBizumCurrentOrderId = "";
+      let rpcBizumCurrentNumber = "";
+
+      async function rpcBizumCopyToClipboard(txt) {
+        try {
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            await navigator.clipboard.writeText(String(txt || ""));
+            if (typeof showToastSuccess === "function") showToastSuccess("Copiado");
+            return true;
+          }
+        } catch (e) {}
+        if (typeof showToastError === "function") showToastError("No se pudo copiar.");
+        return false;
+      }
+
       function abrirModalRecarga() {
         if (!modalBg) return;
         lastFocusedElement = document.activeElement;
@@ -971,11 +1017,56 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
         }
       }
 
+      function abrirModalBizum() {
+        if (!bizumModalBg) return;
+        lastFocusedElement = document.activeElement;
+        bizumModalBg.style.display = "flex";
+        setTimeout(() => {
+          if (bizumDlg && typeof bizumDlg.focus === "function") {
+            bizumDlg.focus();
+          }
+        }, 0);
+      }
+
+      function cerrarModalBizum() {
+        if (bizumModalBg) bizumModalBg.style.display = "none";
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+          lastFocusedElement.focus();
+        }
+      }
+
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && modalBg && modalBg.style.display === "flex") {
+        if (e.key !== "Escape") return;
+        // Bizum modal bloqueante: NO se cierra con ESC
+        if (bizumModalBg && bizumModalBg.style.display === "flex") {
+          return;
+        }
+        if (modalBg && modalBg.style.display === "flex") {
           cerrarModalRecarga();
+          return;
         }
       });
+
+      if (bizumModalBg) {
+        bizumModalBg.addEventListener("click", (e) => {
+          // Bizum modal bloqueante: NO se cierra tocando fuera
+          if (e.target === bizumModalBg) return;
+        });
+      }
+      if (btnCerrarBizum) {
+        btnCerrarBizum.addEventListener("click", () => cerrarModalBizum());
+      }
+      if (btnCopiarBizumNumero) {
+        btnCopiarBizumNumero.addEventListener("click", async () => {
+          await rpcBizumCopyToClipboard(rpcBizumCurrentNumber || "");
+        });
+      }
+      if (btnCopiarBizumConcepto) {
+        btnCopiarBizumConcepto.addEventListener("click", async () => {
+          const oid = String(rpcBizumCurrentOrderId || "").trim();
+          await rpcBizumCopyToClipboard(oid ? ("RPC " + oid) : "RPC");
+        });
+      }
 
       let precioActual = 0;
       let beneficioActual = "";
@@ -1480,7 +1571,51 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             }
           }
 
-          showToastSuccess("¡ Pedido registrado correctamente\nID: " + idConfirmacion);
+          if (selectedPayMethod === "BIZUM") {
+            const bizumMsg = "Pedido registrado: " + idConfirmacion + " — En espera del pago por Bizum.";
+            showToastSuccess(bizumMsg);
+
+            // Banner sticky (no depende del timeout del toast)
+            try {
+              let banner = document.getElementById("rpc-bizum-sticky-banner");
+              if (!banner) {
+                banner = document.createElement("div");
+                banner.id = "rpc-bizum-sticky-banner";
+                banner.setAttribute("role", "status");
+                banner.style.position = "fixed";
+                banner.style.top = "14px";
+                banner.style.left = "50%";
+                banner.style.transform = "translateX(-50%)";
+                banner.style.zIndex = "9999";
+                banner.style.maxWidth = "92vw";
+                banner.style.padding = "12px 18px";
+                banner.style.borderRadius = "999px";
+                banner.style.boxShadow = "0 10px 30px rgba(0,0,0,0.25)";
+                banner.style.background = "rgba(28, 201, 141, 0.95)";
+                banner.style.color = "#fff";
+                banner.style.fontWeight = "600";
+                banner.style.textAlign = "center";
+                banner.style.backdropFilter = "blur(6px)";
+                document.body.appendChild(banner);
+              }
+              banner.textContent = bizumMsg;
+
+              // Quitar el banner cuando el usuario confirme en el modal
+              if (!window.__rpcBizumStickyHooked) {
+                window.__rpcBizumStickyHooked = true;
+                document.addEventListener("click", function (e) {
+                  const t = e && e.target;
+                  const txt = t && t.textContent ? String(t.textContent).trim() : "";
+                  if (txt === "Ya envié el Bizum" || txt === "Entendido") {
+                    const b = document.getElementById("rpc-bizum-sticky-banner");
+                    if (b) b.remove();
+                  }
+                }, true);
+              }
+            } catch (_) {}
+          } else {
+            showToastSuccess("¡ Pedido registrado correctamente\nID: " + idConfirmacion);
+          }
           cerrarModalRecarga();
 
           // ✅ Redirección según método seleccionado
@@ -1506,14 +1641,29 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             const bizumNumber = (RPC_MB_PAYMENT && RPC_MB_PAYMENT.bizum && RPC_MB_PAYMENT.bizum.number)
               ? String(RPC_MB_PAYMENT.bizum.number).trim()
               : "";
+            const bizumAlias = (RPC_MB_PAYMENT && RPC_MB_PAYMENT.bizum && RPC_MB_PAYMENT.bizum.alias)
+              ? String(RPC_MB_PAYMENT.bizum.alias).trim()
+              : "";
             if (!bizumNumber) {
               showToastError("Bizum aún no está configurado.");
               return;
             }
-            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-              try { await navigator.clipboard.writeText(bizumNumber); } catch (_) {}
+
+            try {
+              const importeTxt = (typeof rpcFormatEur === "function") ? rpcFormatEur(precioActual) : (String(precioActual || ""));
+              rpcBizumCurrentNumber = bizumNumber;
+              rpcBizumCurrentOrderId = String(idConfirmacion);
+
+              if (bizumImporteEl) bizumImporteEl.textContent = "Importe exacto: " + importeTxt;
+              if (bizumEnviarEl) bizumEnviarEl.textContent = "Enviar a: " + bizumNumber + (bizumAlias ? " (" + bizumAlias + ")" : "");
+              if (bizumConceptoEl) bizumConceptoEl.textContent = "Concepto: RPC " + String(idConfirmacion);
+
+              if (typeof abrirModalBizum === "function") abrirModalBizum();
+              else if (bizumModalBg) bizumModalBg.style.display = "flex";
+              else showToastSuccess("Bizum: envía el pago a " + bizumNumber + " con concepto RPC " + String(idConfirmacion));
+            } catch (_) {
+              showToastSuccess("Bizum: envía el pago a " + bizumNumber + " con concepto RPC " + String(idConfirmacion));
             }
-            showToastSuccess("Bizum: envía el pago al número " + bizumNumber);
             return;
           }
           } finally {
