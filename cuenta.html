@@ -1118,12 +1118,12 @@
             </div>
             <div>📲</div>
           </div>
-          <div class="banco-pill metodo-opcion" data-metodo="transferencia" role="button" tabindex="0" aria-label="Seleccionar transferencia">
+          <div class="banco-pill metodo-opcion" data-metodo="revolut" role="button" tabindex="0" aria-label="Seleccionar Revolut">
             <div>
-              <span class="nombre">Transferencia</span><br>
-              <span class="tag">24-48 horas</span>
+              <span class="nombre">Revolut</span><br>
+              <span class="tag">Pago rápido</span>
             </div>
-            <div>🏦</div>
+            <div>💸</div>
           </div>
           <div class="banco-pill metodo-opcion" data-metodo="paypal" role="button" tabindex="0" aria-label="Seleccionar PayPal">
             <div>
@@ -1132,17 +1132,10 @@
             </div>
             <div>🅿️</div>
           </div>
-          <div class="banco-pill metodo-opcion" data-metodo="tarjeta" role="button" tabindex="0" aria-label="Seleccionar tarjeta">
-            <div>
-              <span class="nombre">Visa &amp; Mastercard</span><br>
-              <span class="tag">Tarjeta bancaria</span>
-            </div>
-            <div>💳</div>
-          </div>
         </div>
         <p style="font-size:11px;opacity:0.85;">
           Por ahora este panel es informativo. Más adelante, al activarlo, verás los datos
-          reales (Bizum, transferencia, PayPal o tarjeta) y las confirmaciones de pago dentro de la app.
+          reales (Bizum, PayPal o Revolut) y las confirmaciones de pago dentro de la app.
         </p>
       </div>
       <div class="modal-footer">
@@ -1169,7 +1162,7 @@
         </div>
         <p style="font-size:11px;opacity:0.85;margin-top:8px;">
           Este panel está pensado para uso interno. Úsalo solo cuando hayas confirmado el pago
-          (Bizum, transferencia, PayPal o tarjeta).
+          (Bizum, PayPal o Revolut).
         </p>
       </div>
       <div class="modal-footer">
@@ -1178,6 +1171,33 @@
         </span>
         <button class="btn-secondary" data-close="saldo" type="button">Cancelar</button>
         <button id="confirmarSaldoBtn" class="btn-primary">Guardar saldo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal específico: Pago por Bizum (saldo) -->
+  <div id="modalBizumSaldo" class="modal-bg">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalBizumSaldoTitle" tabindex="-1">
+      <div class="modal-header">
+        <div class="modal-title" id="modalBizumSaldoTitle">Pago por Bizum</div>
+        <button class="modal-close" data-close="bizum-saldo" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p style="margin:0 0 10px 0;">Abre tu app del banco, entra en Bizum y envía el pago.</p>
+
+        <div style="opacity:0.95;margin:6px 0;">
+          <div><strong>Importe:</strong> <span id="bizumSaldoImporteTexto">0,00 €</span></div>
+          <div style="margin-top:6px;"><strong>Enviar a:</strong> <span id="bizumSaldoNumeroTexto">+34661539465</span></div>
+        </div>
+
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;">
+          <button id="bizumSaldoCopyNumeroBtn" type="button" class="btn-primary">Copiar número</button>
+          <button id="bizumSaldoCopyImporteBtn" type="button" class="btn-primary">Copiar importe</button>
+        </div>
+
+        <p style="font-size:11px;opacity:0.85;margin-top:12px;">
+          Consejo: copia el número y el importe para evitar errores al enviarlo.
+        </p>
       </div>
     </div>
   </div>
@@ -1240,6 +1260,54 @@
 
       const modalBg = btn.closest(".modal-bg");
       if (modalBg) modalBg.style.display = "none";
+    });
+  }
+
+  // ✅ Copiar Bizum (saldo) — bind 1 sola vez
+  if (!window.__rpcBizumSaldoCopyBound) {
+    window.__rpcBizumSaldoCopyBound = true;
+
+    function rpcCopyText(txt) {
+      const t = String(txt || "").trim();
+      if (!t) return Promise.reject(new Error("empty"));
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+        return navigator.clipboard.writeText(t);
+      }
+      // Fallback
+      const ta = document.createElement("textarea");
+      ta.value = t;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand("copy"); } finally { document.body.removeChild(ta); }
+      return Promise.resolve();
+    }
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest("#bizumSaldoCopyNumeroBtn, #bizumSaldoCopyImporteBtn") : null;
+      if (!btn) return;
+
+      if (btn.id === "bizumSaldoCopyNumeroBtn") {
+        rpcCopyText("+34661539465")
+          .then(() => showToastSuccess("Copiado"))
+          .catch(() => showToastError("No se pudo copiar."));
+        return;
+      }
+
+      if (btn.id === "bizumSaldoCopyImporteBtn") {
+        const el = document.getElementById("bizumSaldoImporteTexto");
+        let t = el ? String(el.textContent || "") : "";
+        t = t.replace("€", "").trim();
+        // España-friendly (coma decimal)
+        t = t.replace(/\./g, ",");
+        rpcCopyText(t)
+          .then(() => showToastSuccess("Copiado"))
+          .catch(() => showToastError("No se pudo copiar."));
+        return;
+      }
     });
   }
 
@@ -1349,7 +1417,9 @@
     }
 
     function getMetodoPagoActual() {
-      return localStorage.getItem("rpc_metodo_pago") || "";
+      const m = localStorage.getItem("rpc_metodo_pago") || "";
+      if (m === "bizum" || m === "paypal" || m === "revolut") return m;
+      return "";
     }
 
     function setMetodoPagoActual(metodo) {
@@ -1360,21 +1430,23 @@
 
     const modalMetodo = document.getElementById("modalMetodo");
     const modalSaldo  = document.getElementById("modalSaldo");
+    const modalBizumSaldo = document.getElementById("modalBizumSaldo");
     const modalCuenta = document.getElementById("modalCuenta");
     const inputSaldo  = document.getElementById("inputSaldo");
     const modalMetodoDlg = modalMetodo ? modalMetodo.querySelector(".modal") : null;
     const modalSaldoDlg  = modalSaldo ? modalSaldo.querySelector(".modal") : null;
+    const modalBizumSaldoDlg = modalBizumSaldo ? modalBizumSaldo.querySelector(".modal") : null;
     const modalCuentaDlg = modalCuenta ? modalCuenta.querySelector(".modal") : null;
     const modalMetodoClose = modalMetodo ? modalMetodo.querySelector(".modal-close") : null;
+    const modalBizumSaldoClose = modalBizumSaldo ? modalBizumSaldo.querySelector(".modal-close") : null;
     let lastFocusedElement = null;
     let openModalId = "";
 
     function obtenerNombreMetodo(metodo) {
       switch (metodo) {
         case "bizum": return "Bizum";
-        case "transferencia": return "Transferencia";
         case "paypal": return "PayPal";
-        case "tarjeta": return "Visa & Mastercard";
+        case "revolut": return "Revolut";
         default: return "";
       }
     }
@@ -1444,6 +1516,37 @@
       if (modalSaldo) modalSaldo.style.display = "none";
       if (openModalId === "saldo") openModalId = "";
       if (inputSaldo) inputSaldo.value = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function abrirModalBizumSaldo(importeEur) {
+      if (!modalBizumSaldo) return;
+
+      lastFocusedElement = document.activeElement;
+      openModalId = "bizum-saldo";
+
+      const importeNum = Number(importeEur || 0);
+      const importeTxt = isFinite(importeNum) ? (importeNum.toFixed(2) + " €") : "0,00 €";
+
+      const elImporte = document.getElementById("bizumSaldoImporteTexto");
+      const elNumero  = document.getElementById("bizumSaldoNumeroTexto");
+
+      if (elImporte) elImporte.textContent = importeTxt;
+      if (elNumero) elNumero.textContent = "+34661539465";
+
+      modalBizumSaldo.style.display = "flex";
+
+      const foco = modalBizumSaldoClose || modalBizumSaldoDlg;
+      if (foco && typeof foco.focus === "function") {
+        setTimeout(() => foco.focus(), 0);
+      }
+    }
+
+    function cerrarModalBizumSaldo() {
+      if (modalBizumSaldo) modalBizumSaldo.style.display = "none";
+      if (openModalId === "bizum-saldo") openModalId = "";
       if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
         lastFocusedElement.focus();
       }
@@ -1807,6 +1910,17 @@
 
         const metodoActual = getMetodoPagoActual() || "manual";
 
+        // ✅ Bizum: mostrar modal de pago (no guardar saldo aquí)
+        if (metodoActual === "bizum") {
+          cerrarModalSaldo();
+          if (typeof abrirModalBizumSaldo === "function") {
+            abrirModalBizumSaldo(valor);
+          } else {
+            showToastError("No se pudo abrir el panel de Bizum.");
+          }
+          return;
+        }
+
         // Camino único recomendado: UserData.addSaldo (cap + movimiento + meta)
         if (window.UserData && typeof window.UserData.addSaldo === "function") {
           window.UserData.addSaldo(valor, metodoActual);
@@ -1839,6 +1953,19 @@
           cargarUltimoMovimiento();
           calcularMonedas();
           cerrarModalSaldo();
+
+          if (metodoActual === "revolut") {
+            const url = "https://checkout.revolut.com/pay/fead7abe-9f06-4940-95d1-aa4be7151952";
+            const w = window.open(url, "_blank", "noopener");
+            if (!w) window.location.href = url;
+            return;
+          }
+          if (metodoActual === "paypal") {
+            const url = "https://paypal.me/RecargasPaCuba";
+            const w = window.open(url, "_blank", "noopener");
+            if (!w) window.location.href = url;
+            return;
+          }
           return;
         }
 
@@ -1866,6 +1993,20 @@
         }
 
         cerrarModalSaldo();
+
+        if (metodoActual === "revolut") {
+          if (metodoActual === "revolut") {
+          const url = "https://checkout.revolut.com/pay/fead7abe-9f06-4940-95d1-aa4be7151952";
+          const w = window.open(url, "_blank", "noopener");
+          if (!w) window.location.href = url;
+          return;
+        }
+        if (metodoActual === "paypal") {
+          const url = "https://paypal.me/RecargasPaCuba";
+          const w = window.open(url, "_blank", "noopener");
+          if (!w) window.location.href = url;
+          return;
+        }
       });
     }
 
