@@ -1992,10 +1992,7 @@
           showToastSuccess("Saldo actualizado correctamente.");
         }
 
-        cerrarModalSaldo();
-
         if (metodoActual === "revolut") {
-          if (metodoActual === "revolut") {
           const url = "https://checkout.revolut.com/pay/fead7abe-9f06-4940-95d1-aa4be7151952";
           const w = window.open(url, "_blank", "noopener");
           if (!w) window.location.href = url;
