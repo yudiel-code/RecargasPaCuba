@@ -1,0 +1,526 @@
+﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#28c6db">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+  <meta name="theme-color" content="#0b63d1">
+
+  <title>RecargasPaCuba</title>
+  <script>
+    const __rpcParams = new URLSearchParams(window.location.search || "");
+    const __rpcBuild = __rpcParams.get("v") || "prod";
+    window.__RPC_BUILD = __rpcBuild;
+    try { document.documentElement.dataset.rpcBuild = __rpcBuild; } catch (_) {}
+    console.info("[RPC] build", __rpcBuild);
+  </script>
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/ui.js?v=r1"></script>
+  <link rel="icon" type="image/png" href="icon-256.png">
+</head>
+
+<body>
+
+<main class="app">
+  <section id="screen-home">
+    <div class="login-wrap">
+
+      <div class="logo-big">
+        <img src="icon-256.png" alt="RecargasPaCuba logo">
+      </div>
+
+      <div class="login-title">Iniciar Sesión</div>
+
+      <div class="login-sub">
+        ¿Eres nuevo?
+        <a id="link-register" href="registro.html" style="color:#fff7b8;font-weight:800;">
+          Regístrate aquí
+        </a>
+      </div>
+
+      <input id="login-identifier" class="input-pill" placeholder="Email / Usuario" />
+
+      <div class="password-wrap">
+        <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
+        <span
+          id="toggle-pass"
+          class="toggle-pass"
+          role="button"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+          </svg>
+          <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+            <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+          </svg>
+        </span>
+      </div>
+
+      <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
+
+<button id="btn-forgot" class="link-forgot" type="button">¿Olvidaste tu contraseña?</button>
+
+<button
+  id="btn-login-google"
+  class="btn btn-primary btn-lg btn-full btn-google-icon"
+  type="button"
+  aria-label="Continuar con Google"
+  style="position:relative;display:flex;align-items:center;justify-content:center;margin-top:12px;border:0;background:linear-gradient(135deg,#fbbf24,#f97316);color:#1f2933;"
+>
+  <span aria-hidden="true" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.65);">
+    <svg class="g-svg" viewBox="0 0 48 48" width="22" height="22" aria-hidden="true" style="display:block;">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.6l6.9-6.9C35.98 2.72 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.02 6.22C12.43 13.3 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.22-.43-4.74H24v9.02h12.64c-.55 2.96-2.2 5.47-4.68 7.16l7.16 5.56c4.18-3.86 6.38-9.54 6.38-16z"/>
+      <path fill="#FBBC05" d="M10.58 28.44a14.5 14.5 0 0 1 0-8.88l-8.02-6.22a24 24 0 0 0 0 21.32l8.02-6.22z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.14 15.9-5.8l-7.16-5.56c-2 1.35-4.55 2.16-8.74 2.16-6.26 0-11.57-3.8-13.42-9.44l-8.02 6.22C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+  </span>
+
+  <span style="line-height:1;">Continuar con Google</span>
+</button>
+
+<script type="module">
+  const btnGoogle = document.getElementById("btn-login-google");
+  if (btnGoogle) {
+    btnGoogle.addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        if (typeof window.firebaseGoogleSignIn !== "function") {
+          console.warn("firebaseGoogleSignIn no está disponible en window.");
+          return;
+        }
+        await window.firebaseGoogleSignIn();
+      } catch (err) {
+        console.error("Google Sign-In error:", err);
+      }
+    });
+  }
+</script>
+
+</div>
+
+    <div class="social-links" style="display:flex;justify-content:center;gap:12px;margin-top:14px;margin-bottom:6px;">
+      <a href="https://www.instagram.com/recargaspacubaapp?igsh=MXJxczViNnd0M2lqNw==" aria-label="Instagram" title="Instagram" target="_blank" rel="noopener"
+         style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;fill:#ffffff;">
+          <path d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2Zm9 2h-9A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9A3.5 3.5 0 0 0 20 16.5v-9A3.5 3.5 0 0 0 16.5 4Zm-4.5 4a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9Zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5ZM17.8 6.2a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/>
+        </svg>
+      </a>
+
+      <a href="https://www.facebook.com/share/17y6nKuKoN/" aria-label="Facebook" title="Facebook" target="_blank" rel="noopener"
+         style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;fill:#ffffff;">
+          <path d="M13.5 22v-8h2.6l.4-3h-3V9.1c0-.9.3-1.6 1.6-1.6h1.5V4.8c-.3 0-1.4-.1-2.7-.1-2.7 0-4.5 1.6-4.5 4.6V11H6.8v3h2.6v8h4.1Z"/>
+        </svg>
+      </a>
+
+      <a href="https://x.com/RecargasPaCuba" aria-label="X" title="X" target="_blank" rel="noopener"
+         style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;fill:#ffffff;">
+          <path d="M18.9 2H22l-6.8 7.8L23 22h-6.6l-5.1-6.6L5.5 22H2.4l7.3-8.4L1 2h6.8l4.6 6.1L18.9 2Zm-1.2 18h1.7L6.9 3.9H5.1L17.7 20Z"/>
+        </svg>
+      </a>
+
+      <a href="https://www.tiktok.com/@recargaspacuba?_r=1&_t=ZN-92n5B8BYW74" aria-label="TikTok" title="TikTok" target="_blank" rel="noopener"
+         style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;fill:#ffffff;">
+          <path d="M16 2c.3 2.6 1.9 4.2 4.5 4.5V9c-1.7 0-3.2-.6-4.5-1.6v7.1c0 3.7-3 6.5-6.7 6.5S2.6 18.2 2.6 14.5 5.6 8 9.3 8c.4 0 .8 0 1.2.1v2.9c-.4-.1-.8-.2-1.2-.2-2.1 0-3.8 1.6-3.8 3.7s1.7 3.7 3.8 3.7 3.8-1.6 3.8-3.7V2h2.9Z"/>
+        </svg>
+      </a>
+    </div>
+
+    <div class="legal-links legal-links--sticky" style="text-align:center;margin-top:12px;">
+      <small>
+        <a href="terminos.html">Términos</a> 
+        <a href="privacidad.html">Privacidad</a> 
+        <a href="reembolsos.html">Reembolsos</a> 
+        <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
+      </small>
+    </div>
+
+    <div style="margin-top:10px;text-align:center;font-size:12px;opacity:.75;color:#ffffff;">
+      &copy; <span id="rpc-year"></span> RecargasPaCuba. Todos los derechos reservados.
+    </div>
+    <script>
+      (function(){ var el=document.getElementById("rpc-year"); if(el) el.textContent=new Date().getFullYear(); })();
+    </script>
+
+    <div id="rpc-build-indicator" style="text-align:center;font-size:12px;color:#6b6b6b;margin-top:6px;display:none;">
+      Build:
+    </div>
+  </section>
+</main>
+
+<div id="modal-recuperar" class="modal-bg-recuperar">
+  <div class="modal-recuperar">
+    <h2>Recuperar contraseña</h2>
+    <input id="recuperar-email" type="email" class="input-pill" placeholder="Correo registrado" />
+    <button id="btn-enviar-recuperar" class="btn btn-primary btn-lg btn-full" type="button">Enviar enlace</button>
+
+    <div id="temp-pass-box" class="temp-pass-box"></div>
+    <button id="btn-copiar-pass" class="btn-secondary" type="button" style="display:none;">
+      Copiar y usar
+    </button>
+
+    <button id="btn-cerrar-recuperar" class="btn-secondary" type="button">Cancelar</button>
+  </div>
+</div>
+
+<!-- SCRIPT PRINCIPAL LOGIN + RECUPERAR -->
+<script type="module">
+    
+
+  // EmailJS (se deja inicializado por si se usa en otros flujos)
+  if (window.emailjs && typeof window.emailjs.init === "function") {
+    emailjs.init("flObIaDu0VCKDBP7i");
+  }
+
+  // B1.2: limpiar restos de contraseña / forzarCambio en localStorage
+  (function limpiarSensibles() {
+    try {
+      const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+      const datos = JSON.parse(raw);
+      if (datos && typeof datos === "object") {
+        let cambiado = false;
+        if (datos.pass) {
+          delete datos.pass;
+          cambiado = true;
+        }
+        if (datos.forzarCambio) {
+          delete datos.forzarCambio;
+          cambiado = true;
+        }
+        if (cambiado) {
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(datos));
+        }
+      }
+    } catch (e) {
+      console.error("Error limpiando usuarioRegistrado:", e);
+    }
+  })();
+
+  const MAX_INTENTOS = 5;
+  const BLOQUEO_TIEMPO = 10 * 60 * 1000;
+
+  function resolvePostAuthRedirect() {
+    const params = new URLSearchParams(window.location.search || "");
+
+    // Read-only fallbacks (no writes)
+    const rawNext = (params.get("next") || sessionStorage.getItem("rpc_next") || "").trim();
+    const rawV = (params.get("v") || sessionStorage.getItem("rpc_v") || "").trim();
+
+    // Allowlist: only these pages are valid post-auth destinations
+    const allow = new Set(["recargar.html", "cuenta.html", "historial.html"]);
+
+    let candidate = rawNext || "recargar.html";
+
+    // Block absolute/protocol URLs, protocol-relative, traversal, backslashes, null byte
+    const isUnsafe =
+      /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i.test(candidate) ||
+      candidate.includes("..") ||
+      candidate.includes("\\") ||
+      candidate.includes("\0");
+
+    // Validate base path (strip query/hash for allowlist check)
+    const base = candidate.split(/[?#]/)[0];
+
+    if (isUnsafe || !allow.has(base)) {
+      candidate = "recargar.html";
+    }
+
+    // Append v only if present and not already in query
+    if (rawV) {
+      const hashIndex = candidate.indexOf("#");
+      const beforeHash = hashIndex >= 0 ? candidate.slice(0, hashIndex) : candidate;
+      const hash = hashIndex >= 0 ? candidate.slice(hashIndex) : "";
+
+      const qIndex = beforeHash.indexOf("?");
+      const path = qIndex >= 0 ? beforeHash.slice(0, qIndex) : beforeHash;
+      const query = qIndex >= 0 ? beforeHash.slice(qIndex + 1) : "";
+
+      const qParams = new URLSearchParams(query);
+      if (!qParams.has("v")) qParams.set("v", rawV);
+
+      const rebuilt = qParams.toString();
+      candidate = path + (rebuilt ? `?${rebuilt}` : "") + hash;
+    }
+
+    return candidate;
+  }
+  window.resolvePostAuthRedirect = resolvePostAuthRedirect;
+
+  function estaBloqueado() {
+    const bloqueo = localStorage.getItem("login_bloqueado_hasta");
+    if (!bloqueo) return false;
+    if (Date.now() > Number(bloqueo)) {
+      localStorage.removeItem("login_bloqueado_hasta");
+      localStorage.removeItem("login_intentos");
+      return false;
+    }
+    return true;
+  }
+
+  async function loginConFirebase(email, pass) {
+    if (!window.firebaseAuth || !window.firebaseSignIn) {
+      throw new Error("firebase-no-disponible");
+    }
+    const cred = await window.firebaseSignIn(window.firebaseAuth, email, pass);
+    return cred.user;
+  }
+
+  // LOGIN
+  const btnLogin = document.getElementById("btn-login-do");
+  if (btnLogin) {
+    btnLogin.addEventListener("click", async () => {
+      if (estaBloqueado()) {
+        const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
+        showToastError("Aviso: login bloqueado hasta: " + hasta.toLocaleTimeString());
+        return;
+      }
+
+      const identifierRaw = document.getElementById("login-identifier").value.trim();
+      const pass = document.getElementById("login-password").value.trim();
+
+      if (!identifierRaw || !pass) {
+        showToastError("Introduce email/usuario y contraseña.");
+        return;
+      }
+
+      let identifier = identifierRaw.toLowerCase();
+
+      // Mapear usuario → email si hace falta
+      let emailLogin = identifier;
+      if (!identifier.includes("@")) {
+        try {
+          const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+          const datos = JSON.parse(raw);
+          if (datos && datos.usuario && datos.usuario.toLowerCase() === identifier) {
+            emailLogin = (datos.email || "").toLowerCase();
+          }
+        } catch (e) {
+          console.error("Error leyendo usuarioRegistrado para mapear usuario→email:", e);
+        }
+      }
+
+      try {
+        const user = await loginConFirebase(emailLogin, pass);
+
+        // Reseteo de intentos
+        localStorage.removeItem("login_intentos");
+        localStorage.removeItem("login_bloqueado_hasta");
+
+        // Sincronizar usuarioRegistrado SIN contraseña ni forzarCambio
+        try {
+          const rawPrev = localStorage.getItem("usuarioRegistrado") || "{}";
+          let prev = {};
+          try { prev = JSON.parse(rawPrev); } catch (e) { prev = {}; }
+          if (!prev || typeof prev !== "object") prev = {};
+
+          delete prev.pass;
+          delete prev.forzarCambio;
+
+          const usuarioMin = {
+            ...prev,
+            nombre: user.displayName || prev.nombre || "",
+            email: (user.email || emailLogin).toLowerCase(),
+            activo: true
+          };
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
+        } catch (e) {
+          console.error("Error sincronizando datos locales tras login:", e);
+        }
+
+        localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
+        const finalDest = window.resolvePostAuthRedirect();
+        if (!window.__authRedirected) {
+          window.__authRedirected = true;
+          window.location.href = finalDest;
+        }
+      } catch (error) {
+        console.log("Error login Firebase:", error);
+
+        let intentos = Number(localStorage.getItem("login_intentos")) || 0;
+        intentos++;
+        localStorage.setItem("login_intentos", intentos);
+
+        if (intentos >= MAX_INTENTOS) {
+          const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
+          localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
+          showToastError("Aviso: demasiados intentos. Bloqueado 10 minutos.");
+        } else {
+          let mensaje = "Email o contraseña incorrectos.";
+          if (error.code === "auth/user-not-found") {
+            mensaje = "No existe una cuenta con ese email.";
+          } else if (error.code === "auth/invalid-credential") {
+            mensaje = "Credenciales incorrectas.";
+          } else if (error.message === "firebase-no-disponible") {
+            mensaje = "Servicio de login no disponible. Inténtalo de nuevo en unos minutos.";
+          }
+          showToastError(`${mensaje}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
+        }
+      }
+    });
+  }
+
+  // Ojito contraseña login
+  const togglePass = document.getElementById("toggle-pass");
+  if (togglePass) {
+    togglePass.addEventListener("click", () => {
+      const input = document.getElementById("login-password");
+      const icon = document.getElementById("toggle-pass");
+      if (!input || !icon) return;
+
+            if (input.type === "password") {
+        input.type = "text";
+        const eye = icon.querySelector(".icon-eye");
+        const eyeOff = icon.querySelector(".icon-eye-off");
+        icon.setAttribute("aria-label", "Ocultar contraseña");
+        icon.setAttribute("aria-pressed", "true");
+        if (eye && eyeOff) {
+          eye.style.display = "none";
+          eyeOff.style.display = "inline";
+        }
+      } else {
+        input.type = "password";
+        const eye = icon.querySelector(".icon-eye");
+        const eyeOff = icon.querySelector(".icon-eye-off");
+        icon.setAttribute("aria-label", "Mostrar contraseña");
+        icon.setAttribute("aria-pressed", "false");
+        if (eye && eyeOff) {
+          eye.style.display = "inline";
+          eyeOff.style.display = "none";
+        }
+      }
+    });
+  }
+
+  // Abrir / cerrar modal recuperar
+  const btnForgot = document.getElementById("btn-forgot");
+  const modalRec = document.getElementById("modal-recuperar");
+  const btnCerrarRec = document.getElementById("btn-cerrar-recuperar");
+
+  if (btnForgot && modalRec) {
+    btnForgot.onclick = () => {
+      modalRec.style.display = "flex";
+      const box = document.getElementById("temp-pass-box");
+      const btnCopiar = document.getElementById("btn-copiar-pass");
+      if (box) box.style.display = "none";
+      if (btnCopiar) btnCopiar.style.display = "none";
+    };
+  }
+
+  if (btnCerrarRec && modalRec) {
+    btnCerrarRec.onclick = () => {
+      modalRec.style.display = "none";
+    };
+  }
+
+  // Recuperar contraseña con Firebase (sendPasswordResetEmail)
+  const btnEnviarRec = document.getElementById("btn-enviar-recuperar");
+  if (btnEnviarRec) {
+    btnEnviarRec.onclick = async () => {
+      const email = document.getElementById("recuperar-email").value.trim().toLowerCase();
+      if (!email) {
+        showToastError("Introduce el correo que usas en RecargasPaCuba.");
+        return;
+      }
+
+      try {
+        const firebaseModule = await import("./js/firebase.js?v=r1");
+        const auth = firebaseModule.auth || window.firebaseAuth || null;
+        const sendPasswordResetEmail =
+          firebaseModule.sendPasswordResetEmail ||
+          firebaseModule.sendPasswordReset ||
+          firebaseModule._sendPasswordResetEmail ||
+          null;
+
+        if (!auth || !sendPasswordResetEmail) {
+          showToastError("De momento la recuperación por email aún no está configurada. Contacta con soporte.");
+          return;
+        }
+
+        await sendPasswordResetEmail(auth, email);
+        showToastSuccess("Si el correo está registrado, recibirás un email para restablecer tu contraseña.");
+        if (modalRec) modalRec.style.display = "none";
+      } catch (error) {
+        console.error("Error al iniciar recuperación de contraseña:", error);
+        let mensaje = "Error al iniciar la recuperación.";
+        if (error.code === "auth/user-not-found") {
+          mensaje = "No existe una cuenta con ese correo.";
+        }
+        showToastError(mensaje);
+      }
+    };
+  }
+
+  // El botón "copiar y usar" se deja sin comportamiento en el nuevo flujo
+</script>
+
+<!-- ✅ Firebase centralizado en js/firebase.js -->
+<script type="module" src="js/firebase.js?v=r1"></script>
+
+<!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
+<script type="module">
+  import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) return;
+
+    try {
+      const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+      const datos = JSON.parse(raw);
+
+      const { pass, forzarCambio, ...resto } = (datos && typeof datos === "object") ? datos : {};
+
+      const nuevo = {
+        ...resto,
+        nombre: resto.nombre || user.displayName || "",
+        email: (user.email || "").toLowerCase(),
+        activo: true
+      };
+
+      localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+      localStorage.setItem("usuario", (user.email || "").toLowerCase());
+
+      // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
+      const finalDest = window.resolvePostAuthRedirect();
+      if (!window.__authRedirected) {
+        window.__authRedirected = true;
+        window.location.href = finalDest;
+      }
+    } catch (e) {
+      console.error("Error sincronizando sesión en login:", e);
+    }
+  });
+</script>
+<script>
+  const linkRegister = document.getElementById('link-register');
+  if (linkRegister) {
+    linkRegister.addEventListener('click', (event) => {
+      event.preventDefault();
+      window.location.href = 'registro.html';
+    });
+  }
+</script>
+<script>
+  (function () {
+    const el = document.getElementById("rpc-build-indicator");
+    if (!el) return;
+    const build = (typeof window.__RPC_BUILD === "string" && window.__RPC_BUILD) ? window.__RPC_BUILD : "prod";
+    if (build && build !== "prod") {
+      el.textContent = "Build: " + build;
+      el.style.display = "block";
+    } else {
+      el.style.display = "none";
+    }
+  })();
+</script>
+</body>
+</html>

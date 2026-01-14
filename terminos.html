@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex" />
+  <title>Términos y Condiciones | RecargasPaCuba</title>
+  <style>
+    :root{
+      --max: 980px;
+      --pad: clamp(16px, 3.2vw, 28px);
+      --text: #101828;
+      --muted: #475467;
+      --line: rgba(16,24,40,.12);
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --surface2: #eef2f6;
+      --accent: #0b63d1;
+      --radius: 14px;
+      --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 28px rgba(16,24,40,.10);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+      line-height:1.65;
+      color:var(--text);
+      background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 26%);
+    }
+    a{color:var(--accent); text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width:var(--max); margin:0 auto; padding:calc(var(--pad) + 8px) var(--pad) 56px}
+    header{display:flex; flex-direction:column; gap:10px; padding:18px 18px 14px; border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.86); backdrop-filter:saturate(120%) blur(8px); box-shadow:var(--shadow)}
+    header .kicker{font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+    header h1{margin:0; font-size:clamp(22px, 3.1vw, 34px); line-height:1.15}
+    header .meta{display:flex; flex-wrap:wrap; gap:10px 14px; font-size:13px; color:var(--muted)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:6px 10px; background:var(--surface2); border:1px solid var(--line); border-radius:999px}
+    .grid{display:grid; gap:16px; margin-top:16px}
+    @media (min-width: 860px){ .grid{grid-template-columns: 1fr 320px; align-items:start} }
+    .card{border:1px solid var(--line); border-radius:var(--radius); background:rgba(255,255,255,.94); box-shadow:var(--shadow); overflow:hidden}
+    .card .card-h{padding:14px 16px; border-bottom:1px solid var(--line); background:rgba(248,250,252,.8)}
+    .card .card-b{padding:14px 16px}
+    .card h2, .card h3{margin:0}
+    .toc ol{margin:0; padding-left:18px}
+    .toc li{margin:6px 0; font-size:14px}
+    .toc a{color:var(--text)}
+    .toc a:hover{color:var(--accent)}
+    main{margin-top:16px}
+    section{padding:18px 18px; border-top:1px solid var(--line)}
+    section:first-of-type{border-top:none}
+    h2{margin:0 0 10px; font-size:18px; line-height:1.25}
+    h3{margin:14px 0 8px; font-size:15px; line-height:1.25}
+    p{margin:10px 0}
+    ul,ol{margin:8px 0 0; padding-left:18px}
+    li{margin:6px 0}
+    .muted{color:var(--muted)}
+    .callout{
+      border-left:4px solid var(--accent);
+      background:linear-gradient(180deg, rgba(11,99,209,.07), rgba(11,99,209,.02));
+      padding:12px 14px;
+      border-radius:12px;
+      border:1px solid rgba(11,99,209,.18);
+    }
+    .defs{display:grid; gap:10px; margin:0}
+    .defs div{display:grid; gap:2px}
+    .defs dt{font-weight:700}
+    .defs dd{margin:0; color:var(--muted)}
+    code{background:rgba(16,24,40,.06); padding:2px 6px; border-radius:8px}
+    footer{padding:14px 16px; border-top:1px solid var(--line); background:rgba(248,250,252,.8); font-size:13px; color:var(--muted)}
+    .legal-note{font-size:12.5px; color:var(--muted)}
+    </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kicker">RecargasPaCuba · Documentación legal</div>
+      <h1>Términos, Condiciones de Uso y Contratación</h1>
+      <div class="meta">
+        <span class="pill">Última actualización: <strong>[DD/MM/AAAA]</strong></span>
+        <span class="pill">Versión: <strong>v3</strong></span> <span class="pill">Soporte: <strong>[EMAIL SOPORTE]</strong></span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-h"><h2>En resumen</h2></div>
+        <div class="card-b">
+          <div class="callout">
+            <p style="margin:0">Marco contractual del servicio de recargas: cómo se cursan las operaciones, qué estados existen, qué obligaciones asumes como Usuario y cuáles son los límites razonables de responsabilidad.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="card toc">
+        <div class="card-h"><h2>Índice</h2></div>
+        <div class="card-b">
+          <ol>
+  <li><a href="#1-identificacion-del-prestador-lssi">1) Identificación del prestador (LSSI)</a></li>
+  <li><a href="#2-definiciones">2) Definiciones</a></li>
+  <li><a href="#3-objeto-y-naturaleza-del-servicio">3) Objeto y naturaleza del servicio</a></li>
+  <li><a href="#4-requisitos-del-usuario-cuenta-y-uso-legitimo">4) Requisitos del Usuario, cuenta y uso legítimo</a></li>
+  <li><a href="#5-proceso-de-contratacion-y-autorizacion-de-ejecucion-inmedi">5) Proceso de contratación y autorización de ejecución inmediata</a></li>
+  <li><a href="#6-precios-impuestos-comisiones-y-pagos">6) Precios, impuestos, comisiones y pagos</a></li>
+  <li><a href="#7-ejecucion-plazos-y-estados-de-operacion">7) Ejecución, plazos y estados de operación</a></li>
+  <li><a href="#8-incidencias-soporte-y-responsabilidad-operativa">8) Incidencias, soporte y responsabilidad operativa</a></li>
+  <li><a href="#9-errores-del-usuario">9) Errores del Usuario</a></li>
+  <li><a href="#10-limitacion-de-responsabilidad">10) Limitación de responsabilidad</a></li>
+  <li><a href="#11-suspension-del-servicio-y-de-la-cuenta">11) Suspensión del servicio y de la cuenta</a></li>
+  <li><a href="#12-propiedad-intelectual">12) Propiedad intelectual</a></li>
+  <li><a href="#13-modificaciones">13) Modificaciones</a></li>
+  <li><a href="#14-ley-aplicable-y-jurisdiccion">14) Ley aplicable y jurisdicción</a></li>
+</ol>
+        </div>
+      </aside>
+    </div>
+
+    <main class="card">
+      <div class="card-b">
+<div class="callout">
+</div>
+<section>
+<h2 id="1-identificacion-del-prestador-lssi">1) Identificación del prestador (LSSI)</h2>
+<p><strong>Titular:</strong> [NOMBRE/RAZÓN SOCIAL]</p>
+  <p><strong>NIF/CIF:</strong> [NIF/CIF]</p>
+  <p><strong>Domicilio:</strong> [DIRECCIÓN COMPLETA], España</p>
+  <p><strong>Correo de soporte:</strong> [EMAIL SOPORTE]</p>
+  <p><strong>Correo legal:</strong> [EMAIL LEGAL]</p>
+  <p><strong>Sitio web:</strong> [DOMINIO]</p>
+</div>
+</section>
+<section>
+<h2 id="2-definiciones">2) Definiciones</h2>
+<dl class="defs">
+<div><dt>Plataforma</dt><dd>el sitio web/app “RecargasPaCuba”.</dd></div>
+<div><dt>Usuario</dt><dd>persona que se registra y/o contrata servicios.</dd></div>
+<div><dt>Destinatario</dt><dd>persona en Cuba que recibe la recarga.</dd></div>
+<div><dt>Proveedor</dt><dd>tercero que ejecuta la recarga (agregadores/operadores/partners).</dd></div>
+<div><dt>Operación</dt><dd>solicitud de recarga o servicio digital equivalente.</dd></div>
+<div><dt>Estado</dt><dd>situación de una operación (por ejemplo: <code>PENDING</code>, <code>PAID</code>, <code>COMPLETED</code>, <code>FAILED</code>, <code>CANCELLED</code>, <code>REFUNDED</code>).</dd></div>
+</dl>
+</section>
+<section>
+<h2 id="3-objeto-y-naturaleza-del-servicio">3) Objeto y naturaleza del servicio</h2>
+<p><strong>RecargasPaCuba actúa como intermediario tecnológico</strong>: facilita la solicitud, pago (cuando aplique) y seguimiento de recargas/servicios digitales provistos y ejecutados por terceros. RecargasPaCuba <strong>no es operador móvil</strong>, ni proveedor de telecomunicaciones, ni entidad financiera, y <strong>no controla</strong> la red, cobertura, disponibilidad, bloqueos o políticas del operador de destino.</p>
+</section>
+<section>
+<h2 id="4-requisitos-del-usuario-cuenta-y-uso-legitimo">4) Requisitos del Usuario, cuenta y uso legítimo</h2>
+<ul>
+  <li>El Usuario declara ser mayor de edad y tener capacidad legal para contratar.</li>
+  <li>El Usuario es responsable de mantener la confidencialidad de sus credenciales y de toda actividad realizada desde su cuenta.</li>
+  <li>Está prohibido el uso fraudulento, suplantación, ingeniería social, blanqueo, o cualquier uso contrario a ley. Ante indicios razonables, RecargasPaCuba podrá suspender la cuenta y/o bloquear operaciones por motivos de <strong>seguridad, prevención del fraude y cumplimiento</strong>.</li>
+  <li>El Usuario garantiza que dispone de base legítima para facilitar datos del Destinatario (p. ej., consentimiento o necesidad para ejecutar la recarga solicitada).</li>
+</ul>
+</section>
+<section>
+<h2 id="5-proceso-de-contratacion-y-autorizacion-de-ejecucion-inmedi">5) Proceso de contratación y autorización de ejecución inmediata</h2>
+<p>Para completar una operación, el Usuario selecciona el producto/paquete, introduce el destino (teléfono/email según corresponda) y confirma el pedido. Antes de confirmar, el Usuario debe revisar cuidadosamente los datos introducidos.</p>
+
+<h3>5.1. Validación y aceptación</h3>
+<p>Una operación se considera <strong>aceptada</strong> cuando la Plataforma confirma su recepción y/o el pago, y se registra un identificador de operación.</p>
+
+<h3>5.2. Inicio inmediato y desistimiento</h3>
+<p>El Usuario solicita expresamente que la ejecución del servicio digital comience <strong>de forma inmediata</strong> tras la confirmación del pedido, y reconoce que, por la naturaleza del servicio, <strong>puede perder el derecho de desistimiento</strong> cuando la ejecución haya comenzado, conforme a la normativa de consumo aplicable para contenido/servicios digitales.</p>
+</section>
+<section>
+<h2 id="6-precios-impuestos-comisiones-y-pagos">6) Precios, impuestos, comisiones y pagos</h2>
+<ul>
+  <li>Los precios mostrados se expresan en <strong>[EUR]</strong> e incluyen/ no incluyen impuestos según se indique en el checkout.</li>
+  <li>El importe puede incluir costes de procesamiento, margen comercial y/o comisiones del proveedor, siempre informados antes de confirmar la operación.</li>
+  <li>Los pagos se procesan mediante proveedores de pago externos (cuando aplique). RecargasPaCuba no almacena datos completos de tarjetas.</li>
+</ul>
+</section>
+<section>
+<h2 id="7-ejecucion-plazos-y-estados-de-operacion">7) Ejecución, plazos y estados de operación</h2>
+<p>La ejecución depende de terceros y de la operativa en Cuba. En condiciones normales, la recarga suele reflejarse en un plazo estimado, pero <strong>no se garantiza</strong> un tiempo exacto.</p>
+
+<ul>
+  <li><strong>PENDING</strong>: operación registrada y en curso.</li>
+  <li><strong>COMPLETED</strong>: el proveedor confirma entrega/ejecución.</li>
+  <li><strong>FAILED/CANCELLED</strong>: no ejecutada por error, rechazo del proveedor, datos inválidos u otras causas.</li>
+  <li><strong>REFUNDED</strong>: reembolso emitido conforme a la Política de Reembolsos.</li>
+</ul>
+</section>
+<section>
+<h2 id="8-incidencias-soporte-y-responsabilidad-operativa">8) Incidencias, soporte y responsabilidad operativa</h2>
+<p>Si el Usuario detecta una incidencia (p. ej., operación en <code>PENDING</code> durante un tiempo anómalo), deberá contactar por los canales de soporte aportando: email de cuenta, ID de operación, destino y fecha/hora aproximada.</p>
+
+<p>RecargasPaCuba gestionará la incidencia con el proveedor y, en su caso, aplicará la solución prevista (reintento, entrega diferida o reembolso) según el resultado de la verificación.</p>
+</section>
+<section>
+<h2 id="9-errores-del-usuario">9) Errores del Usuario</h2>
+<p>El Usuario es responsable de introducir correctamente el destino. Si la recarga se ejecuta sobre un número/email erróneo facilitado por el Usuario, <strong>no procederá reembolso</strong> salvo que el proveedor permita reversión (supuesto excepcional y no garantizado).</p>
+</section>
+<section>
+<h2 id="10-limitacion-de-responsabilidad">10) Limitación de responsabilidad</h2>
+<p>RecargasPaCuba no responde de fallos atribuibles a operadores/proveedores, cortes eléctricos, caídas de red, bloqueos gubernamentales, sanciones, restricciones regulatorias en Cuba u otros supuestos de fuerza mayor.</p>
+
+<p>En todo caso, y <strong>sin excluir derechos irrenunciables</strong> del consumidor, la responsabilidad total de RecargasPaCuba por una operación concreta quedará limitada, como máximo, al <strong>importe efectivamente abonado</strong> por esa operación. Se excluyen daños indirectos, lucro cesante y pérdidas reputacionales o de oportunidad.</p>
+</section>
+<section>
+<h2 id="11-suspension-del-servicio-y-de-la-cuenta">11) Suspensión del servicio y de la cuenta</h2>
+<p>RecargasPaCuba podrá modificar, suspender o retirar temporalmente el servicio por motivos técnicos, de seguridad, legales o de mantenimiento. Igualmente podrá suspender cuentas ante indicios razonables de fraude o incumplimiento.</p>
+</section>
+<section>
+<h2 id="12-propiedad-intelectual">12) Propiedad intelectual</h2>
+<p>El diseño, marca, código y contenidos de la Plataforma son titularidad de RecargasPaCuba o de terceros licenciantes. Queda prohibida su reproducción o explotación no autorizada.</p>
+</section>
+<section>
+<h2 id="13-modificaciones">13) Modificaciones</h2>
+<p>RecargasPaCuba podrá actualizar estos Términos por motivos legales, técnicos o comerciales. La versión vigente estará publicada en la Plataforma e indicará la fecha de última actualización.</p>
+</section>
+<section>
+<h2 id="14-ley-aplicable-y-jurisdiccion">14) Ley aplicable y jurisdicción</h2>
+<p>Estos Términos se rigen por la legislación española. Para consumidores, se respetarán los fueros imperativos que resulten de aplicación. Para el resto de controversias, las partes se someten a los juzgados y tribunales de <strong>[CIUDAD/PROVINCIA EN ESPAÑA]</strong>.</p>
+
+<p class="muted">Nota: La antigua plataforma europea ODR de resolución de litigios en línea fue suprimida y dejó de estar operativa a partir del <strong>20/07/2025</strong>.</p>
+<p class="muted"><strong>Resumen ejecutivo:</strong> esto es un “blindaje” razonable, no un campo de fuerza. El objetivo es dejar claras responsabilidades, procesos y límites, sin pisar derechos obligatorios.</p>
+</section>
+      <footer>
+        <p class="legal-note" style="margin:0">Si eres consumidor, se respetan los derechos imperativos aplicables. Si actúas como profesional/empresa, aplican los términos pactados y los límites de responsabilidad descritos.</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

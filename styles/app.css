@@ -1,0 +1,596 @@
+/* ===== APP: Pantalla de inicio de sesión ===== */
+
+#screen-home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
+  padding: 42px 16px 90px;
+  box-sizing: border-box;
+  gap: 16px;
+}
+
+.login-wrap {
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  color: #ffffff;
+  padding: 18px;
+}
+
+.logo-big {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-big img {
+  width: 90%;
+  height: auto;
+  border-radius: 50%;
+}
+
+.login-title {
+  font-size: 40px;
+  font-weight: 800;
+  margin-top: 8px;
+  color: #ffffff;
+}
+
+.login-sub {
+  color: #e7f7fb;
+  margin-top: 8px;
+  font-size: 16px;
+}
+
+.input-pill {
+  width: 100%;
+  border-radius: 999px;
+  padding: 14px 18px;
+  border: none;
+  margin-top: 18px;
+  font-size: 15px;
+  outline: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
+  color: #0f172a;
+}
+
+.password-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.password-wrap .input-pill {
+  padding-right: 46px;
+}
+
+.toggle-pass {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #0f172a;
+  user-select: none;
+}
+
+.login-wrap .btn-primary.btn-lg {
+  margin-top: 12px;
+}
+
+.register-wrap .btn-accent.btn-lg {
+  margin-top: 10px;
+}
+
+.link-forgot {
+  background: none;
+  border: none;
+  color: #fff7b8;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 12px;
+}
+
+.modal-bg-recuperar {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+
+  /* Scroll/padding del overlay (antes estaba duplicado en el bloque global de modales) */
+  overflow-y: auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
+}
+
+.modal-recuperar {
+  background: rgba(11, 76, 129, 0.96);
+  padding: 22px 20px;
+  border-radius: 20px;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+  color: #ffffff;
+
+  /* Scroll del contenido (antes estaba duplicado en el bloque global de modales) */
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Separación entre píldoras dentro del modal Recuperar */
+.modal-recuperar .input-pill {
+  margin-bottom: 12px;
+}
+
+/* Fix: SOLO el botón Cancelar del modal Recuperar (no toca “Copiar y usar”) */
+#btn-cerrar-recuperar {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+
+  /* proporcional al texto, pero en su propia línea */
+  display: block;
+  width: fit-content;
+  margin: 10px auto 0;
+
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.2;
+
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+#btn-cerrar-recuperar:hover {
+  text-decoration: underline;
+}
+
+#btn-cerrar-recuperar:focus,
+#btn-cerrar-recuperar:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.temp-pass-box {
+  margin-top: 12px;
+  background: #0f345a;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 14px;
+  display: none;
+  word-break: break-all;
+}
+
+/* ===== Variantes de tarjetas ===== */
+.card--gradient {
+  background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  position: relative;
+  overflow: hidden;
+  padding: 16px 16px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card--gradient::before {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.22), transparent 55%);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ===== Layouts por página ===== */
+body.page-auth {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.page-recargar {
+  display: flex;
+  justify-content: center;
+  padding: 18px 16px 140px;
+  font-family: "Poppins", system-ui, sans-serif;
+  color: #ffffff;
+}
+
+body.page-historial {
+  padding-bottom: 90px;
+  font-family: "Poppins", system-ui, sans-serif;
+  color: #ffffff;
+}
+
+.historial-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ===== HISTORIAL (SISTEMA UNIFICADO) =====
+   Objetivo: todas las tarjetas mismo tamaño (fijo), chip arriba-derecha,
+   y contenido clamp (2 líneas) sin parches por tarjeta. */
+.historial-container .card--gradient {
+  width: 100%;
+  box-sizing: border-box;
+
+  /* Layout estable */
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+
+  /* Tamaño uniforme */
+  height: 112px;
+  max-height: 112px;
+
+  /* Reservar columna visual para el chip (evita que pise texto) */
+  padding-right: 132px;
+
+  /* Todo dentro del card */
+  overflow: hidden;
+}
+
+/* Icono (izquierda): no encoger */
+.historial-container .card--gradient > :first-child {
+  flex: 0 0 auto;
+}
+
+/* Contenido (centro): puede encogerse y partir */
+.historial-container .card--gradient > :nth-child(2) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Chip (derecha): siempre arriba-derecha, no encoge */
+.historial-container .card--gradient > :last-child {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+  white-space: nowrap;
+
+  /* Evitar que un chip largo (p.ej. “Sin movimientos registrados”) invada todo */
+  max-width: 52%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Título: 1 línea */
+.historial-container .card--gradient > :nth-child(2) > :first-child {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+}
+
+/* Textos intermedios: 2 líneas (opción A) */
+.historial-container .card--gradient > :nth-child(2) > :not(.fecha):not(:first-child) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Fecha: reservar espacio fijo (evita saltos) */
+.historial-container .card--gradient .fecha {
+  min-height: 14px;
+  line-height: 14px;
+}
+
+/* Mantener el brillo controlado dentro del tamaño fijo */
+.historial-container .card--gradient::before {
+  inset: -10px;
+}
+
+body.page-cuenta {
+  padding: 12px 14px 110px;
+  font-family: "Poppins", system-ui, sans-serif;
+  color: #ffffff;
+}
+
+body.page-legal {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 18px 90px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+body.page-legal h1,
+body.page-legal h2 {
+  margin: 0 0 14px;
+}
+
+body.page-legal p,
+body.page-legal li {
+  margin-bottom: 12px;
+}
+
+.page-recargar .app {
+  width: 100%;
+  max-width: 520px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 auto;
+}
+
+.page-cuenta .app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 14px 110px;
+}
+
+/* ===== FIX ModalSaldo: input importe igual que metodo + € dentro + sin spinner ===== */
+
+/* Igualar altura del “método seleccionado” con el input */
+#modalSaldo .metodo-resumen{
+  box-sizing: border-box;
+  min-height: 38px;
+}
+
+/* Campo importe: no flex (el € no debe robar ancho) */
+#modalSaldo .campo-saldo{
+  margin-top: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  display: block;
+}
+
+/* Input: mismo tamaño/bordes que metodo-resumen */
+#modalSaldo #inputSaldo{
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  color: #e5e7eb;
+
+  padding: 8px 36px 8px 10px; /* espacio para € dentro */
+  min-height: 38px;
+  font-size: 12px;
+  line-height: 1.2;
+
+  outline: none;
+}
+
+/* Focus consistente (sin bordes raros al pinchar) */
+#modalSaldo #inputSaldo:focus,
+#modalSaldo #inputSaldo:focus-visible{
+  border-color: #fbbf24;
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
+}
+
+/* € dentro del input */
+#modalSaldo .campo-saldo > span{
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  opacity: 0.8;
+  font-size: 12px;
+}
+
+/* Quitar spinner del number SOLO aquí */
+#modalSaldo #inputSaldo::-webkit-outer-spin-button,
+#modalSaldo #inputSaldo::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+#modalSaldo #inputSaldo{
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* ===== Modales: scroll para ver todas las notificaciones ===== */
+.modal-bg,
+.modal-overlay {
+  overflow-y: auto;
+  padding: 24px 16px;
+}
+
+.modal,
+.modal-content,
+.modal-card {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+
+/* ===== Toasts ===== */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  min-width: 260px;
+  max-width: 360px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.toast-success {
+  background: #25c48b;
+  color: #ffffff;
+}
+
+.toast-error {
+  background: #ff4b5c;
+  color: #ffffff;
+}
+
+/* ===== Barra de navegación inferior compartida ===== */
+.app-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(100vw, 480px);
+  max-width: 480px;
+  padding: 8px 14px 14px;
+  box-sizing: border-box;
+  z-index: 50;
+}
+
+
+.nav-inner {
+  background: linear-gradient(135deg, #16a34a, #38bdf8);
+  border-radius: 999px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(187, 247, 208, 0.9);
+
+  /* Normaliza altura entre páginas (Cuenta incluida) */
+  min-height: 64px;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.nav-btn {
+  border: none;
+  background: transparent;
+  color: #ecfdf5;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 0;
+  border-radius: 999px;
+  text-decoration: none;
+
+  /* Normaliza altura del botón (evita que en Cuenta se vea más fino) */
+  min-height: 48px;
+  box-sizing: border-box;
+
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+
+/* FIX móvil: cuando tocas, que el feedback sea pill (no rectángulo nativo) */
+.nav-btn:active {
+  background: rgba(15, 23, 42, 0.25);
+  border-radius: 999px;
+}
+
+.nav-btn span {
+  font-size: 16px;
+}
+
+.nav-icon {
+  font-family: "Poppins", "Inter", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif;
+}
+
+.nav-btn.active {
+  background: rgba(15, 23, 42, 0.25);
+  color: #f9fafb;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
+}
+
+.nav-btn.active span {
+  transform: translateY(-1px);
+}
+
+.nav-btn div {
+  font-weight: 600;
+}
+
+/* Accessibility: focus-visible */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.cta:focus-visible,
+.tab:focus-visible,
+.nav-btn:focus-visible,
+.modal-close:focus-visible {
+  outline: 2px solid #fbbf24;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
+}
+
+/* --- Legal links: unified separator --- */
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0; /* el separador lo ponemos con ::before */
+}
+
+.legal-links a + a::before {
+  content: " · ";
+  opacity: 0.8;
+}
+
+.legal-links a {
+  text-decoration: underline;
+}

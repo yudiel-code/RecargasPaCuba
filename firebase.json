@@ -1,0 +1,62 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      "firestore.indexes.json",
+      "storage.rules",
+      "database.rules.json",
+      "README*",
+      "*.ps1",
+      "*.sh",
+      "*.bat",
+      "*.cmd",
+      "**/*.pem",
+      "**/*.key",
+      "**/.env*",
+      "**/.*",
+      "**/node_modules/**",
+      "admin/**",
+      "functions/**",
+      ".firebase/**",
+      "_emulator_trash/**",
+      "firebase-debug.log",
+      "firebase-debug.*.log",
+      "firestore-debug.log",
+      "firestore-debug.*.log",
+      "firebase-export-*/**",
+      "**/firebase-export-*/**",
+      "**/*.log"
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "disallowLegacyRuntimeConfig": true,
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ],
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "ui": {
+      "enabled": true
+    },
+    "singleProjectMode": true
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

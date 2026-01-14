@@ -1,0 +1,35 @@
+rules_version = "2";
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /recargas/{docId} {
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == "PENDING";
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+    match /orders/{orderId} {
+      // Permite LIST/GET solo al dueño (por uid del doc)
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+
+      // Cliente NO crea órdenes: solo backend (Admin SDK) vía Cloud Functions
+      allow create: if false;
+
+      // Updates/deletes desde cliente: cerrados (backend manda)
+      allow update, delete: if false;
+    }
+
+    match /catalog_products/{productId} {
+  allow read: if true;
+  allow write: if false;
+}
+
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,1250 @@
+﻿﻿<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#28c6db">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
+  <title>Recargar | RecargasPaCuba</title>
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <meta name="theme-color" content="#0b5bd3">
+
+  <!-- ✅ EmailJS para correo de recarga -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="js/ui.js?v=r1"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --left: #0b63d1;
+      --right: #19c6c3;
+      --accent: #ffb13b;
+      --glass: rgba(255, 255, 255, 0.10);
+      --glass-strong: rgba(255, 255, 255, 0.18);
+      --glass-border: rgba(255, 255, 255, 0.25);
+      --text: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', system-ui, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 18px 16px 90px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      margin: 0 auto;
+      gap: 18px;
+      flex: 1;
+    }
+
+    .app-content {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      flex: 1;
+      width: 100%;
+    }
+
+    /* Pestañas CUBACEL / NAUTA */
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      background: var(--glass);
+      padding: 8px;
+      border-radius: 20px;
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+      margin-top: 4px;
+    }
+
+    .tab {
+      padding: 10px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 13px;
+      border-radius: 16px;
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.09);
+      cursor: pointer;
+      border: 1px solid rgba(255,255,255,0.20);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+      user-select: none;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      color: #0b63d1;
+    }
+
+    /* Contenedor de tarjetas */
+    .cards {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 4px;
+      padding-bottom: 6px;
+    }
+/* ✅ Oculta cards hasta que el catálogo dinámico esté listo */
+.cards { visibility: hidden; }
+body.catalog-ready .cards { visibility: visible; }
+
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .badge.promo {
+      background: rgba(255, 177, 59, 0.2);
+      border-color: rgba(255, 177, 59, 0.7);
+      color: #ffe6b3;
+    }
+
+    .tag-operator {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.9;
+    }
+
+    .card-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .price-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .price {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .price-label {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .receive-block {
+      text-align: right;
+      font-size: 12px;
+    }
+
+    .receive-label {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .receive-main {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 11px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .benefits-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .benefit {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 10px;
+      padding: 6px 4px;
+      text-align: center;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .benefit strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .extra-info {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .validity {
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffe6b3;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .fees {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .cta {
+      background: linear-gradient(135deg, #ffe176, #ffb13b);
+      border: none;
+      color: #2c1a00;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.30);
+      white-space: nowrap;
+    }
+
+    /* ✅ Anti-flash específico para esta página */
+    html {
+      visibility: hidden;
+    }
+
+    html.loaded {
+      visibility: visible;
+    }
+
+    /* ✅ MODAL RECARGA (mismo estilo que modal saldo de cuenta) */
+    .modal-bg-recarga {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      backdrop-filter: blur(6px);
+    }
+
+    .modal-recarga {
+      background: rgba(255,255,255,0.10);
+      padding: 22px;
+      border-radius: 16px;
+      max-width: 85%;
+      text-align: center;
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .modal-recarga .modal-titulo {
+      font-weight: 800;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .modal-recarga .modal-linea {
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .modal-recarga .modal-aviso {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 10px;
+    }
+
+    .modal-recarga button {
+      margin-top: 14px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: #ffb13b;
+      color: #2c1200;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+    }
+
+    /* ✅ PREFIJO +53 */
+    .input-prefijo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .prefijo {
+      background: #ffffff;
+      color: #000;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .input-prefijo input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      text-align: center;
+    }
+
+    /* ✅ SELECTOR VISUAL DE NÚMEROS RECIENTES */
+    .modal-recientes {
+      margin-top: 12px;
+      text-align: left;
+    }
+
+    .modal-recientes-titulo {
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.9;
+      margin-bottom: 6px;
+    }
+
+    .modal-recientes-lista {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .modal-recientes-item {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.12);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* ✅ Barra inferior unificada (verde hoja + azul claro) */
+  </style>
+</head>
+
+<body>
+
+  <main class="app">
+    <div class="app-content">
+
+    <!-- PESTAÑAS -->
+    <div class="tabs">
+      <div class="tab active" data-tipo="cubacel">CUBACEL</div>
+      <div class="tab" data-tipo="nauta">NAUTA</div>
+    </div>
+
+    <!-- TARJETAS CUBACEL -->
+    <section class="cards cards-cubacel">
+
+
+    </section>
+
+    <!-- TARJETAS NAUTA -->
+    <section class="cards cards-nauta" style="display:none;">
+
+
+    </section>
+
+    </div>
+ 
+  </main>
+
+ <!-- ✅ MODAL RECARGA -->
+  <div id="modal-bg-recarga" class="modal-bg-recarga">
+    <div class="modal-recarga">
+      <div class="modal-titulo">Confirma tu recarga</div>
+      <div id="modal-detalle-cobro" class="modal-linea"></div>
+      <div id="modal-detalle-recibe" class="modal-linea" style="margin-bottom:8px;"></div>
+
+      <!-- ✅ DESTINO: CUBACEL (TELÉFONO) -->
+      <div id="modal-destino-msisdn">
+        <div class="input-prefijo">
+          <span class="prefijo">+53</span>
+          <input id="modal-numero" type="tel" inputmode="numeric" maxlength="8" placeholder="Número del móvil" />
+        </div>
+
+        <div class="input-prefijo">
+          <span class="prefijo">+53</span>
+          <input id="modal-numero2" type="tel" inputmode="numeric" maxlength="8" placeholder="Repite el número" />
+        </div>
+
+        <!-- ✅ NUEVO: SELECTOR VISUAL DE NÚMEROS RECIENTES (solo aplica a teléfono) -->
+        <div id="modal-recientes" class="modal-recientes" style="display:none;">
+          <div class="modal-recientes-titulo">Últimos números usados</div>
+          <div id="modal-recientes-lista" class="modal-recientes-lista"></div>
+        </div>
+      </div>
+
+      <!-- ✅ DESTINO: NAUTA (EMAIL) -->
+      <div id="modal-destino-nauta" style="display:none;">
+        <div class="input-prefijo">
+          <input id="modal-nauta-email" type="email" inputmode="email" autocomplete="email" placeholder="usuario@nauta.com.cu" />
+        </div>
+
+        <div class="input-prefijo">
+          <input id="modal-nauta-email2" type="email" inputmode="email" autocomplete="email" placeholder="Repite el correo Nauta" />
+        </div>
+
+        <div class="modal-aviso" style="margin-top:6px;">
+          Solo se acepta @nauta.com.cu o @nauta.co.cu
+        </div>
+      </div>
+
+      <div class="modal-aviso">
+        Verifica el destino, las recargas no se pueden revertir.
+      </div>
+
+      <button id="btnRealizarRecarga">Realizar recarga</button>
+    </div>
+  </div>
+
+  <!-- Barra inferior unificada -->
+  <nav class="app-nav">
+    <div class="nav-inner">
+      <a href="recargar.html" class="nav-btn active">
+        <span>⚡</span>
+        <div>Recargar</div>
+      </a>
+      <a href="historial.html" class="nav-btn">
+        <span>🕑</span>
+        <div>Historial</div>
+      </a>
+      <a href="cuenta.html" class="nav-btn">
+        <span>👤</span>
+        <div>Cuenta</div>
+      </a>
+    </div>
+  </nav>
+
+  <!-- ✅ Data local centralizada + tabla de productos -->
+  <script src="js/userData.js?v=r1"></script>
+  <script src="js/validators.js?v=r1"></script>
+
+  <!-- ✅ Script anti-flash + tabs + modal + FASE 2 + ID + EMAIL + RECIENTES + CONTROL SESIÓN + UserData -->
+  <script>
+    (function () { 
+  let recargarInitRun=false; 
+  window.__initRecargarPage=function __initRecargarPage(authUser){ 
+    if(recargarInitRun) return; 
+    recargarInitRun=true;
+
+    // Anti-flash
+    document.documentElement.classList.add("loaded");
+
+    // ✅ Seguridad inmediata: si no hay sesión real, salir antes de cualquier render
+    try {
+      const auth = window.firebaseAuth;
+      const user = auth && auth.currentUser;
+      if (!user) {
+        const v = new URLSearchParams(location.search).get("v") || sessionStorage.getItem("rpc_v") || "";
+        const redir = v ? `index.html?next=recargar.html&v=${encodeURIComponent(v)}` : "index.html?next=recargar.html";
+        window.location.replace(redir);
+        return;
+      }
+    } catch(_) {
+      window.location.replace("index.html?next=recargar.html");
+      return;
+    }
+
+      // ✅ Inicializar EmailJS
+      if (typeof emailjs !== "undefined") {
+        emailjs.init("flObIaDu0VCKDBP7i");
+      }
+
+      // ✅ FASE 2 (sandbox/emulador): helper para crear orden PENDING en backend
+      async function createOrderSandbox({ uid, productId, destino }) {
+        const isLocal = (location.hostname === "localhost" || location.hostname === "127.0.0.1");
+const url = isLocal
+  ? "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder"
+  : "https://us-central1-recargaspacuba-7aaa8.cloudfunctions.net/createOrder";
+
+        const auth = window.firebaseAuth;
+const user = auth && auth.currentUser;
+if (!user) throw new Error("firebase-no-auth");
+const token = await user.getIdToken(true);
+
+const resp = await fetch(url, {
+  method: "POST",
+  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+  body: JSON.stringify({ uid, productId, destino })
+});
+
+
+        let data = null;
+        try { data = await resp.json(); } catch (_) {}
+
+        if (!resp.ok || !data || data.ok !== true) {
+          const code = (data && data.error) ? data.error : ("HTTP_" + resp.status);
+          throw new Error(code);
+        }
+
+        return data; // { ok, orderId, amount, currency, status }
+      }
+
+      const datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
+
+      // =========================
+      // SISTEMA DE SALDO / HISTORIAL CENTRALIZADO EN UserData
+      // =========================
+      if (!window.UserData) {
+        console.warn("UserData no disponible; usando fallback mínimo.");
+      }
+
+      function getSaldo() {
+        if (window.UserData && typeof window.UserData.getSaldo === "function") {
+          return window.UserData.getSaldo();
+        }
+        const raw = localStorage.getItem("rpc_saldo");
+        const n = parseFloat(raw);
+        return isNaN(n) ? 0 : n;
+      }
+
+      function setSaldo(nuevoSaldo) {
+        if (window.UserData && typeof window.UserData.setSaldo === "function") {
+          window.UserData.setSaldo(nuevoSaldo);
+        } else {
+          const num = Number(nuevoSaldo) || 0;
+          localStorage.setItem("rpc_saldo", num.toFixed(2));
+        }
+      }
+
+      function registrarRecargaEnHistorial(payload) {
+        if (window.UserData && typeof window.UserData.addMovimientoRecarga === "function") {
+          // Estructura estándar para el motor de monedas
+          return window.UserData.addMovimientoRecarga(payload);
+        }
+
+        // Fallback por si falla UserData
+        const raw = localStorage.getItem("rpc_historial") || "[]";
+        let lista;
+        try {
+          lista = JSON.parse(raw);
+          if (!Array.isArray(lista)) lista = [];
+        } catch (e) {
+          lista = [];
+        }
+
+        const item = {
+          fecha: new Date().toISOString(),
+          tipo: "recarga",
+          ...payload
+        };
+
+        lista.unshift(item);
+        localStorage.setItem("rpc_historial", JSON.stringify(lista));
+        return item;
+      }
+
+      function recalcularMonedas() {
+        if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
+          return window.UserData.recalcularMonedas();
+        }
+        return 0;
+      }
+
+      const validators = (window.Validators && typeof window.Validators === "object") ? window.Validators : {};
+      const validarRecargaEntrada = typeof validators.validarRecargaEntrada === "function"
+        ? validators.validarRecargaEntrada
+        : null;
+      // ✅ Capa de negocio de recarga (preparada para futuro backend)
+      async function procesarRecarga({ numero, importe, beneficio, operador, productoId, orderId }) {
+        const saldoActual = getSaldo();
+
+        if (saldoActual < importe) {
+          return {
+            success: false,
+            reason: "SALDO_INSUFICIENTE",
+            message: "Saldo insuficiente. Agrega saldo primero."
+          };
+        }
+
+        const nuevoSaldo = saldoActual - importe;
+        setSaldo(nuevoSaldo);
+
+        const idConfirmacion = "RPC-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        // Registrar en historial usando la capa centralizada
+        const movimiento = registrarRecargaEnHistorial({
+          importe,
+          numero,
+          operador: operador || "",
+          productoId: productoId || "",
+          orderId: orderId || null,
+          status: "PENDING",
+          descripcion: beneficio || "",
+          extra: {
+            beneficio: beneficio || "",
+            estado: "PENDING",
+            id: idConfirmacion,
+            orderId: orderId || null
+          }
+        });
+
+        // Recalcular monedas después de la recarga
+        recalcularMonedas();
+
+        return {
+          success: true,
+          idConfirmacion,
+          movimiento,
+          nuevoSaldo
+        };
+      }
+
+      // =========================
+      // NÚMEROS RECIENTES
+      // =========================
+      function getNumerosRecientes() {
+        return JSON.parse(localStorage.getItem("rpc_numeros_recientes") || "[]");
+      }
+
+      function guardarNumeroReciente(num) {
+        if (!num) return;
+        let lista = getNumerosRecientes().filter(n => n !== num);
+        lista.unshift(num);
+        if (lista.length > 5) {
+          lista = lista.slice(0, 5);
+        }
+        localStorage.setItem("rpc_numeros_recientes", JSON.stringify(lista));
+      }
+
+      function renderNumerosRecientes() {
+        const contenedor = document.getElementById("modal-recientes");
+        const listaEl = document.getElementById("modal-recientes-lista");
+        const inputNum1 = document.getElementById("modal-numero");
+        const inputNum2 = document.getElementById("modal-numero2");
+
+        if (!contenedor || !listaEl || !inputNum1 || !inputNum2) return;
+
+        const numeros = getNumerosRecientes();
+        listaEl.innerHTML = "";
+
+        if (!numeros.length) {
+          contenedor.style.display = "none";
+          return;
+        }
+
+        numeros.forEach(num => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "modal-recientes-item";
+          btn.textContent = num;
+          btn.addEventListener("click", () => {
+            inputNum1.value = num;
+            inputNum2.value = num;
+          });
+          listaEl.appendChild(btn);
+        });
+
+        contenedor.style.display = "block";
+      }
+
+      // Tabs Cubacel / Nauta
+      const tabs = document.querySelectorAll(".tabs .tab");
+      const cubacel = document.querySelector(".cards-cubacel");
+      const nauta = document.querySelector(".cards-nauta");
+
+      if (tabs.length === 2 && cubacel && nauta) {
+        const tabCubacel = tabs[0];
+        const tabNauta = tabs[1];
+
+        tabCubacel.addEventListener("click", () => {
+          tabCubacel.classList.add("active");
+          tabNauta.classList.remove("active");
+          cubacel.style.display = "flex";
+          nauta.style.display = "none";
+        });
+
+        tabNauta.addEventListener("click", () => {
+          tabNauta.classList.add("active");
+          tabCubacel.classList.remove("active");
+          cubacel.style.display = "none";
+          nauta.style.display = "flex";
+        });
+      }
+
+      // ===== Catálogo Firestore (cards dinámicas) =====
+      // Source of truth: catalog_products (filtra por enabled/publish).
+      // Master ID: internalProductId (tu ID). providerProductId queda “en sombra”.
+      let rpcCatalogIndex = null; // { [internalProductId]: product }
+      const RPC_PROJECT_ID = "recargaspacuba-7aaa8";
+      const RPC_COLLECTION = "catalog_products";
+
+      function rpcIsLocalhost() {
+        return location.hostname === "localhost" || location.hostname === "127.0.0.1";
+      }
+
+      function rpcDecodeValue(v) {
+        if (!v || typeof v !== "object") return null;
+        if ("stringValue" in v) return v.stringValue;
+        if ("booleanValue" in v) return !!v.booleanValue;
+        if ("integerValue" in v) return Number(v.integerValue);
+        if ("doubleValue" in v) return Number(v.doubleValue);
+        if ("nullValue" in v) return null;
+        if ("mapValue" in v) {
+          const f = (v.mapValue && v.mapValue.fields) ? v.mapValue.fields : {};
+          return rpcDecodeFields(f);
+        }
+        if ("arrayValue" in v) {
+          const arr = (v.arrayValue && Array.isArray(v.arrayValue.values)) ? v.arrayValue.values : [];
+          return arr.map(rpcDecodeValue);
+        }
+        return null;
+      }
+
+      function rpcDecodeFields(fields) {
+        const out = {};
+        if (!fields) return out;
+        for (const k of Object.keys(fields)) out[k] = rpcDecodeValue(fields[k]);
+        return out;
+      }
+
+      function rpcFormatEur(n) {
+        const num = Number(n);
+        if (!isFinite(num)) return "";
+        try {
+          return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(num);
+        } catch (_) {
+          return num.toFixed(2).replace(".", ",") + " €";
+        }
+      }
+
+      async function rpcFetchCatalog(user) {
+        const base = rpcIsLocalhost()
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`;
+
+        const headers = { "Content-Type": "application/json" };
+        try {
+          // En prod: token ayuda a pasar rules si catalog_products está protegido
+          if (user && typeof user.getIdToken === "function") {
+            const t = await user.getIdToken();
+            if (t) headers["Authorization"] = `Bearer ${t}`;
+          }
+        } catch (_) {}
+
+        const resp = await fetch(base, { method: "GET", headers });
+        const data = await resp.json().catch(() => null);
+
+        if (!resp.ok || !data) {
+          const code = (data && data.error && data.error.message) ? data.error.message : ("HTTP_" + resp.status);
+          throw new Error(code);
+        }
+
+        const docs = Array.isArray(data.documents) ? data.documents : [];
+        return docs.map(d => {
+          const name = String(d.name || "");
+          const docId = name.split("/").pop();
+          const fields = rpcDecodeFields(d.fields || {});
+          return { __docId: docId, ...fields };
+        });
+      }
+
+      function rpcToEsOfferText(input) {
+        let t = String(input || "").replace(/\s+/g, " ").trim();
+        if (!t) return "";
+
+        // Validity: "Valid for 30 Days" -> "Válido por 30 días"
+        t = t.replace(/Valid for\s*(\d+)\s*Day(s)?/gi, (_, n) => {
+          const num = String(n);
+          return `Válido por ${num} día${num === "1" ? "" : "s"}`;
+        });
+
+        // Key phrases
+        t = t.replace(/Unlimited internet/gi, "Internet ilimitado");
+        t = t.replace(/Unlimited data/gi, "datos ilimitados");
+        t = t.replace(/night\s*INTERNET\s*12am-7am/gi, "Internet nocturno de 12:00 a. m. a 7:00 a. m.");
+        t = t.replace(/night\s*Internet\s*12am-7am/gi, "Internet nocturno de 12:00 a. m. a 7:00 a. m.");
+        t = t.replace(/-?\s*50%\s*off/gi, "- 50% de descuento");
+
+        // Sentence structure (topups)
+        t = t.replace(/\bRecharge\b/gi, "Recarga");
+        t = t.replace(/\band get\b/gi, "y recibe");
+        t = t.replace(/\bin the main balance\b/gi, "en el saldo principal");
+        t = t.replace(/\bMain balance expires in\b/gi, "El saldo principal vence en");
+        t = t.replace(/\binternet expires in\b/gi, "el Internet vence en");
+        t = t.replace(/\bexpires in\s*(\d+)\s*days\b/gi, "vence en $1 días");
+        t = t.replace(/\bfor\s*(\d+)\s*days\b/gi, "por $1 días");
+        t = t.replace(/\bfor\s*(\d+)\s*hours\b/gi, "por $1 horas");
+        t = t.replace(/\band\b/gi, "y");
+
+        // Catch-all: "30 Days", "330 days", "1 day"
+        t = t.replace(/\b(\d+)\s*day(s)?\b/gi, (_, n) => {
+          const num = String(n);
+          return `${num} día${num === "1" ? "" : "s"}`;
+        });
+
+        // Cleanup
+        t = t.replace(/\s+,/g, ",").replace(/\s+\./g, ".").replace(/\s+-\s+/g, " - ").trim();
+        return t;
+      }
+
+      function rpcBuildCard(p) {
+        const internalId = String(p.internalProductId || "").trim();
+        const category = String(p.category || "").toUpperCase();
+        const isPromo = !!p.isPromo;
+        const variablePromo = !!p.variablePromo;
+        const baseEur = Number(p.sendAmountEur);
+const sellEur = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : NaN;
+const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
+        const receiveTxt = rpcToEsOfferText(p.receiveText);
+
+        const badgeClass = isPromo ? "badge promo" : "badge";
+        const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal";
+        const operatorTxt = `${category || "RECARGA"} · ${String(p.country || "Cuba")}`;
+
+        const article = document.createElement("article");
+        article.className = "card card--gradient";
+        article.innerHTML = `
+          <div class="card-header">
+            <span class="${badgeClass}">${badgeTxt}</span>
+            <span class="tag-operator">${operatorTxt}</span>
+          </div>
+
+          <div class="card-main">
+            <div class="price-block">
+              <div class="price">${priceTxt}</div>
+              <div class="price-label">Precio final</div>
+            </div>
+            <div class="receive-block">
+              <div class="receive-label">Recibe</div>
+              <div class="receive-main">${receiveTxt || "—"}</div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="extra-info">${variablePromo ? "Beneficios sujetos a promo vigente." : "Recarga directa según operador."}</div>
+            <div class="validity">Condiciones según ${category || "operador"}.</div>
+          </div>
+
+          <div class="card-footer">
+            <div class="fees">Tasas e impuestos incluidos.</div>
+            <button class="cta" data-product-id="${internalId}" data-category="${category}">Entrar para comprar</button>
+          </div>
+        `;
+        return article;
+      }
+
+      function rpcRenderCatalog(products) {
+        if (!cubacel || !nauta) return false;
+
+        const cub = [];
+        const nau = [];
+
+        for (const p of products) {
+          const cat = String(p.category || "").toUpperCase();
+          if (cat === "NAUTA") nau.push(p);
+          else cub.push(p);
+        }
+
+        // Solo reemplazamos si hay algo que renderizar (evita dejar la página vacía si falla).
+        if (!cub.length && !nau.length) return false;
+
+        cubacel.innerHTML = "";
+        nauta.innerHTML = "";
+
+        cub.forEach(p => cubacel.appendChild(rpcBuildCard(p)));
+        nau.forEach(p => nauta.appendChild(rpcBuildCard(p)));
+
+        return true;
+      }
+
+      (async function rpcLoadAndRenderCatalog() {
+        try {
+          const all = await rpcFetchCatalog(authUser);
+          const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
+          if (!visible.length) return;
+
+          rpcCatalogIndex = {};
+          visible.forEach(p => { rpcCatalogIndex[String(p.internalProductId).trim()] = p; });
+          window.__rpcCatalogIndex = rpcCatalogIndex; // debug rápido
+
+          rpcRenderCatalog(visible);
+        } catch (e) {
+          console.warn("Catalog dynamic render skipped:", e && e.message ? e.message : e);
+          // Fallback: se quedan tus cards hardcodeadas.
+        } finally {
+          document.body.classList.add("catalog-ready");
+        }
+      })();
+
+
+      // Modal Recarga
+      const modalBg = document.getElementById("modal-bg-recarga");
+      const modalCobro = document.getElementById("modal-detalle-cobro");
+      const modalRecibe = document.getElementById("modal-detalle-recibe");
+      const inputNum1 = document.getElementById("modal-numero");
+      const inputNum2 = document.getElementById("modal-numero2");
+      const inputNauta1 = document.getElementById("modal-nauta-email");
+      const inputNauta2 = document.getElementById("modal-nauta-email2");
+      const modalDestinoMsisdn = document.getElementById("modal-destino-msisdn");
+      const modalDestinoNauta = document.getElementById("modal-destino-nauta");
+      const modalRecientes = document.getElementById("modal-recientes");
+      const btnRealizar = document.getElementById("btnRealizarRecarga");
+      const modalDlg = modalBg ? modalBg.querySelector(".modal-recarga") : null;
+      let lastFocusedElement = null;
+      let tipoDestinoActual = "msisdn"; // "msisdn" | "nauta"
+
+      function abrirModalRecarga() {
+        if (!modalBg) return;
+        lastFocusedElement = document.activeElement;
+        modalBg.style.display = "flex";
+        setTimeout(() => {
+          if (modalDlg && typeof modalDlg.focus === "function") {
+            modalDlg.focus();
+          }
+        }, 0);
+      }
+
+      function cerrarModalRecarga() {
+        if (modalBg) modalBg.style.display = "none";
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+          lastFocusedElement.focus();
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && modalBg && modalBg.style.display === "flex") {
+          cerrarModalRecarga();
+        }
+      });
+
+      let precioActual = 0;
+      let beneficioActual = "";
+      let operadorActual = "";
+      let productoActual = null;
+
+      if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
+        // Click handler único (sirve para cards hardcodeadas y dinámicas)
+        document.addEventListener("click", (e) => {
+          const btn = (e.target && e.target.closest) ? e.target.closest(".card .cta") : null;
+          if (!btn) return;
+
+          // ✅ Seguridad: aborta si no hay sesión
+          const auth = window.firebaseAuth;
+          if (!auth || !auth.currentUser) {
+            const v = new URLSearchParams(location.search).get("v") || sessionStorage.getItem("rpc_v") || "";
+            const redir = v ? `index.html?next=recargar.html&v=${encodeURIComponent(v)}` : "index.html?next=recargar.html";
+            window.location.replace(redir);
+            return;
+          }
+
+          const productId = btn.getAttribute("data-product-id"); // internalProductId (tu ID)
+          const categoryBtn = String(btn.getAttribute("data-category") || "").toUpperCase();
+
+          productoActual = null;
+          precioActual = 0;
+          beneficioActual = "";
+          operadorActual = "";
+
+          let precioTxt = "";
+          let recibeTxt = "";
+
+          // 1) Preferimos catálogo dinámico (Firestore)
+          const catProd = (productId && window.__rpcCatalogIndex) ? window.__rpcCatalogIndex[String(productId).trim()] : null;
+
+          if (catProd) {
+            productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
+            const baseEur = Number(catProd.sendAmountEur);
+precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : 0;
+            beneficioActual = String(catProd.receiveText || "").trim();
+            operadorActual = String(catProd.category || "").toUpperCase();
+
+            precioTxt = rpcFormatEur(precioActual);
+            recibeTxt = beneficioActual;
+
+            // Tipo destino por categoría (NAUTA = email)
+            tipoDestinoActual = (operadorActual === "NAUTA" || categoryBtn === "NAUTA") ? "nauta" : "msisdn";
+          } else {
+            showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
+            return;
+          }
+
+          modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
+          modalRecibe.textContent = (tipoDestinoActual === "nauta")
+            ? `La cuenta NAUTA recibe: ${recibeTxt}`
+            : `El móvil recibe: ${recibeTxt}`;
+
+          // Reset inputs
+          inputNum1.value = "";
+          inputNum2.value = "";
+          if (inputNauta1) inputNauta1.value = "";
+          if (inputNauta2) inputNauta2.value = "";
+
+          // Toggle UI del modal según tipo
+          if (modalDestinoMsisdn) modalDestinoMsisdn.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+          if (modalDestinoNauta) modalDestinoNauta.style.display = (tipoDestinoActual === "nauta") ? "block" : "none";
+
+          // Recientes solo aplica a teléfono
+          if (modalRecientes) modalRecientes.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+          if (tipoDestinoActual === "msisdn") {
+            renderNumerosRecientes();
+          }
+
+          abrirModalRecarga();
+        });
+
+        // Cerrar modal al tocar fuera
+        modalBg.addEventListener("click", (e) => {
+          if (e.target === modalBg) {
+            cerrarModalRecarga();
+          }
+        });
+
+        // Botón Realizar recarga (UserData + Email + recientes + VALIDACIÓN)
+        btnRealizar.addEventListener("click", async () => {
+          if (navigator.onLine === false) {
+            if (typeof showToastError === 'function') {
+              showToastError('No tienes conexión, no puedes realizar recargas ahora.');
+            } else {
+              alert('No tienes conexión, no puedes realizar recargas ahora.');
+            }
+            return;
+          }
+
+          const isNauta = (tipoDestinoActual === "nauta");
+          const n1 = inputNum1.value || "";
+          const n2 = inputNum2.value || "";
+          const e1 = (inputNauta1 && inputNauta1.value) ? inputNauta1.value : "";
+          const e2 = (inputNauta2 && inputNauta2.value) ? inputNauta2.value : "";
+
+          if (typeof validarRecargaEntrada !== "function") {
+            const msgValidacion = "No se pudo validar los datos. Inténtalo de nuevo.";
+            if (typeof showToastError === "function") {
+              showToastError(msgValidacion);
+            } else {
+              alert(msgValidacion);
+            }
+            return;
+          }
+
+          // Nota: validators.js debe aceptar email1/email2 cuando operador/tipo sea NAUTA
+          const validacion = validarRecargaEntrada({
+            operador: operadorActual || "",
+            tipo: isNauta ? "nauta" : "cubacel",
+            numero1: n1,
+            numero2: n2,
+            email1: e1,
+            email2: e2
+          });
+
+          if (!validacion.ok) {
+            const errorMsg = validacion.error || "Datos inválidos. Revisa e inténtalo de nuevo.";
+            if (typeof showToastError === "function") {
+              showToastError(errorMsg);
+            } else {
+              alert(errorMsg);
+            }
+            return;
+          }
+
+          if (!precioActual || isNaN(precioActual)) {
+            showToastError("No se pudo leer el precio de la recarga.");
+            return;
+          }
+
+          const destinoFinal = (validacion.sanitized && (validacion.sanitized.destino || validacion.sanitized.numero))
+            ? (validacion.sanitized.destino || validacion.sanitized.numero)
+            : null;
+
+          const productoId = productoActual ? productoActual.id : null;
+
+          // ✅ FASE 2 (sandbox/emulador): crear ORDEN PENDING en backend (Cloud Function createOrder)
+          let orderResp = null;
+          let orderId = null;
+
+          try {
+            const auth = window.firebaseAuth;
+            const user = auth && auth.currentUser;
+            if (!user) throw new Error("firebase-no-auth");
+            if (!productoId) throw new Error("missing-productId");
+
+            const destinoForOrder = String(
+              destinoFinal ||
+                (isNauta
+                  ? (e1 || "").trim()
+                  : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
+            );
+
+            orderResp = await createOrderSandbox({
+              uid: user.uid,
+              productId: String(productoId),
+              destino: destinoForOrder
+            });
+
+            orderId = orderResp && orderResp.orderId ? String(orderResp.orderId) : null;
+          } catch (e) {
+            console.error("createOrderSandbox failed:", e);
+            showToastError("No se pudo crear la orden. Inténtalo de nuevo.");
+            return;
+          }
+
+const resultado = await procesarRecarga({
+            numero: destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""))),
+            importe: precioActual,
+            beneficio: beneficioActual,
+            operador: operadorActual || "",
+            productoId,
+            orderId
+          });
+
+
+          if (!resultado || !resultado.success) {
+            const msg = resultado && resultado.message
+              ? resultado.message
+              : "No se pudo procesar la recarga. Inténtalo de nuevo.";
+            showToastError(msg);
+            return;
+          }
+
+          const { idConfirmacion, movimiento } = resultado;
+
+          // ? Guardar número reciente
+          if (!isNauta && destinoFinal) {
+            guardarNumeroReciente(String(destinoFinal).replace(/^\+?53/, ""));
+          }
+
+          // ? Correo al cliente (EmailJS)
+          if (datosUsuario && datosUsuario.email && typeof emailjs !== "undefined") {
+            try {
+              await emailjs.send("service_ryvafj3", "template_k5t8asf", {
+                to_email: datosUsuario.email,
+                numero: (destinoFinal || (movimiento && movimiento.numero) || ""),
+                importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
+                beneficio: movimiento.beneficio || beneficioActual,
+                fecha: movimiento.fecha || new Date().toLocaleString(),
+                                id_confirmacion: (orderId || idConfirmacion)
+
+              });
+            } catch (err) {
+              console.error("Error enviando correo de recarga:", err);
+            }
+          }
+
+          showToastSuccess("¡ Recarga registrada correctamente\nID: " + (orderId || idConfirmacion));
+          cerrarModalRecarga();
+        });
+      }
+    }; })();
+  </script>
+
+  <!-- ? B1.3: onAuthStateChanged para sincronizar sesión con Firebase en RECARGAR -->
+  <script type="module">
+    import { guardProtectedPage } from "./js/guard.js?v=r1";
+    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+
+    // ✅ Fix rápido anti “Atrás tras logout” (BFCache): si el navegador restaura la página desde cache,
+    // y ya NO hay sesión, redirigimos inmediatamente al login con next=recargar.
+    function buildLoginNextUrl() {
+      const sp = new URLSearchParams(window.location.search || "");
+      const vInUrl = sp.get("v");
+      let v = vInUrl;
+
+      if (!v) {
+        try { v = sessionStorage.getItem("rpc_v"); } catch (_) {}
+      }
+
+      let url = "index.html?next=recargar.html";
+      if (v) url += `&v=${encodeURIComponent(v)}`;
+      return url;
+    }
+
+    window.addEventListener("pageshow", (e) => {
+      // Solo BFCache (botón Atrás / forward)
+      if (!e || !e.persisted) return;
+      if (!auth || !("currentUser" in auth)) return;
+      if (!auth.currentUser) window.location.replace(buildLoginNextUrl());
+    }, { passive: true });
+
+    guardProtectedPage({
+      auth,
+      onAuthStateChanged,
+      redirectTo: (() => {
+        const vInUrl = new URLSearchParams(window.location.search || "").get("v");
+        if (vInUrl) return "index.html";
+        let vStored = null;
+        try { vStored = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        if (vStored) return `index.html?v=${encodeURIComponent(vStored)}`;
+        return "index.html";
+      })(),
+      timeoutMs: 20000,
+      onReady: (user) => {
+        try {
+          const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+          const datos = JSON.parse(raw);
+
+          const nuevo = {
+            ...datos,
+            nombre: datos.nombre || user.displayName || "",
+            email: (user.email || "").toLowerCase(),
+            activo: true
+          };
+
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+          localStorage.setItem("usuario", (user.email || "").toLowerCase());
+        } catch (e) {
+          console.error("Error sincronizando sesión en recargar:", e);
+        }
+
+        if (document.readyState === "complete") {
+          window.__initRecargarPage(user);
+        } else {
+          window.addEventListener("load", () => window.__initRecargarPage(user), { once: true });
+        }
+      }
+    });
+  </script>
+
+  <script type="module" src="js/app.js?v=r1"></script>
+</body>
+</html>
+
+

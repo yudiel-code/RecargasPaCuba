@@ -1,0 +1,1972 @@
+﻿<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cuenta | RecargasPaCuba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#28c6db">
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <script src="js/ui.js?v=r1"></script>
+
+  <style>
+    html { min-height: 100%; }
+  </style>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #ffffff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 12px 14px 110px;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(9, 53, 118, 0.8);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .header-title {
+      flex: 1;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .estado-online {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(4, 120, 87, 0.13);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      color: #bbf7d0;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .estado-online span.dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background-color: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.28);
+    }
+
+    .app-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding-top: 10px;
+      padding-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .card-sub {
+      font-size: 12px;
+      opacity: 0.85;
+    }
+
+    .card-tag {
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(34, 211, 238, 0.16);
+      border: 1px solid rgba(125, 211, 252, 0.8);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-tag span.dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background-color: #22c55e;
+    }
+
+    .card-main {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mini-label {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .saldo-valor {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .ultima-linea {
+      margin-top: 6px;
+      font-size: 12px;
+      opacity: 0.9;
+    }
+
+    .btn-small {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-small.primary {
+      background: linear-gradient(135deg, #fbbf24, #f97316);
+      color: #1f2933;
+    }
+
+    .btn-small.secondary {
+      background: rgba(15, 118, 178, 0.92);
+      color: #e0f2fe;
+    }
+
+    .btn-small svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    .card-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 11px;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
+    }
+
+    .pill-info {
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .usuario-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 20% 0%, #fde68a, #f97316);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1f2937;
+      font-size: 22px;
+      font-weight: 800;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    .avatar-letra {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar small {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      background: #10b981;
+      color: white;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.8);
+    }
+
+    .usuario-datos {
+      flex: 1;
+    }
+
+    .usuario-datos .nombre {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .usuario-datos .correo {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .usuario-datos .tag {
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(15, 23, 42, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      cursor: pointer;
+    }
+
+    .btn-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .subgrid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 8px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sub-card {
+      background: rgba(15, 23, 42, 0.86);
+      border-radius: 16px;
+      padding: 10px 11px;
+      font-size: 11px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+    }
+
+    .sub-card span.label {
+      opacity: 0.7;
+      font-size: 10px;
+    }
+
+    .sub-card span.valor {
+      display: block;
+      margin-top: 3px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .sub-card .cta {
+      margin-top: 6px;
+      font-size: 10px;
+      opacity: 0.85;
+    }
+
+    .sub-card .cta strong {
+      color: #fbbf24;
+    }
+
+    .card-titulo-monedas {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .card-descripcion-monedas {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .monedas-resumen {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .monedas-valores {
+      font-size: 13px;
+    }
+
+    .monedas-valores .principal {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .monedas-valores .secundario {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .monedas-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(30, 64, 175, 0.85);
+      border: 1px solid rgba(191, 219, 254, 0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .barra-progreso-wrap {
+      margin-bottom: 10px;
+    }
+
+    .barra-progreso-label {
+      font-size: 11px;
+      opacity: 0.9;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .barra-progreso {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .barra-progreso-inner {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #a3e635);
+      width: 0%;
+      transition: width 0.4s ease-out;
+    }
+
+    .tabla-monedas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .tabla-monedas th,
+    .tabla-monedas td {
+      padding: 4px 3px;
+      text-align: left;
+    }
+
+    .tabla-monedas th {
+      font-weight: 600;
+      opacity: 0.9;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .tabla-monedas td {
+      opacity: 0.95;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.7);
+    }
+
+    .tabla-monedas tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tabla-monedas td span.destacado {
+      color: #facc15;
+      font-weight: 600;
+    }
+
+    .canje-wrap {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .canje-info {
+      font-size: 11px;
+      opacity: 0.9;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .canje-info strong {
+      color: #bef264;
+    }
+
+    .btn-canje {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.7);
+      color: rgba(148, 163, 184, 0.9);
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+    }
+
+    .btn-canje.activo {
+      background: linear-gradient(135deg, #22c55e, #a3e635);
+      color: #052e16;
+      border-style: solid;
+    }
+
+    .card-lista {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .card-lista li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.85);
+    }
+
+
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      padding: 24px 12px;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 480px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 50%),
+                  rgba(15, 23, 42, 0.96);
+      border-radius: 24px;
+      padding: 16px 16px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-close {
+      border-radius: 999px;
+      border: none;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    .modal-body {
+      font-size: 13px;
+      opacity: 0.95;
+    }
+
+    .selector-banco {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .banco-pill {
+      flex: 1;
+      min-width: 110px;
+      padding: 9px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .banco-pill span.nombre {
+      font-weight: 600;
+    }
+
+    .banco-pill span.tag {
+      font-size: 10px;
+      opacity: 0.85;
+    }
+
+    .banco-pill.active {
+      border-color: rgba(56, 189, 248, 0.9);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.96));
+    }
+
+    .modal-footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .modal-footer .btn-secondary {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: none;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .modal-footer .btn-primary {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #22c55e, #a3e635);
+      color: #052e16;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .metodo-resumen {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .metodo-resumen strong {
+      color: #e5e7eb;
+    }
+
+    .metodo-cambiar {
+      border: none;
+      background: transparent;
+      color: #38bdf8;
+      font-size: 11px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 4px 6px;
+      border-radius: 999px;
+    }
+
+    .link-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      font-size: 13px;
+    }
+
+    .link-list li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(30, 64, 175, 0.5);
+      cursor: pointer;
+    }
+
+    .link-list li:last-child {
+      border-bottom: none;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .link-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .link-text-main {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .link-text-sub {
+      font-size: 11px;
+      opacity: 0.75;
+    }
+
+    .link-chevron {
+      opacity: 0.8;
+      font-size: 14px;
+    }
+
+    .cuenta-campos {
+      margin-top: 10px;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .campo {
+      margin-bottom: 10px;
+    }
+
+    .campo-label {
+      opacity: 0.85;
+      font-size: 12px;
+    }
+
+    .campo input {
+      width: 100%;
+      margin-top: 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.95);
+      color: #e5e7eb;
+      padding: 8px 12px;
+      outline: none;
+      font-size: 13px;
+    }
+
+    .campo .password-wrap {
+      margin-top: 4px;
+    }
+
+    .campo .password-wrap input {
+      padding-right: 38px;
+    }
+
+    .campo .ojo-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      cursor: pointer;
+      user-select: none;
+      color: #ffffff;
+      background: transparent;
+      border: none;
+      padding: 0;
+      appearance: none;
+      -webkit-appearance: none;
+      line-height: 1;
+    }
+    .campo .ojo-toggle svg {
+      fill: currentColor;
+    }
+
+    .modal-footer .alerta {
+      font-size: 11px;
+      opacity: 0.8;
+      flex: 1;
+      text-align: left;
+    }
+
+    .logout-btn {
+      width: 100%;
+      margin-top: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(239, 68, 68, 0.85);
+      background: rgba(127, 29, 29, 0.9);
+      color: #fecaca;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .logout-btn span.icon {
+      font-size: 15px;
+    }
+
+    .seguridad-lista {
+      margin-top: 6px;
+      font-size: 11px;
+      opacity: 0.9;
+      list-style: none;
+      padding: 0;
+    }
+
+    .seguridad-lista li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+
+    .seguridad-lista span.bullet {
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(190, 242, 100, 0.9);
+    }
+
+    .monedas-icon {
+      width: 50px;
+      height: 50px;
+      fill: #fff;
+    }
+
+    #avatarBox:focus-visible,
+    .metodo-opcion:focus-visible,
+    .link-list li:focus-visible {
+      outline: 2px solid #fbbf24;
+      outline-offset: 3px;
+      box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div>
+        <div class="header-title">Tu cuenta</div>
+        <div class="estado-online">
+          <span class="dot"></span>
+          <span>Servicio activo</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-scroll">
+      <section class="card card--gradient">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Saldo RecargasPaCuba</div>
+            <div class="card-sub">Controla tu saldo disponible y tus últimos movimientos</div>
+          </div>
+          <div class="card-tag">
+            <span class="dot"></span>
+            <span>Seguro y en España</span>
+          </div>
+        </div>
+
+        <div class="card-main">
+          <div>
+            <div class="mini-label">Saldo disponible</div>
+            <div id="saldo" class="saldo-valor">0,00 €</div>
+            <div id="ultimoMovimiento" class="ultima-linea">Último movimiento: Aún no tienes movimientos</div>
+          </div>
+          <div style="margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:16px;">
+            <button id="addSaldoBtn" class="btn-small primary">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+              Añadir saldo
+            </button>
+          </div>
+        </div>
+
+        <div class="card-footer" style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
+          <div class="pill-info">Tarifa sin permanencia</div>
+          <div class="pill-info">Registro en España</div>
+          <div class="pill-info">Historial accesible al instante</div>
+
+          <a href="https://chatgpt.com/g/g-695e6724b71881918a6446191577c226-recargaspacuba-bot-chat"
+   target="_blank" rel="noopener"
+   aria-label="Abrir guía rápida"
+   class="pill-info"
+   style="margin-left:auto; margin-top:-6px; display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-weight:800; font-size:13px; letter-spacing:.2px; color:inherit;">
+  <span aria-hidden="true" style="width:22px; height:22px; display:block;">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+      <path d="M7.5 19.5l-1.7 1.1c-.6.4-1.3-.2-1.1-.9l.6-2.1A8.5 8.5 0 1 1 20.5 12c0 4.1-3.6 7.5-8.5 7.5H7.5Z"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </span>
+  <span style="display:block; line-height:1;">Guia Rapida</span>
+</a>
+
+        </div>
+      </section>
+
+      <section class="card card--gradient">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Perfil de usuario</div>
+            <div class="card-sub">Gestiona tus datos principales y tu avatar</div>
+          </div>
+        </div>
+
+        <div class="usuario-box">
+          <div class="avatar" id="avatarBox" role="button" tabindex="0" aria-label="Editar avatar">
+            <div class="avatar-letra" id="avatarLetra">Y</div>
+            <img id="avatarImg" alt="Avatar usuario">
+            <small>Editar</small>
+          </div>
+          <input id="inputAvatar" type="file" accept="image/*" style="display:none;" />
+          <div class="usuario-datos">
+            <div class="nombre" id="nombreUsuario">Usuario</div>
+            <div class="correo" id="correoUsuario">correo@ejemplo.com</div>
+            <div class="tag">Cuenta creada y gestionada desde España</div>
+          </div>
+          <button class="btn-icon" id="editarCuentaBtn" title="Editar datos de cuenta">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="subgrid">
+          <div class="sub-card">
+            <span class="label">Estado de la cuenta</span>
+            <span class="valor" id="estadoCuenta">Activa</span>
+            <div class="cta">
+              Verifica que tus datos estén siempre <strong>actualizados</strong>.
+            </div>
+          </div>
+          <div class="sub-card">
+            <span class="label">Contacto preferido</span>
+            <span class="valor">Correo electrónico</span>
+            <div class="cta">
+              Escríbenos siempre desde el email que usas en <strong>RecargasPaCuba</strong>.
+            </div>
+          </div>
+        </div>
+
+        <button id="soporteBtn" class="btn-small secondary" style="margin-top:12px;">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3a9 9 0 0 0-9 9v3a3 3 0 0 0 3 3h1v-7H6a6 6 0 0 1 12 0h-1v7h1a3 3 0 0 0 3-3v-3a9 9 0 0 0-9-9z" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          Contactar soporte
+        </button>
+
+        <button id="logoutBtn" class="logout-btn">
+          <span class="icon">⏏</span>
+          <span>Cerrar sesión de forma segura</span>
+        </button>
+
+        <ul class="seguridad-lista">
+          <li>
+            <span class="bullet"></span>
+            <span>No compartas tu contraseña con nadie, ni siquiera con soporte.</span>
+          </li>
+          <li>
+            <span class="bullet"></span>
+            <span>Si detectas un acceso raro, cambia tu contraseña desde la app.</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="card card--gradient">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Programa de monedas</div>
+            <div class="card-sub">Gana recompensas con tus recargas recurrentes</div>
+          </div>
+          <svg class="monedas-icon" viewBox="0 0 64 64">
+            <circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="42" cy="32" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="26" cy="42" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+          </svg>
+        </div>
+
+        <div class="card-main" style="align-items:flex-start;">
+          <div class="monedas-resumen">
+            <div class="monedas-valores">
+              <div class="principal"><span id="monedasActuales">0</span> monedas</div>
+              <div class="secundario">Recarga y acumula hasta llegar a tu recompensa</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="barra-progreso-wrap">
+          <div class="barra-progreso-label">
+            <span>Progreso hacia el canje</span>
+            <span id="monedasProgresoTexto">0 / 999</span>
+          </div>
+          <div class="barra-progreso">
+            <div id="barraProgresoInner" class="barra-progreso-inner"></div>
+          </div>
+        </div>
+
+        <table class="tabla-monedas">
+          <thead>
+            <tr>
+              <th>Recarga</th>
+              <th>Importe</th>
+              <th>Monedas</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cubacel</td>
+              <td>10 €</td>
+              <td>13</td>
+            </tr>
+            <tr>
+              <td>Cubacel</td>
+              <td>20 €</td>
+              <td>27</td>
+            </tr>
+            <tr>
+              <td>Cubacel</td>
+              <td>30 €</td>
+              <td>41</td>
+            </tr>
+            <tr>
+              <td>Cubacel</td>
+              <td>50 €</td>
+              <td><span class="destacado">69</span></td>
+            </tr>
+            <tr>
+              <td>Nauta</td>
+              <td>Cualquier importe</td>
+              <td>5 (fijo)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ul class="card-lista">
+          <li>
+            <span class="bullet"></span>
+            <span>Las monedas se suman automáticamente cada vez que completas una recarga.</span>
+          </li>
+          <li>
+            <span class="bullet"></span>
+            <span>Al llegar a <strong>999 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
+          </li>
+          <li>
+            <span class="bullet"></span>
+            <span>Las monedas no son dinero real, son puntos promocionales internos.</span>
+          </li>
+        </ul>
+
+        <div class="canje-wrap">
+          <div class="canje-info">
+            <strong>Canje disponible a partir de 999 monedas.</strong><br>
+            Una vez canjeado, el saldo promocional se sumará a tu balance para futuras recargas.
+          </div>
+          <button id="btnCanje" class="btn-canje">
+            Canjear 999 monedas por 20 €
+          </button>
+        </div>
+      </section>
+
+      <section class="card card--gradient">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Centro legal</div>
+            <div class="card-sub">Información legal y documentación de tu cuenta y la app</div>
+          </div>
+        </div>
+
+        <ul class="link-list">
+          <li role="button" tabindex="0" aria-label="Ver términos y condiciones">
+            <div class="link-item">
+              <div class="link-icon">📋</div>
+              <div>
+                <div class="link-text-main">Términos y condiciones</div>
+                <div class="link-text-sub">Información legal y condiciones de uso</div>
+              </div>
+            </div>
+            <div class="link-chevron">›</div>
+          </li>
+
+          <li role="button" tabindex="0" aria-label="Ver política de privacidad">
+            <div class="link-item">
+              <div class="link-icon">🔐</div>
+              <div>
+                <div class="link-text-main">Política de privacidad</div>
+                <div class="link-text-sub">Datos tratados y cómo los protegemos</div>
+              </div>
+            </div>
+            <div class="link-chevron">›</div>
+          </li>
+
+          <li role="button" tabindex="0" aria-label="Ver política de reembolsos">
+            <div class="link-item">
+              <div class="link-icon">💳</div>
+              <div>
+                <div class="link-text-main">Política de reembolsos</div>
+                <div class="link-text-sub">Información clave sobre devoluciones</div>
+              </div>
+            </div>
+            <div class="link-chevron">›</div>
+          </li>
+        </ul>
+      </section>
+    </div>
+  </div>
+
+  <nav class="app-nav">
+    <div class="nav-inner">
+      <a href="recargar.html" class="nav-btn">
+        <span>⚡</span>
+        <div>Recargar</div>
+      </a>
+      <a href="historial.html" class="nav-btn">
+        <span>🕑</span>
+        <div>Historial</div>
+      </a>
+      <a href="cuenta.html" class="nav-btn active">
+        <span>👤</span>
+        <div>Cuenta</div>
+      </a>
+    </div>
+  </nav>
+
+  <div id="modalMetodo" class="modal-bg">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalMetodoTitle" tabindex="-1">
+      <div class="modal-header">
+        <div class="modal-title" id="modalMetodoTitle">Seleccionar método de pago</div>
+        <button class="modal-close" data-close="metodo" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Elige cómo quieres añadir saldo a tu monedero RecargasPaCuba.</p>
+        <div class="selector-banco">
+          <div class="banco-pill metodo-opcion" data-metodo="bizum" role="button" tabindex="0" aria-label="Seleccionar Bizum">
+            <div>
+              <span class="nombre">Bizum</span><br>
+              <span class="tag">En segundos</span>
+            </div>
+            <div>📲</div>
+          </div>
+          <div class="banco-pill metodo-opcion" data-metodo="transferencia" role="button" tabindex="0" aria-label="Seleccionar transferencia">
+            <div>
+              <span class="nombre">Transferencia</span><br>
+              <span class="tag">24-48 horas</span>
+            </div>
+            <div>🏦</div>
+          </div>
+          <div class="banco-pill metodo-opcion" data-metodo="paypal" role="button" tabindex="0" aria-label="Seleccionar PayPal">
+            <div>
+              <span class="nombre">PayPal</span><br>
+              <span class="tag">Pago online</span>
+            </div>
+            <div>🅿️</div>
+          </div>
+          <div class="banco-pill metodo-opcion" data-metodo="tarjeta" role="button" tabindex="0" aria-label="Seleccionar tarjeta">
+            <div>
+              <span class="nombre">Visa &amp; Mastercard</span><br>
+              <span class="tag">Tarjeta bancaria</span>
+            </div>
+            <div>💳</div>
+          </div>
+        </div>
+        <p style="font-size:11px;opacity:0.85;">
+          Por ahora este panel es informativo. Más adelante, al activarlo, verás los datos
+          reales (Bizum, transferencia, PayPal o tarjeta) y las confirmaciones de pago dentro de la app.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" data-close="metodo">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalSaldo" class="modal-bg">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSaldoTitle" tabindex="-1">
+      <div class="modal-header">
+        <div class="modal-title" id="modalSaldoTitle">Añadir saldo manual</div>
+        <button class="modal-close" data-close="saldo" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Introduce el importe que quieres añadir a tu saldo una vez confirmado el pago. <strong>Saldo máximo permitido: 100 €</strong> (si intentas añadir más, solo se añadirá hasta alcanzar el límite).</p>
+        <div id="metodoResumen" class="metodo-resumen" style="display:none;">
+          <span>Método seleccionado: <strong id="metodoSeleccionadoTexto"></strong></span>
+          <button id="cambiarMetodoBtn" type="button" class="metodo-cambiar">Cambiar</button>
+        </div>
+        <div class="campo-saldo">
+          <input id="inputSaldo" type="number" min="0" step="1" placeholder="Ej: 20">
+          <span>€</span>
+        </div>
+        <p style="font-size:11px;opacity:0.85;margin-top:8px;">
+          Este panel está pensado para uso interno. Úsalo solo cuando hayas confirmado el pago
+          (Bizum, transferencia, PayPal o tarjeta).
+        </p>
+      </div>
+      <div class="modal-footer">
+        <span class="alerta">
+          Recuerda registrar los movimientos de saldo también en tu control interno.
+        </span>
+        <button class="btn-secondary" data-close="saldo" type="button">Cancelar</button>
+        <button id="confirmarSaldoBtn" class="btn-primary">Guardar saldo</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modalCuenta" class="modal-bg">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalCuentaTitle" tabindex="-1">
+      <div class="modal-header">
+        <div class="modal-title" id="modalCuentaTitle">Datos de tu cuenta</div>
+        <button class="modal-close" data-close="cuenta" type="button" aria-label="Cerrar">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="cuenta-campos">
+          <div class="campo">
+            <div class="campo-label">Nombre completo</div>
+            <input id="cuentaNombre" type="text" placeholder="Tu nombre">
+          </div>
+          <div class="campo">
+            <div class="campo-label">Correo principal</div>
+            <input id="cuentaCorreo" type="email" placeholder="correo@ejemplo.com">
+          </div>
+          <div class="campo">
+            <div class="campo-label">Contraseña (solo para cambiarla)</div>
+            <div class="password-wrap" style="position:relative;">
+              <input id="cuentaPass" type="password" placeholder="Deja vacío si no quieres cambiarla">
+              <span id="togglePass" class="ojo-toggle toggle-pass" role="button" aria-label="Mostrar contrasena" aria-pressed="false">
+                <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                  <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+                </svg>
+                <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+                  <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="alerta">
+          Estos cambios solo afectan a tu acceso y comunicación con RecargasPaCuba.
+        </span>
+        <button class="btn-secondary" data-close="cuenta">Cancelar</button>
+        <button id="guardarCuentaBtn" class="btn-primary">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA LOCAL CENTRALIZADA -->
+  <script src="js/userData.js?v=r1"></script>
+
+  <!-- SCRIPT PRINCIPAL -->
+  <script>
+    window.__initCuentaPage = function __initCuentaPage(authUser) {
+  // Cierre genérico de modales: cualquier botón con data-close cierra su .modal-bg
+  if (!window.__rpcModalCloseBound) {
+    window.__rpcModalCloseBound = true;
+
+    document.addEventListener("click", (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest("[data-close]") : null;
+      if (!btn) return;
+
+      const modalBg = btn.closest(".modal-bg");
+      if (modalBg) modalBg.style.display = "none";
+    });
+  }
+
+  const usuarioSesion = localStorage.getItem("usuario");
+
+    let datosUsuario;
+    try {
+      datosUsuario = JSON.parse(localStorage.getItem("usuarioRegistrado") || "{}");
+    } catch (e) {
+      console.error("Error leyendo usuarioRegistrado, usando objeto vacío:", e);
+      datosUsuario = {};
+    }
+
+    // B1.2: asegurarnos de que no quede contraseña guardada en localStorage
+    if (datosUsuario && datosUsuario.pass) {
+      delete datosUsuario.pass;
+      localStorage.setItem("usuarioRegistrado", JSON.stringify(datosUsuario));
+    }
+
+    if (!usuarioSesion) {
+      const currentPage = (location.pathname || "").split("/").pop() || "cuenta.html";
+      const relativeTarget = `${currentPage}${location.search || ""}${location.hash || ""}`;
+      const p = new URLSearchParams();
+      p.set("next", relativeTarget);
+      const v = new URLSearchParams(location.search || "").get("v");
+      if (v) p.set("v", v);
+      window.location.replace(`index.html?${p.toString()}`);
+    }
+
+    const nombreMostrar = datosUsuario.nombre || "Usuario";
+    const nombreUsuarioEl = document.getElementById("nombreUsuario");
+    if (nombreUsuarioEl) nombreUsuarioEl.textContent = nombreMostrar;
+
+    const correoMostrar = datosUsuario.email || "correo@ejemplo.com";
+    const correoUsuarioEl = document.getElementById("correoUsuario");
+    if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
+
+    // ===== Capa de acceso a saldo / historial vía UserData (preparada para backend) =====
+    function getSaldo() {
+      if (window.UserData && typeof window.UserData.getSaldo === "function") {
+        return window.UserData.getSaldo();
+      }
+      console.warn("UserData.getSaldo no disponible; devolviendo 0.");
+      return 0;
+    }
+
+    function setSaldo(nuevoSaldo) {
+      if (window.UserData && typeof window.UserData.setSaldo === "function") {
+        window.UserData.setSaldo(nuevoSaldo);
+        return;
+      }
+      console.warn("UserData.setSaldo no disponible; saldo no persistido.");
+    }
+
+    function getHistorialSeguro() {
+      if (window.UserData && typeof window.UserData.getHistorial === "function") {
+        const lista = window.UserData.getHistorial();
+        return Array.isArray(lista) ? lista : [];
+      }
+      console.warn("UserData.getHistorial no disponible; usando lista vacía.");
+      return [];
+    }
+
+    function guardarMovimientoSaldo(importe, metodo) {
+      if (window.UserData && typeof window.UserData.addMovimientoSaldo === "function") {
+        window.UserData.addMovimientoSaldo(importe, metodo || "manual");
+        if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
+          window.UserData.recalcularMonedas();
+        }
+        return;
+      }
+      console.warn("UserData.addMovimientoSaldo no disponible; movimiento no guardado.");
+    }
+
+    function cargarSaldo() {
+      const saldo = getSaldo();
+      const saldoEl = document.getElementById("saldo");
+      if (saldoEl) {
+        saldoEl.textContent = saldo.toFixed(2) + " €";
+      }
+    }
+
+    function cargarUltimoMovimiento() {
+      const cont = document.getElementById("ultimoMovimiento");
+      if (!cont) return;
+
+      const historial = getHistorialSeguro();
+
+      if (!historial.length) {
+        cont.textContent = "Último movimiento: sin actividad";
+        return;
+      }
+
+      const ultimo = historial[0];
+
+      if (ultimo.tipo === "recarga") {
+        cont.textContent =
+          "Último movimiento: Recarga de " +
+          Number(ultimo.importe || 0).toFixed(2) + " € a " + (ultimo.numero || "");
+      } else if (ultimo.tipo === "saldo") {
+        cont.textContent =
+          "Último movimiento: Saldo añadido de " +
+          Number(ultimo.importe || 0).toFixed(2) + " €";
+      } else {
+        cont.textContent = "Último movimiento: " + (ultimo.descripcion || "sin descripción");
+      }
+    }
+
+    function getMetodoPagoActual() {
+      return localStorage.getItem("rpc_metodo_pago") || "";
+    }
+
+    function setMetodoPagoActual(metodo) {
+      localStorage.setItem("rpc_metodo_pago", metodo);
+      marcarMetodoActivo();
+      actualizarTextoMetodo();
+    }
+
+    const modalMetodo = document.getElementById("modalMetodo");
+    const modalSaldo  = document.getElementById("modalSaldo");
+    const modalCuenta = document.getElementById("modalCuenta");
+    const inputSaldo  = document.getElementById("inputSaldo");
+    const modalMetodoDlg = modalMetodo ? modalMetodo.querySelector(".modal") : null;
+    const modalSaldoDlg  = modalSaldo ? modalSaldo.querySelector(".modal") : null;
+    const modalCuentaDlg = modalCuenta ? modalCuenta.querySelector(".modal") : null;
+    const modalMetodoClose = modalMetodo ? modalMetodo.querySelector(".modal-close") : null;
+    let lastFocusedElement = null;
+    let openModalId = "";
+
+    function obtenerNombreMetodo(metodo) {
+      switch (metodo) {
+        case "bizum": return "Bizum";
+        case "transferencia": return "Transferencia";
+        case "paypal": return "PayPal";
+        case "tarjeta": return "Visa & Mastercard";
+        default: return "";
+      }
+    }
+
+    function actualizarTextoMetodo() {
+      const metodo = getMetodoPagoActual();
+      const contenedor = document.getElementById("metodoResumen");
+      const texto = document.getElementById("metodoSeleccionadoTexto");
+      if (!contenedor || !texto) return;
+
+      const nombre = obtenerNombreMetodo(metodo);
+      if (nombre) {
+        texto.textContent = nombre;
+        contenedor.style.display = "flex";
+      } else {
+        contenedor.style.display = "none";
+      }
+    }
+
+    function marcarMetodoActivo() {
+      const actual = getMetodoPagoActual();
+      document.querySelectorAll(".metodo-opcion").forEach(function(op) {
+        const metodo = op.getAttribute("data-metodo");
+        if (metodo === actual) {
+          op.classList.add("active");
+        } else {
+          op.classList.remove("active");
+        }
+      });
+    }
+
+    function abrirModalMetodo() {
+      if (modalMetodo) {
+        lastFocusedElement = document.activeElement;
+        openModalId = "metodo";
+        marcarMetodoActivo();
+        modalMetodo.style.display = "flex";
+        const foco = modalMetodoClose || modalMetodoDlg;
+        if (foco && typeof foco.focus === "function") {
+          setTimeout(() => foco.focus(), 0);
+        }
+      }
+    }
+
+    function cerrarModalMetodo() {
+      if (modalMetodo) modalMetodo.style.display = "none";
+      if (openModalId === "metodo") openModalId = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function abrirModalSaldo() {
+      if (modalSaldo) {
+        lastFocusedElement = document.activeElement;
+        openModalId = "saldo";
+        actualizarTextoMetodo();
+        modalSaldo.style.display = "flex";
+        const foco = inputSaldo || modalSaldoDlg;
+        if (foco && typeof foco.focus === "function") {
+          setTimeout(() => foco.focus(), 0);
+        }
+      }
+    }
+
+    function cerrarModalSaldo() {
+      if (modalSaldo) modalSaldo.style.display = "none";
+      if (openModalId === "saldo") openModalId = "";
+      if (inputSaldo) inputSaldo.value = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    function abrirModalCuenta() {
+      if (!modalCuenta) return;
+      lastFocusedElement = document.activeElement;
+      openModalId = "cuenta";
+      modalCuenta.style.display = "flex";
+      const nombreInput = document.getElementById("cuentaNombre");
+      const correoInput = document.getElementById("cuentaCorreo");
+      const passInput   = document.getElementById("cuentaPass");
+
+      if (nombreInput) nombreInput.value = datosUsuario.nombre || "";
+      if (correoInput) correoInput.value = datosUsuario.email || "";
+      if (passInput)   passInput.value   = "";
+      const foco = nombreInput || modalCuentaDlg;
+      if (foco && typeof foco.focus === "function") {
+        setTimeout(() => foco.focus(), 0);
+      }
+    }
+
+    function cerrarModalCuenta() {
+      if (modalCuenta) modalCuenta.style.display = "none";
+      if (openModalId === "cuenta") openModalId = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    document.addEventListener("keydown", function(e) {
+      if (e.key !== "Escape") return;
+      if (openModalId === "metodo") {
+        cerrarModalMetodo();
+      } else if (openModalId === "saldo") {
+        cerrarModalSaldo();
+      } else if (openModalId === "cuenta") {
+        cerrarModalCuenta();
+      }
+    });
+
+    document.querySelectorAll(".modal-close").forEach(function(btn) {
+      btn.addEventListener("click", function() {
+        const tipo = btn.getAttribute("data-close");
+        if (tipo === "metodo") cerrarModalMetodo();
+        if (tipo === "saldo") cerrarModalSaldo();
+        if (tipo === "cuenta") cerrarModalCuenta();
+      });
+    });
+
+    document.querySelectorAll(".modal-bg").forEach(function(bg) {
+      bg.addEventListener("click", function(e) {
+        if (e.target !== bg) return;
+        if (bg.id === "modalMetodo") {
+          cerrarModalMetodo();
+        } else if (bg.id === "modalSaldo") {
+          cerrarModalSaldo();
+        } else if (bg.id === "modalCuenta") {
+          cerrarModalCuenta();
+        } else {
+          bg.style.display = "none";
+        }
+      });
+    });
+
+    const editarCuentaBtn = document.getElementById("editarCuentaBtn");
+    if (editarCuentaBtn) {
+      editarCuentaBtn.addEventListener("click", abrirModalCuenta);
+    }
+
+    const guardarCuentaBtn = document.getElementById("guardarCuentaBtn");
+    if (guardarCuentaBtn) {
+      guardarCuentaBtn.addEventListener("click", function() {
+        const nombreInput = document.getElementById("cuentaNombre");
+        const correoInput = document.getElementById("cuentaCorreo");
+        const passInput   = document.getElementById("cuentaPass");
+
+        const nuevoNombre = (nombreInput && nombreInput.value ? nombreInput.value : "").trim();
+        const nuevoCorreo = (correoInput && correoInput.value ? correoInput.value : "").trim().toLowerCase();
+        const nuevaPass   = (passInput && passInput.value ? passInput.value : "").trim();
+
+        if (!nuevoNombre || !nuevoCorreo) {
+          showToastError("Nombre y correo no pueden estar vacíos.");
+          return;
+        }
+
+        datosUsuario.nombre = nuevoNombre;
+        datosUsuario.email  = nuevoCorreo;
+
+        // B1.2: NO guardamos contraseña en localStorage
+        if (datosUsuario && datosUsuario.pass) {
+          delete datosUsuario.pass;
+        }
+        if (nuevaPass) {
+          // Se ignorará hasta conectar con el flujo real de cambio de contraseña (B1.4)
+        }
+
+        localStorage.setItem("usuarioRegistrado", JSON.stringify(datosUsuario));
+        localStorage.setItem("usuario", nuevoCorreo);
+
+        const nombreCab = document.getElementById("nombreUsuario");
+        const correoCab = document.getElementById("correoUsuario");
+
+        if (nombreCab) nombreCab.textContent = nuevoNombre;
+        if (correoCab) correoCab.textContent = nuevoCorreo;
+
+        showToastSuccess("Datos de cuenta actualizados (a nivel interno de la app).");
+        cerrarModalCuenta();
+      });
+    }
+
+    const togglePass = document.getElementById("togglePass");
+    if (togglePass) {
+      togglePass.addEventListener("click", function() {
+        const input = document.getElementById("cuentaPass");
+        const icon  = document.getElementById("togglePass");
+        if (!input || !icon) return;
+
+        if (input.type === "password") {
+          input.type = "text";
+          icon.setAttribute("aria-label", "Ocultar contrasena");
+          icon.setAttribute("aria-pressed", "true");
+          const eye = icon.querySelector(".icon-eye");
+          const eyeOff = icon.querySelector(".icon-eye-off");
+          if (eye && eyeOff) {
+            eye.style.display = "none";
+            eyeOff.style.display = "inline";
+          }
+        } else {
+          input.type = "password";
+          icon.setAttribute("aria-label", "Mostrar contrasena");
+          icon.setAttribute("aria-pressed", "false");
+          const eye = icon.querySelector(".icon-eye");
+          const eyeOff = icon.querySelector(".icon-eye-off");
+          if (eye && eyeOff) {
+            eye.style.display = "inline";
+            eyeOff.style.display = "none";
+          }
+        }
+      });
+    }
+
+    document.querySelectorAll(".link-list li").forEach(function(li) {
+      li.style.cursor = "pointer";
+    });
+
+    document.querySelectorAll(".link-list li").forEach(function(li, idx) {
+      li.addEventListener("click", function() {
+        if (idx === 0) {
+          window.location.href = "terminos.html";
+        } else if (idx === 1) {
+          window.location.href = "privacidad.html";
+        } else if (idx === 2) {
+          window.location.href = "reembolsos.html";
+        }
+      });
+      li.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
+          li.click();
+        }
+      });
+    });
+
+    const soporteBtn = document.getElementById("soporteBtn");
+    if (soporteBtn) {
+      soporteBtn.addEventListener("click", function() {
+        window.location.href =
+          "mailto:recargaspacubaapp@gmail.com" +
+          "?subject=Soporte%20RecargasPaCuba" +
+          "&body=Hola%20equipo%20RecargasPaCuba,%0D%0A%0D%0A";
+      });
+    }
+
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.addEventListener("click", async function() {
+        // Bloqueo UX para evitar doble click
+        try { logoutBtn.disabled = true; } catch (_) {}
+
+        // 1) Cerrar sesión REAL en Firebase (esperar a que termine)
+        try {
+          if (window.firebaseSignOut) {
+            await window.firebaseSignOut();
+          }
+        } catch (_) {
+          // No frenamos el flujo: igual limpiamos y redirigimos
+        }
+
+        // 2) Limpieza local mínima (tu app usa esto como “sesión”)
+        try { localStorage.removeItem("usuario"); } catch (_) {}
+
+        // 3) Redirect a login preservando v/next si aplica
+        const currentParams = new URLSearchParams(window.location.search || "");
+        const targetUrl = new URL("index.html", window.location.href);
+
+        let vParam = currentParams.get("v");
+        if (!vParam) {
+          try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        }
+        if (vParam) targetUrl.searchParams.set("v", vParam);
+
+        const nextParam = currentParams.get("next");
+        if (nextParam) targetUrl.searchParams.set("next", nextParam);
+
+        window.location.replace(targetUrl.toString());
+      });
+    }
+
+    const avatarBox   = document.getElementById("avatarBox");
+    const inputAvatar = document.getElementById("inputAvatar");
+    const avatarImg   = document.getElementById("avatarImg");
+    const avatarLetra = document.getElementById("avatarLetra");
+
+    function inicializarAvatar() {
+      if (!avatarLetra || !avatarImg) return;
+      let avatarData = "";
+
+      if (window.UserData && typeof window.UserData.getAvatar === "function") {
+        avatarData = window.UserData.getAvatar();
+      } else {
+        console.warn("UserData.getAvatar no disponible; usando avatar por defecto.");
+      }
+
+      const inicial = (nombreMostrar || "U").charAt(0).toUpperCase();
+      avatarLetra.textContent = inicial;
+
+      if (avatarData) {
+        avatarImg.src = avatarData;
+        avatarImg.style.display = "block";
+        avatarLetra.style.display = "none";
+      } else {
+        avatarImg.style.display = "none";
+        avatarLetra.style.display = "flex";
+      }
+    }
+
+    if (avatarBox && inputAvatar) {
+      avatarBox.addEventListener("click", function() {
+        inputAvatar.click();
+      });
+      avatarBox.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
+          inputAvatar.click();
+        }
+      });
+
+      inputAvatar.addEventListener("change", function(event) {
+        if (!event || !event.target) return;
+        var files = event.target.files ? event.target.files : null;
+        var file = (files && files.length > 0) ? files[0] : null;
+        if (!file || !avatarImg || !avatarLetra) return;
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var dataURL = e.target && e.target.result ? e.target.result : null;
+          if (!dataURL) return;
+
+          if (window.UserData && typeof window.UserData.setAvatar === "function") {
+            window.UserData.setAvatar(dataURL);
+          } else {
+            console.warn("UserData.setAvatar no disponible; avatar solo en memoria.");
+          }
+
+          avatarImg.src = dataURL;
+          avatarImg.style.display = "block";
+          avatarLetra.style.display = "none";
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function obtenerMonedasCubacel(importe) {
+      const packs = [
+        { ref: 10, coins: 13 },
+        { ref: 20, coins: 27 },
+        { ref: 30, coins: 41 },
+        { ref: 50, coins: 69 }
+      ];
+
+      let elegido = packs[0];
+      packs.forEach(function(p) {
+        if (Math.abs(importe - p.ref) < Math.abs(importe - elegido.ref)) {
+          elegido = p;
+        }
+      });
+      return elegido.coins;
+    }
+
+    function actualizarUIConMonedas(totalMonedas) {
+      const monedasActualesEl     = document.getElementById("monedasActuales");
+      const monedasProgresoTexto  = document.getElementById("monedasProgresoTexto");
+      const barraProgresoInner    = document.getElementById("barraProgresoInner");
+
+      if (monedasActualesEl)    monedasActualesEl.textContent = totalMonedas;
+      const objetivo = 999;
+      const progreso = Math.min(100, (totalMonedas / objetivo) * 100);
+
+      if (monedasProgresoTexto) {
+        monedasProgresoTexto.textContent = totalMonedas + " / " + objetivo;
+      }
+      if (barraProgresoInner) {
+        barraProgresoInner.style.width = progreso + "%";
+      }
+
+      const btnCanjeLocal = document.getElementById("btnCanje");
+      if (btnCanjeLocal) {
+        if (totalMonedas >= objetivo) {
+          btnCanjeLocal.classList.add("activo");
+          btnCanjeLocal.textContent = "Canjear ahora 999 monedas por 20 €";
+        } else {
+          btnCanjeLocal.classList.remove("activo");
+          btnCanjeLocal.textContent = "Canjear 999 monedas por 20 €";
+        }
+      }
+    }
+
+    function calcularMonedas() {
+      let totalMonedas = 0;
+
+      if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
+        totalMonedas = window.UserData.recalcularMonedas();
+      } else {
+        const historial = getHistorialSeguro();
+        historial.forEach(function(item) {
+          if (item.tipo === "recarga") {
+            const imp = Number(item.importe) || 0;
+            const operador = item.operador || "";
+
+            if (operador === "Cubacel") {
+              totalMonedas += obtenerMonedasCubacel(imp);
+            } else if (operador === "Nauta") {
+              totalMonedas += 5;
+            } else {
+              if (imp > 0) {
+                totalMonedas += obtenerMonedasCubacel(imp);
+              }
+            }
+          }
+        });
+      }
+
+      actualizarUIConMonedas(totalMonedas);
+    }
+
+    const confirmarSaldoBtn = document.getElementById("confirmarSaldoBtn");
+    if (confirmarSaldoBtn && inputSaldo) {
+      confirmarSaldoBtn.addEventListener("click", function() {
+        const valor = parseFloat(inputSaldo.value);
+        if (isNaN(valor)) {
+          showToastError("Introduce un importe válido.");
+          return;
+        }
+
+        if (valor < 10) {
+          showToastError("El importe mínimo para agregar saldo es de 10 €.");
+          return;
+        }
+
+        const metodoActual = getMetodoPagoActual() || "manual";
+
+        // Camino único recomendado: UserData.addSaldo (cap + movimiento + meta)
+        if (window.UserData && typeof window.UserData.addSaldo === "function") {
+          window.UserData.addSaldo(valor, metodoActual);
+
+          const meta = window.__rpc_last_add_saldo;
+
+          if (!meta || !meta.ok) {
+            if (meta && meta.reason === "MAX_REACHED") {
+              showToastError("Límite de saldo alcanzado (100.00 €).");
+            } else if (meta && meta.reason === "MIN_AMOUNT") {
+              showToastError("El importe mínimo para agregar saldo es de 10 €.");
+            } else {
+              showToastError("No se pudo añadir saldo.");
+            }
+            // No cerramos el modal si falló
+            cargarSaldo();
+            cargarUltimoMovimiento();
+            calcularMonedas();
+            return;
+          }
+
+          // OK
+          if (meta.reason === "CAPPED") {
+            showToastSuccess(`Se añadieron ${Number(meta.applied || 0).toFixed(2)} € (límite 100.00 €).`);
+          } else {
+            showToastSuccess("Saldo actualizado correctamente.");
+          }
+
+          cargarSaldo();
+          cargarUltimoMovimiento();
+          calcularMonedas();
+          cerrarModalSaldo();
+          return;
+        }
+
+        // Fallback (si UserData.addSaldo no existiera): mover movimiento ANTES del setSaldo
+        const saldoActual = getSaldo();
+        const headroom = Math.max(0, 100 - saldoActual);
+        const aplicado = Math.min(valor, headroom);
+
+        if (aplicado <= 0) {
+          showToastError("Límite de saldo alcanzado (100.00 €).");
+          return;
+        }
+
+        guardarMovimientoSaldo(aplicado, metodoActual);
+        setSaldo(saldoActual + aplicado);
+
+        cargarSaldo();
+        cargarUltimoMovimiento();
+        calcularMonedas();
+
+        if (aplicado < valor) {
+          showToastSuccess(`Se añadieron ${Number(aplicado).toFixed(2)} € (límite 100.00 €).`);
+        } else {
+          showToastSuccess("Saldo actualizado correctamente.");
+        }
+
+        cerrarModalSaldo();
+      });
+    }
+
+    document.querySelectorAll(".metodo-opcion").forEach(function(op) {
+      op.addEventListener("click", function() {
+        const metodo = op.getAttribute("data-metodo");
+        if (!metodo) return;
+        setMetodoPagoActual(metodo);
+        cerrarModalMetodo();
+        abrirModalSaldo();
+      });
+      op.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
+          op.click();
+        }
+      });
+    });
+
+    const addSaldoBtn = document.getElementById("addSaldoBtn");
+    if (addSaldoBtn) {
+      addSaldoBtn.addEventListener("click", function() {
+        const metodo = getMetodoPagoActual();
+        if (!metodo) {
+          abrirModalMetodo();
+        } else {
+          abrirModalSaldo();
+        }
+      });
+    }
+
+    const cambiarMetodoBtn = document.getElementById("cambiarMetodoBtn");
+    if (cambiarMetodoBtn) {
+      cambiarMetodoBtn.addEventListener("click", function() {
+        cerrarModalSaldo();
+        abrirModalMetodo();
+      });
+    }
+
+    const btnCanje = document.getElementById("btnCanje");
+    if (btnCanje) {
+      btnCanje.addEventListener("click", function() {
+        if (!btnCanje.classList.contains("activo")) return;
+        showToastSuccess("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
+      });
+    }
+
+    cargarSaldo();
+    cargarUltimoMovimiento();
+    inicializarAvatar();
+    calcularMonedas();
+    marcarMetodoActivo();
+    actualizarTextoMetodo();
+    };
+  </script>
+
+  <script type="module">
+    import { guardProtectedPage } from "./js/guard.js?v=r1";
+    import { auth, onAuthStateChanged, signOut } from "./js/firebase.js?v=r1";
+
+    const v = (new URLSearchParams(location.search || "")).get("v") || sessionStorage.getItem("rpc_v") || "";
+    const redirectTo = v ? `index.html?v=${encodeURIComponent(v)}` : "index.html";
+
+    // Exponemos signOut sin duplicar listeners (evita flash por doble onAuthStateChanged)
+    window.firebaseSignOut = function() {
+      return signOut(auth);
+    };
+
+    guardProtectedPage({
+      redirectTo,
+      timeoutMs: 7000,
+      auth,
+      onAuthStateChanged,
+      onReady: (user) => {
+        // Sync local UNA sola vez antes de pintar
+        try {
+          const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+          const datos = JSON.parse(raw);
+          const { pass, ...resto } = datos || {};
+
+          const nuevo = {
+            ...resto,
+            nombre: (datos && datos.nombre) || user.displayName || "Usuario",
+            email: (user.email || "").toLowerCase(),
+            activo: true
+          };
+
+          localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
+          localStorage.setItem("usuario", (user.email || "").toLowerCase());
+        } catch (_) {}
+
+        if (typeof window.__initCuentaPage === "function") window.__initCuentaPage(user);
+      }
+    });
+  </script>
+
+  <!-- SCRIPT FIREBASE (eliminado): evitamos doble onAuthStateChanged que provoca flash -->
+
+  <script type="module" src="js/app.js?v=r1"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,364 @@
+<!doctype html> 
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crear cuenta | RecargasPaCuba</title>
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <script src="js/ui.js?v=r1"></script>
+  <script src="js/validators.js?v=r1"></script>
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    .wrap{
+      width:100%;
+      max-width:420px;
+      text-align:center;
+      padding:18px;
+    }
+
+    .title{
+      font-size:30px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .sub{
+      color:#e7f7fb;
+      margin-bottom:20px;
+      font-size:14px;
+    }
+
+    .input-pill{
+      width:100%;
+      border-radius:999px;
+      padding:14px 18px;
+      border:none;
+      margin-top:14px;
+      font-size:15px;
+      outline:none;
+      box-shadow:0 10px 26px rgba(0,0,0,0.25);
+      color:#0b1924;
+    }
+
+    .input-label {
+      display:block;
+      text-align:left;
+      margin-top:12px;
+      font-weight:700;
+      color:#e7f7fb;
+    }
+
+    .password-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-wrap .input-pill {
+      padding-right: 46px;
+    }
+
+    .toggle-pass {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+      color: #0b1924;
+      user-select: none;
+      background: transparent;
+      border: none;
+      padding: 6px;
+    }
+
+    .toggle-pass:focus-visible {
+      outline: 2px solid #0b1924;
+      outline-offset: 2px;
+    }
+
+    .msg{
+      margin-top:14px;
+      font-size:13px;
+    }
+
+    .register-button {
+      margin-top:16px;
+    }
+
+    .register-login-back {
+      margin-top:14px;
+      font-size:14px;
+      text-align:center;
+      color:#e7f7fb;
+    }
+
+    .register-login-back a {
+      color:#ffffff;
+      font-weight:700;
+      text-decoration:underline;
+    }
+  </style>
+</head>
+
+<body class="page-auth">
+
+  <div class="wrap">
+
+    <div class="title">Crear cuenta</div>
+    <div id="password-guidance" class="sub">
+      Completa tus datos para registrarte (m&iacute;nimo 8 caracteres, 1 may&uacute;scula y 1 n&uacute;mero)
+    </div>
+
+    <label class="input-label" for="reg-nombre">Nombre completo</label>
+    <input id="reg-nombre" class="input-pill" type="text" placeholder="Nombre completo" autocomplete="name">
+    <label class="input-label" for="reg-email">Email</label>
+    <input id="reg-email" class="input-pill" type="email" placeholder="Email" autocomplete="email">
+
+    <label class="input-label" for="new-pass">Contrase&ntilde;a</label>
+    <div class="password-wrap">
+  <input id="new-pass" class="input-pill" type="password" placeholder="Contraseña">
+  <span
+    id="toggle-pass-1"
+    class="toggle-pass"
+    role="button"
+    tabindex="0"
+    aria-label="Mostrar contraseña"
+    aria-pressed="false"
+  >
+    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+    </svg>
+    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+      <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+    </svg>
+  </span>
+</div>
+
+<div class="password-wrap">
+  <input id="new-pass2" class="input-pill" type="password" placeholder="Repetir contraseña">
+  <span
+    id="toggle-pass-2"
+    class="toggle-pass"
+    role="button"
+    tabindex="0"
+    aria-label="Mostrar contraseña"
+    aria-pressed="false"
+  >
+    <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+    </svg>
+    <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+      <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+    </svg>
+  </span>
+</div>
+
+    <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
+
+    <div id="msg" class="msg" style="display:none;"></div>
+
+    <p class="register-login-back">
+      <a href="index.html">&larr; Volver al login</a>
+    </p>
+
+  </div>
+
+  <div class="legal-links" style="text-align:center;margin-top:12px;">
+    <small>
+      <a href="terminos.html">Términos</a>
+      <a href="privacidad.html">Privacidad</a>
+      <a href="reembolsos.html">Reembolsos</a>
+      <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
+    </small>
+  </div>
+
+  <script type="module" src="js/firebase.js?v=r1"></script>
+
+  <!-- ✅ Redirect robusto: evita race de currentUser usando onAuthStateChanged (no interfiere con registro porque requiere forzarCambio === false) -->
+  <script type="module">
+    import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+
+      try {
+        const data = localStorage.getItem("usuarioRegistrado");
+        let usuario = {};
+        try {
+          usuario = data ? JSON.parse(data) : {};
+        } catch (e) {
+          usuario = {};
+        }
+
+        const tieneUsuarioPrevio = usuario && (usuario.email || usuario.usuario);
+        if (!tieneUsuarioPrevio) return;
+
+        if (usuario.forzarCambio === false) {
+          const params = new URLSearchParams(window.location.search || "");
+          let vParam = params.get("v");
+          if (!vParam) {
+            try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+          }
+          const targetUrl = new URL("recargar.html", window.location.href);
+          targetUrl.searchParams.set("next", "recargar.html");
+          if (vParam) targetUrl.searchParams.set("v", vParam);
+          window.location.href = targetUrl.toString();
+        }
+      } catch (_) {
+        // noop
+      }
+    });
+  </script>
+
+  <script>
+    // Cargamos el usuario guardado
+    const data = localStorage.getItem("usuarioRegistrado");
+    let usuario = {};
+    try {
+      usuario = data ? JSON.parse(data) : {};
+    } catch (e) {
+      console.warn("No se pudo parsear usuarioRegistrado, usando objeto vacio.");
+      usuario = {};
+    }
+
+    const btnRegister = document.getElementById("btn-register");
+    btnRegister.addEventListener("click", async () => {
+      const nombre = (document.getElementById("reg-nombre").value || "").trim();
+      const email = (document.getElementById("reg-email").value || "").trim().toLowerCase();
+      const pass1 = document.getElementById("new-pass").value.trim();
+      const pass2 = document.getElementById("new-pass2").value.trim();
+      const msg = document.getElementById("msg");
+      if (msg) msg.style.display = "none";
+
+      if (!nombre || !email || !pass1 || !pass2) {
+        showToastError("Completa todos los campos.");
+        return;
+      }
+
+      const strongPass = (window.Validators && typeof window.Validators.isStrongPassword === "function")
+        ? window.Validators.isStrongPassword
+        : (p) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(p);
+
+      if (!strongPass(pass1)) {
+        showToastError("La contrasena debe tener minimo 8 caracteres, una mayuscula y un numero.");
+        return;
+      }
+
+      if (pass1 !== pass2) {
+        showToastError("Las contrasenas no coinciden.");
+        return;
+      }
+
+      const createUser = window.firebaseCreateUser;
+      const updateProfile = window.firebaseUpdateProfile;
+      const auth = window.firebaseAuth;
+
+      if (!createUser || !updateProfile || !auth) {
+        showToastError("Servicio de registro no disponible. Intentalo de nuevo en unos minutos.");
+        return;
+      }
+
+            try {
+        const cred = await createUser(auth, email, pass1);
+        await updateProfile(cred.user, { displayName: nombre });
+
+        // Enviar correo de verificacion (Firebase NO lo hace automatico)
+        const sendEmailVerification = window.firebaseSendEmailVerification;
+        if (typeof sendEmailVerification !== "function") {
+          throw new Error("sendEmailVerification-no-disponible");
+        }
+        await Promise.resolve(sendEmailVerification(cred.user));
+
+        const usuarioMin = {
+          nombre: nombre,
+          usuario: nombre,
+          email: email,
+          activo: true
+        };
+
+        localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
+        localStorage.setItem("usuario", email);
+
+        showToastSuccess("Registro completado. Revisa tu correo para verificar y luego inicia sesion.");
+        try {
+  // Preferente: Modular SDK wrapper expuesto en window.firebaseSignOut (signOut)
+  if (typeof window.firebaseSignOut === "function") {
+    await window.firebaseSignOut(auth);
+  } else if (window.firebaseAuth && typeof window.firebaseAuth.signOut === "function") {
+    // Compat SDK: método sin argumentos (mantiene su this)
+    await window.firebaseAuth.signOut();
+  }
+} catch (e) {
+  console.warn("No se pudo cerrar sesiÃ³n tras registro:", e);
+}
+
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("usuarioRegistrado");
+        const currentParams = new URLSearchParams(window.location.search || "");
+        const targetUrl = new URL("index.html", window.location.href);
+        let vParam = currentParams.get("v");
+        if (!vParam) {
+          try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        }
+        if (vParam) {
+          targetUrl.searchParams.set("v", vParam);
+        }
+        const nextParam = currentParams.get("next");
+        if (nextParam) {
+          targetUrl.searchParams.set("next", nextParam);
+        }
+        window.location.href = targetUrl.toString();
+      } catch (error) {
+
+        console.error("Error en registro:", error);
+        let mensaje = "No se pudo completar el registro.";
+        if (error.code === "auth/email-already-in-use") {
+          mensaje = "Este correo ya esta registrado.";
+        } else if (error.code === "auth/invalid-email") {
+          mensaje = "Correo no valido.";
+        } else if (error.code === "auth/weak-password") {
+          mensaje = "La contrasena es muy debil.";
+        }
+        showToastError(mensaje);
+      }
+    });
+
+    // Ojito 1
+    function wirePassToggle(toggleId, inputId) {
+      const toggle = document.getElementById(toggleId);
+      const input = document.getElementById(inputId);
+      if (!toggle || !input) return;
+
+      const eye = toggle.querySelector(".icon-eye");
+      const eyeOff = toggle.querySelector(".icon-eye-off");
+
+      const setState = (visible) => {
+        input.type = visible ? "text" : "password";
+        toggle.setAttribute("aria-pressed", visible ? "true" : "false");
+        toggle.setAttribute("aria-label", visible ? "Ocultar contraseña" : "Mostrar contraseña");
+        if (eye) eye.style.display = visible ? "none" : "inline";
+        if (eyeOff) eyeOff.style.display = visible ? "inline" : "none";
+      };
+
+      const toggleIt = () => setState(input.type === "password");
+
+      toggle.addEventListener("click", toggleIt);
+      toggle.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleIt();
+        }
+      });
+
+      setState(false);
+    }
+
+    wirePassToggle("toggle-pass-1", "new-pass");
+    wirePassToggle("toggle-pass-2", "new-pass2");
+  </script>
+
+  <script type="module" src="js/app.js?v=r1"></script>
+</body>
+</html>
