@@ -825,7 +825,7 @@
     </header>
 
     <div class="app-scroll">
-      <section class="card card--gradient">
+      <section class="card card--gradient" style="display:none">
         <div class="card-header">
           <div>
             <div class="card-title">Saldo RecargasPaCuba</div>
@@ -857,31 +857,30 @@
           <div class="pill-info">Tarifa sin permanencia</div>
           <div class="pill-info">Registro en España</div>
           <div class="pill-info">Historial accesible al instante</div>
-
-          <a href="https://chatgpt.com/g/g-695e6724b71881918a6446191577c226-recargaspacuba-bot-chat"
-   target="_blank" rel="noopener"
-   aria-label="Abrir guía rápida"
-   class="pill-info"
-   style="margin-left:auto; margin-top:-6px; display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-weight:800; font-size:13px; letter-spacing:.2px; color:inherit;">
-  <span aria-hidden="true" style="width:22px; height:22px; display:block;">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
-      <path d="M7.5 19.5l-1.7 1.1c-.6.4-1.3-.2-1.1-.9l.6-2.1A8.5 8.5 0 1 1 20.5 12c0 4.1-3.6 7.5-8.5 7.5H7.5Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span style="display:block; line-height:1;">Guia Rapida</span>
-</a>
-
         </div>
       </section>
 
       <section class="card card--gradient">
-        <div class="card-header">
+        <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
           <div>
             <div class="card-title">Perfil de usuario</div>
             <div class="card-sub">Gestiona tus datos principales y tu avatar</div>
           </div>
+
+          <a href="https://chatgpt.com/g/g-695e6724b71881918a6446191577c226-recargaspacuba-bot-chat"
+             target="_blank" rel="noopener"
+             aria-label="Abrir guía rápida"
+             class="pill-info"
+             style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-weight:800; font-size:13px; letter-spacing:.2px; color:inherit; white-space:nowrap;">
+            <span aria-hidden="true" style="width:22px; height:22px; display:block;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                <path d="M7.5 19.5l-1.7 1.1c-.6.4-1.3-.2-1.1-.9l.6-2.1A8.5 8.5 0 1 1 20.5 12c0 4.1-3.6 7.5-8.5 7.5H7.5Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span style="display:block; line-height:1;">Guia Rapida</span>
+          </a>
         </div>
 
         <div class="usuario-box">
@@ -896,6 +895,7 @@
             <div class="correo" id="correoUsuario">correo@ejemplo.com</div>
             <div class="tag">Cuenta creada y gestionada desde España</div>
           </div>
+
           <button class="btn-icon" id="editarCuentaBtn" title="Editar datos de cuenta">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
