@@ -14,6 +14,7 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
+import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import {
   initializeAppCheck,
   ReCaptchaV3Provider,
@@ -35,6 +36,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 const callFunction = (name, data) => httpsCallable(functions, name)(data);
+const db = getFirestore(app);
 
 // App Check (reCAPTCHA v3 invisible)
 // Pega aquí tu SITE KEY (pública), NO la secret.
@@ -77,6 +79,11 @@ window.firebaseHttpsCallable = httpsCallable;
 window.firebaseCallFunction = callFunction;
 window.firebaseAppCheck = appCheck;
 
+window.firebaseDb = db;
+window.firebaseFirestoreDoc = doc;
+window.firebaseFirestoreSetDoc = setDoc;
+window.firebaseFirestoreServerTimestamp = serverTimestamp;
+
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
 window.firebaseSendEmailVerification = sendEmailVerification;
@@ -107,5 +114,9 @@ export {
   functions,
   httpsCallable,
   callFunction,
-  appCheck
+  appCheck,
+  db,
+  doc,
+  setDoc,
+  serverTimestamp
 };

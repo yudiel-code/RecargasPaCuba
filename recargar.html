@@ -1409,6 +1409,45 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
 
             window.__rpcPendingCheckout = pending;
             localStorage.setItem("rpc_pending_checkout", JSON.stringify(pending));
+
+            // ✅ Firestore SDK: persistir MB-… en /mb_orders (para que Historial lo vea)
+            try {
+              const db = window.firebaseDb;
+              const docFn = window.firebaseFirestoreDoc;
+              const setDocFn = window.firebaseFirestoreSetDoc;
+              const serverTs = window.firebaseFirestoreServerTimestamp;
+
+              const auth = window.firebaseAuth;
+              const user = auth && auth.currentUser ? auth.currentUser : null;
+
+              if (db && docFn && setDocFn && user && user.uid) {
+                const nowMs = Date.now();
+                const mbDoc = {
+                  uid: String(user.uid),
+                  clientId: String(clientId),
+                  destination: String(destinoNormalized),
+                  productId: String(productoId),
+                  amount: Number(precioActual),
+                  currency: "EUR",
+                  paymentMethod: String(selectedPayMethod || "PAYPAL"),
+                  status: "REQUESTED",
+                  channel: "web",
+                  createdAt: (typeof serverTs === "function") ? serverTs() : new Date().toISOString(),
+                  createdAtMs: nowMs
+                };
+
+                await setDocFn(
+                  docFn(db, "mb_orders", String(clientId)),
+                  mbDoc,
+                  { merge: true }
+                );
+
+                // Debug opcional: confirma en consola que hubo write
+                // console.log("mb_orders WRITE OK:", clientId);
+              }
+            } catch (e) {
+              console.warn("mb_orders WRITE skipped/failed:", e && e.message ? e.message : e);
+            }
           } catch (_) {}
 
           const pm = String(selectedPayMethod || "PAYPAL").toUpperCase();
