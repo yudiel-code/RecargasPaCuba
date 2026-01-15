@@ -411,8 +411,64 @@ exports.markOrderRefunded = onRequest(async (req, res) => {
  * - Actualiza order a COMPLETED con timestamps
  */
 exports.onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
-  // 🔒 MANUAL-ONLY: fulfillment automático deshabilitado (no crear /recargas, no mutar /orders).
-  return;
+  // ✅ MANUAL-ONLY (CONTROLLED STUB):
+  // Solo corre en la transición EXACTA PENDING -> PAID (cuando tú lo cambias manualmente en Firestore).
+  // No llama a proveedor. Deja audit en /orders/{orderId}/events y marca idempotencia en la orden.
+
+  const before = (event.data && event.data.before && event.data.before.data) ? (event.data.before.data() || {}) : {};
+  const after  = (event.data && event.data.after  && event.data.after.data)  ? (event.data.after.data()  || {}) : {};
+
+  const statusFrom = String(before.status || "");
+  const statusTo   = String(after.status  || "");
+
+  // Gate estricto: SOLO PENDING -> PAID
+  if (!(statusFrom === "PENDING" && statusTo === "PAID")) {
+    return;
+  }
+
+  const orderId = (event.params && event.params.orderId) ? String(event.params.orderId) : "";
+  if (!orderId) return;
+
+  const orderRef = db.collection("orders").doc(orderId);
+  const nowMs = Date.now();
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(orderRef);
+      if (!snap.exists) return;
+
+      const cur = snap.data() || {};
+      const curStatus = String(cur.status || "");
+
+      // Si alguien lo movió ya, no hacemos nada.
+      if (curStatus !== "PAID") return;
+
+      // Idempotencia: si ya procesamos el stub, no repetir.
+      const processedMs = Number(cur.paidStubProcessedAtMs);
+      if (Number.isFinite(processedMs) && processedMs > 0) return;
+
+      // Audit event (type + statusFrom/statusTo + timestamps)
+      const eventRef = orderRef.collection("events").doc();
+      tx.set(eventRef, {
+        type: "PAID_STUB",
+        statusFrom: "PENDING",
+        statusTo: "PAID",
+        createdAt: FieldValue.serverTimestamp(),
+        createdAtMs: nowMs,
+      });
+
+      // Marca de procesamiento (no cambia status, solo deja huella de que el stub corrió)
+      tx.update(orderRef, {
+        paidStubProcessedAt: FieldValue.serverTimestamp(),
+        paidStubProcessedAtMs: nowMs,
+        paidStubResult: "NOOP",
+      });
+    });
+
+    logger.info("onOrderPaid stub OK", { orderId, statusFrom, statusTo });
+  } catch (e) {
+    logger.error("onOrderPaid stub ERROR", { orderId, message: String(e && e.message ? e.message : e) });
+  }
 });
 
 // exports.helloWorld = onRequest((request, response) => {
