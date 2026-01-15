@@ -322,76 +322,8 @@ exports.markOrderPaid = onRequest(async (req, res) => {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
 
-  const body = safeParseBody(req);
-  if (!body) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
-  }
-
-  let { uid, orderId } = body;
-
-  const uidBody = typeof uid === "string" ? uid.trim() : "";
-  orderId = typeof orderId === "string" ? orderId.trim() : "";
-
-  const uidRes = await resolveUid(req, uidBody);
-  if (!uidRes.ok) {
-    return sendJson(res, 401, { ok: false, error: uidRes.error });
-  }
-  uid = uidRes.uid;
-
-  if (!uid || uid.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
-  }
-  if (!orderId || orderId.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
-  }
-
-  try {
-    const ref = db.collection("orders").doc(orderId);
-    const snap = await ref.get();
-
-    if (!snap.exists) {
-      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
-    }
-
-    const data = snap.data() || {};
-    const ownerUid = typeof data.uid === "string" ? data.uid : "";
-    const status = typeof data.status === "string" ? data.status : "";
-    const channel = typeof data.channel === "string" ? data.channel : "";
-
-    if (channel !== "sandbox") {
-      return sendJson(res, 403, { ok: false, error: "NOT_ALLOWED_CHANNEL" });
-    }
-
-    if (!ownerUid || ownerUid !== uid) {
-      return sendJson(res, 403, { ok: false, error: "FORBIDDEN" });
-    }
-
-    // Idempotencia: si ya está PAID o COMPLETED, ok y listo
-    if (status === "PAID" || status === "COMPLETED") {
-      return sendJson(res, 200, { ok: true, orderId, status, alreadyPaid: true });
-    }
-
-    if (status !== "PENDING") {
-      return sendJson(res, 409, { ok: false, error: "INVALID_STATUS", status });
-    }
-
-    const nowMs = Date.now();
-
-    await ref.update({
-      status: "PAID",
-      paidAt: FieldValue.serverTimestamp(),
-      paidAtMs: nowMs,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedAtMs: nowMs,
-    });
-
-    logger.info("markOrderPaid OK", { orderId, uid, authSource: uidRes.source });
-
-    return sendJson(res, 200, { ok: true, orderId, status: "PAID" });
-  } catch (err) {
-    logger.error("markOrderPaid error", err);
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
+  // 🔒 MANUAL-ONLY: el status de /orders se cambia SOLO a mano en Firestore (sin endpoints)
+  return sendJson(res, 403, { ok: false, error: "MANUAL_ONLY_MODE" });
 });
 
 /**
@@ -401,6 +333,7 @@ exports.markOrderPaid = onRequest(async (req, res) => {
  * - valida ownership (uid debe coincidir con la orden)
  * - idempotente: si ya está FAILED devuelve ok:true; si está PAID/COMPLETED devuelve ok:true con terminalState:true
  */
+// BLOQUE BUENO
 exports.markOrderFailed = onRequest(async (req, res) => {
   setCors(req, res);
 
@@ -414,99 +347,10 @@ exports.markOrderFailed = onRequest(async (req, res) => {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
 
-  const body = safeParseBody(req);
-  if (!body) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
-  }
-
-  let { uid, orderId } = body;
-
-  const uidBody = typeof uid === "string" ? uid.trim() : "";
-  orderId = typeof orderId === "string" ? orderId.trim() : "";
-
-  const uidRes = await resolveUid(req, uidBody);
-  if (!uidRes.ok) {
-    return sendJson(res, 401, { ok: false, error: uidRes.error });
-  }
-  uid = uidRes.uid;
-
-  if (!uid || uid.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
-  }
-  if (!orderId || orderId.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
-  }
-
-  try {
-    const ref = db.collection("orders").doc(orderId);
-    const snap = await ref.get();
-
-    if (!snap.exists) {
-      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
-    }
-
-    const data = snap.data() || {};
-    const ownerUid = typeof data.uid === "string" ? data.uid : "";
-    const status = typeof data.status === "string" ? data.status : "";
-    const channel = typeof data.channel === "string" ? data.channel : "";
-
-    if (channel !== "sandbox") {
-      return sendJson(res, 403, { ok: false, error: "NOT_ALLOWED_CHANNEL" });
-    }
-
-    if (!ownerUid || ownerUid !== uid) {
-      return sendJson(res, 403, { ok: false, error: "FORBIDDEN" });
-    }
-
-    // Idempotencia: si ya está FAILED, ok y listo
-    if (status === "FAILED") {
-      return sendJson(res, 200, { ok: true, orderId, status, alreadyFailed: true });
-    }
-
-    // Estado terminal: ya pagada o completada (no “fallamos” nada)
-    if (status === "PAID" || status === "COMPLETED") {
-      return sendJson(res, 200, { ok: true, orderId, status, terminalState: true });
-    }
-
-    if (status !== "PENDING") {
-      return sendJson(res, 409, { ok: false, error: "INVALID_STATUS", status });
-    }
-
-    const nowMs = Date.now();
-
-    const eventRef = ref.collection("events").doc();
-    const batch = db.batch();
-
-    batch.update(ref, {
-      status: "FAILED",
-      failedAt: FieldValue.serverTimestamp(),
-      failedAtMs: nowMs,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedAtMs: nowMs,
-    });
-
-    batch.set(eventRef, {
-      type: "FAILED",
-      orderId,
-      uid,
-      channel: "sandbox",
-      statusFrom: "PENDING",
-      statusTo: "FAILED",
-      authSource: uidRes.source, // "token" | "body"
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-    });
-
-    await batch.commit();
-
-    logger.info("markOrderFailed OK", { orderId, uid, authSource: uidRes.source, eventId: eventRef.id });
-
-    return sendJson(res, 200, { ok: true, orderId, status: "FAILED" });
-  } catch (err) {
-    logger.error("markOrderFailed error", err);
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
+  // 🔒 MANUAL-ONLY: el status de /orders se cambia SOLO a mano en Firestore (sin endpoints)
+  return sendJson(res, 403, { ok: false, error: "MANUAL_ONLY_MODE" });
 });
+
 
 /**
  * Fase 3 (sandbox): markOrderCancelled
@@ -529,99 +373,10 @@ exports.markOrderCancelled = onRequest(async (req, res) => {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
 
-  const body = safeParseBody(req);
-  if (!body) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
-  }
-
-  let { uid, orderId } = body;
-
-  const uidBody = typeof uid === "string" ? uid.trim() : "";
-  orderId = typeof orderId === "string" ? orderId.trim() : "";
-
-  const uidRes = await resolveUid(req, uidBody);
-  if (!uidRes.ok) {
-    return sendJson(res, 401, { ok: false, error: uidRes.error });
-  }
-  uid = uidRes.uid;
-
-  if (!uid || uid.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
-  }
-  if (!orderId || orderId.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
-  }
-
-  try {
-    const ref = db.collection("orders").doc(orderId);
-    const snap = await ref.get();
-
-    if (!snap.exists) {
-      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
-    }
-
-    const data = snap.data() || {};
-    const ownerUid = typeof data.uid === "string" ? data.uid : "";
-    const status = typeof data.status === "string" ? data.status : "";
-    const channel = typeof data.channel === "string" ? data.channel : "";
-
-    if (channel !== "sandbox") {
-      return sendJson(res, 403, { ok: false, error: "NOT_ALLOWED_CHANNEL" });
-    }
-
-    if (!ownerUid || ownerUid !== uid) {
-      return sendJson(res, 403, { ok: false, error: "FORBIDDEN" });
-    }
-
-    // Idempotencia: si ya está CANCELLED, ok y listo
-    if (status === "CANCELLED") {
-      return sendJson(res, 200, { ok: true, orderId, status, alreadyCancelled: true });
-    }
-
-    // Estado terminal: ya fallida, pagada o completada (no “cancelamos” nada)
-    if (status === "FAILED" || status === "PAID" || status === "COMPLETED") {
-      return sendJson(res, 200, { ok: true, orderId, status, terminalState: true });
-    }
-
-    if (status !== "PENDING") {
-      return sendJson(res, 409, { ok: false, error: "INVALID_STATUS", status });
-    }
-
-    const nowMs = Date.now();
-
-    const eventRef = ref.collection("events").doc();
-    const batch = db.batch();
-
-    batch.update(ref, {
-      status: "CANCELLED",
-      cancelledAt: FieldValue.serverTimestamp(),
-      cancelledAtMs: nowMs,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedAtMs: nowMs,
-    });
-
-    batch.set(eventRef, {
-      type: "CANCELLED",
-      orderId,
-      uid,
-      channel: "sandbox",
-      statusFrom: "PENDING",
-      statusTo: "CANCELLED",
-      authSource: uidRes.source, // "token" | "body"
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-    });
-
-    await batch.commit();
-
-    logger.info("markOrderCancelled OK", { orderId, uid, authSource: uidRes.source, eventId: eventRef.id });
-
-    return sendJson(res, 200, { ok: true, orderId, status: "CANCELLED" });
-  } catch (err) {
-    logger.error("markOrderCancelled error", err);
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
+  // 🔒 MANUAL-ONLY: el status de /orders se cambia SOLO a mano en Firestore (sin endpoints)
+  return sendJson(res, 403, { ok: false, error: "MANUAL_ONLY_MODE" });
 });
+
 
 /**
  * Fase 3 (sandbox): markOrderRefunded
@@ -644,129 +399,8 @@ exports.markOrderRefunded = onRequest(async (req, res) => {
     return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
   }
 
-  const body = safeParseBody(req);
-  if (!body) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
-  }
-
-  let { uid, orderId } = body;
-
-  const uidBody = typeof uid === "string" ? uid.trim() : "";
-  orderId = typeof orderId === "string" ? orderId.trim() : "";
-
-  const uidRes = await resolveUid(req, uidBody);
-  if (!uidRes.ok) {
-    return sendJson(res, 401, { ok: false, error: uidRes.error });
-  }
-  uid = uidRes.uid;
-
-  if (!uid || uid.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_UID" });
-  }
-  if (!orderId || orderId.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
-  }
-
-  try {
-    const orderRef = db.collection("orders").doc(orderId);
-    const snap = await orderRef.get();
-
-    if (!snap.exists) {
-      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
-    }
-
-    const data = snap.data() || {};
-    const ownerUid = typeof data.uid === "string" ? data.uid : "";
-    const status = typeof data.status === "string" ? data.status : "";
-    const channel = typeof data.channel === "string" ? data.channel : "";
-
-    if (channel !== "sandbox") {
-      return sendJson(res, 403, { ok: false, error: "NOT_ALLOWED_CHANNEL" });
-    }
-
-    if (!ownerUid || ownerUid !== uid) {
-      return sendJson(res, 403, { ok: false, error: "FORBIDDEN" });
-    }
-
-    const recargaRef = db.collection("recargas").doc(orderId);
-
-    // Idempotencia + REPARACIÓN: si ya está REFUNDED, aseguramos recargas.status=REFUNDED
-    if (status === "REFUNDED") {
-      const nowMs = Date.now();
-      const refundedAtMs = (typeof data.refundedAtMs === "number") ? data.refundedAtMs : nowMs;
-
-      await recargaRef.set({
-        orderId,
-        uid,
-        channel: "sandbox",
-        status: "REFUNDED",
-        refundedAt: FieldValue.serverTimestamp(),
-        refundedAtMs,
-        updatedAt: FieldValue.serverTimestamp(),
-        updatedAtMs: nowMs,
-      }, { merge: true });
-
-      return sendJson(res, 200, { ok: true, orderId, status, alreadyRefunded: true, recargaSynced: true });
-    }
-
-    // Estado terminal: CANCELLED o FAILED (no refund)
-    if (status === "CANCELLED" || status === "FAILED") {
-      return sendJson(res, 200, { ok: true, orderId, status, terminalState: true });
-    }
-
-    // Solo desde PAID o COMPLETED
-    if (status !== "PAID" && status !== "COMPLETED") {
-      return sendJson(res, 409, { ok: false, error: "INVALID_STATUS", status });
-    }
-
-    const nowMs = Date.now();
-
-    const eventRef = orderRef.collection("events").doc();
-    const batch = db.batch();
-
-    // 1) Order -> REFUNDED
-    batch.update(orderRef, {
-      status: "REFUNDED",
-      refundedAt: FieldValue.serverTimestamp(),
-      refundedAtMs: nowMs,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedAtMs: nowMs,
-    });
-
-    // 2) Audit event
-    batch.set(eventRef, {
-      type: "REFUNDED",
-      orderId,
-      uid,
-      channel: "sandbox",
-      statusFrom: status,
-      statusTo: "REFUNDED",
-      authSource: uidRes.source, // "token" | "body"
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-    });
-
-    // 3) Sync recarga -> REFUNDED (merge)
-    batch.set(recargaRef, {
-      orderId,
-      uid,
-      channel: "sandbox",
-      status: "REFUNDED",
-      refundedAt: FieldValue.serverTimestamp(),
-      refundedAtMs: nowMs,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedAtMs: nowMs,
-    }, { merge: true });
-
-    await batch.commit();
-
-    logger.info("markOrderRefunded OK", { orderId, uid, authSource: uidRes.source, eventId: eventRef.id });
-
-    return sendJson(res, 200, { ok: true, orderId, status: "REFUNDED" });
-  } catch (err) {
-    logger.error("markOrderRefunded error", err);
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
+  // 🔒 MANUAL-ONLY: el status de /orders se cambia SOLO a mano en Firestore (sin endpoints)
+  return sendJson(res, 403, { ok: false, error: "MANUAL_ONLY_MODE" });
 });
 
 /**
@@ -777,63 +411,8 @@ exports.markOrderRefunded = onRequest(async (req, res) => {
  * - Actualiza order a COMPLETED con timestamps
  */
 exports.onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
-  if (!event || !event.data) return;
-
-  const before = (event.data.before && event.data.before.data()) ? event.data.before.data() : {};
-  const afterSnap = event.data.after;
-  const after = (afterSnap && afterSnap.data()) ? afterSnap.data() : {};
-
-  const beforeStatus = typeof before.status === "string" ? before.status : "";
-  const afterStatus = typeof after.status === "string" ? after.status : "";
-  const channel = typeof after.channel === "string" ? after.channel : "";
-
-  // Solo sandbox + transición exacta PENDING -> PAID
-  if (channel !== "sandbox") return;
-  if (!(beforeStatus === "PENDING" && afterStatus === "PAID")) return;
-
-  // Idempotencia: si ya se cumplió antes, salimos
-  if (after.fulfilledAtMs) return;
-
-  const orderId = String(event.params.orderId || "");
-  const uid = typeof after.uid === "string" ? after.uid : "";
-  if (!orderId || !uid) return;
-
-  const nowMs = Date.now();
-
-  try {
-    const recargaRef = db.collection("recargas").doc(orderId);
-
-    const batch = db.batch();
-
-    batch.set(recargaRef, {
-      orderId,
-      uid,
-      productId: after.productId || "",
-      destination: after.destination || "",
-      numero: after.destination || "",
-      destino: after.destination || "",
-      amount: after.amount,
-      currency: after.currency || "EUR",
-      status: "COMPLETED",
-      channel: "sandbox",
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-    }, { merge: true });
-
-    batch.update(afterSnap.ref, {
-      status: "COMPLETED",
-      fulfilledAt: FieldValue.serverTimestamp(),
-      fulfilledAtMs: nowMs,
-      updatedAt: FieldValue.serverTimestamp(),
-      updatedAtMs: nowMs,
-    });
-
-    await batch.commit();
-
-    logger.info("onOrderPaid fulfilled", { orderId, uid });
-  } catch (err) {
-    logger.error("onOrderPaid error", err);
-  }
+  // 🔒 MANUAL-ONLY: fulfillment automático deshabilitado (no crear /recargas, no mutar /orders).
+  return;
 });
 
 // exports.helloWorld = onRequest((request, response) => {
