@@ -1385,7 +1385,7 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             guardarNumeroReciente(String(destinoFinal).replace(/^\+?53/, ""));
           }
 
-          // ✅ Crear /orders en backend (cola oficial) y usar orderId como ID maestro (concepto)
+          // ✅ Crear /orders (cola oficial) y usar orderId como ID maestro (concepto)
           try {
             const destinoNormalized = String(
               destinoFinal ||
@@ -1398,18 +1398,34 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             const user = auth && auth.currentUser ? auth.currentUser : null;
             if (!user || !user.uid) throw new Error("firebase-no-auth");
 
-            const resp = await createOrderSandbox({
+            const db = window.firebaseDb;
+            if (!db) throw new Error("firebase-no-db");
+
+            // Firestore modular (carga perezosa para no tocar otros archivos)
+            const fsMod = window.__rpcFirestoreMod
+              ? window.__rpcFirestoreMod
+              : (window.__rpcFirestoreMod = await import("https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js"));
+
+            const { doc, setDoc, serverTimestamp } = fsMod;
+
+            const orderId = (`PEND-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`).toUpperCase();
+            const amount = Number(precioActual);
+
+            await setDoc(doc(db, "orders", orderId), {
               uid: String(user.uid),
               productId: String(productoId),
-              destino: destinoNormalized
+              destination: destinoNormalized,
+              destino: destinoNormalized, // compat
+              status: "PENDING",
+              amount: Number(amount),
+              currency: "EUR",
+              paymentMethod: String(selectedPayMethod || "PAYPAL").toUpperCase(),
+              channel: "web",
+              operador: String(operadorActual || ""),
+              beneficio: String(beneficioActual || ""),
+              createdAt: serverTimestamp(),
+              createdAtMs: Date.now()
             });
-
-            const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
-            const amount = (resp && resp.amount != null && Number.isFinite(Number(resp.amount)))
-              ? Number(resp.amount)
-              : Number(precioActual);
-
-            if (!orderId) throw new Error("order-missing-id");
 
             const pending = {
               clientId: orderId, // ✅ este es tu ID (se usa en Concepto)
