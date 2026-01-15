@@ -471,6 +471,70 @@ exports.onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
   }
 });
 
+/**
+ * Manual Completion Stub: cuando una order pasa a COMPLETED, registramos evento controlado.
+ * - Solo transición EXACTA PAID -> COMPLETED
+ * - NO llama a proveedor
+ * - Audit event: type "COMPLETED_MANUAL"
+ * - Idempotencia: completedProcessedAtMs
+ */
+exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) => {
+  const before = (event.data && event.data.before && event.data.before.data) ? (event.data.before.data() || {}) : {};
+  const after  = (event.data && event.data.after  && event.data.after.data)  ? (event.data.after.data()  || {}) : {};
+
+  const statusFrom = String(before.status || "");
+  const statusTo   = String(after.status  || "");
+
+  // Gate estricto: SOLO PAID -> COMPLETED
+  if (!(statusFrom === "PAID" && statusTo === "COMPLETED")) {
+    return;
+  }
+
+  const orderId = (event.params && event.params.orderId) ? String(event.params.orderId) : "";
+  if (!orderId) return;
+
+  const orderRef = db.collection("orders").doc(orderId);
+  const nowMs = Date.now();
+
+  try {
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(orderRef);
+      if (!snap.exists) return;
+
+      const cur = snap.data() || {};
+      const curStatus = String(cur.status || "");
+
+      // Si alguien lo movió ya, no hacemos nada.
+      if (curStatus !== "COMPLETED") return;
+
+      // Idempotencia: si ya procesamos COMPLETED, no repetir.
+      const processedMs = Number(cur.completedProcessedAtMs);
+      if (Number.isFinite(processedMs) && processedMs > 0) return;
+
+      // Audit event
+      const eventRef = orderRef.collection("events").doc();
+      tx.set(eventRef, {
+        type: "COMPLETED_MANUAL",
+        statusFrom: "PAID",
+        statusTo: "COMPLETED",
+        createdAt: FieldValue.serverTimestamp(),
+        createdAtMs: nowMs,
+      });
+
+      // Marca de procesamiento (no llama proveedor, no cambia status)
+      tx.update(orderRef, {
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "NOOP",
+      });
+    });
+
+    logger.info("onOrderCompleted manual stub OK", { orderId, statusFrom, statusTo });
+  } catch (e) {
+    logger.error("onOrderCompleted manual stub ERROR", { orderId, message: String(e && e.message ? e.message : e) });
+  }
+});
+
 // exports.helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
