@@ -475,3 +475,4 @@ exports.onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
 //   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
 // });
+
