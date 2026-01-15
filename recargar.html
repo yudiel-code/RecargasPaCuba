@@ -1410,43 +1410,54 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             window.__rpcPendingCheckout = pending;
             localStorage.setItem("rpc_pending_checkout", JSON.stringify(pending));
 
-            // ✅ Firestore SDK: persistir MB-… en /mb_orders (para que Historial lo vea)
+            // ✅ Firestore SDK: persistir MB-… en /mb_orders (OBLIGATORIO: si falla, NO continuamos)
             try {
               const db = window.firebaseDb;
               const docFn = window.firebaseFirestoreDoc;
               const setDocFn = window.firebaseFirestoreSetDoc;
               const serverTs = window.firebaseFirestoreServerTimestamp;
 
+              // Usar el authUser que ya te pasó guardProtectedPage (evita race)
               const auth = window.firebaseAuth;
-              const user = auth && auth.currentUser ? auth.currentUser : null;
+              const user = (authUser && authUser.uid) ? authUser : (auth && auth.currentUser ? auth.currentUser : null);
 
-              if (db && docFn && setDocFn && user && user.uid) {
-                const nowMs = Date.now();
-                const mbDoc = {
-                  uid: String(user.uid),
-                  clientId: String(clientId),
-                  destination: String(destinoNormalized),
-                  productId: String(productoId),
-                  amount: Number(precioActual),
-                  currency: "EUR",
-                  paymentMethod: String(selectedPayMethod || "PAYPAL"),
-                  status: "REQUESTED",
-                  channel: "web",
-                  createdAt: (typeof serverTs === "function") ? serverTs() : new Date().toISOString(),
-                  createdAtMs: nowMs
-                };
-
-                await setDocFn(
-                  docFn(db, "mb_orders", String(clientId)),
-                  mbDoc,
-                  { merge: true }
-                );
-
-                // Debug opcional: confirma en consola que hubo write
-                // console.log("mb_orders WRITE OK:", clientId);
+              if (!db || !docFn || !setDocFn) {
+                const msg = "No se pudo registrar el pedido (Firestore no listo).";
+                if (typeof showToastError === "function") showToastError(msg); else alert(msg);
+                return; // 🔒 no seguimos a pago
               }
+
+              if (!user || !user.uid) {
+                const msg = "No se pudo registrar el pedido (sesión no lista).";
+                if (typeof showToastError === "function") showToastError(msg); else alert(msg);
+                return; // 🔒 no seguimos a pago
+              }
+
+              const nowMs = Date.now();
+              const mbDoc = {
+                uid: String(user.uid),
+                clientId: String(clientId),
+                destination: String(destinoNormalized),
+                productId: String(productoId),
+                amount: Number(precioActual),
+                currency: "EUR",
+                paymentMethod: String(selectedPayMethod || "PAYPAL"),
+                status: "REQUESTED",
+                channel: "web",
+                createdAt: (typeof serverTs === "function") ? serverTs() : new Date().toISOString(),
+                createdAtMs: nowMs
+              };
+
+              await setDocFn(
+                docFn(db, "mb_orders", String(clientId)),
+                mbDoc,
+                { merge: true }
+              );
             } catch (e) {
-              console.warn("mb_orders WRITE skipped/failed:", e && e.message ? e.message : e);
+              console.warn("mb_orders WRITE failed:", e);
+              const msg = "No se pudo registrar el pedido. Reintenta (sin esto no se procesa el pago).";
+              if (typeof showToastError === "function") showToastError(msg); else alert(msg);
+              return; // 🔒 no seguimos a pago
             }
           } catch (_) {}
 
