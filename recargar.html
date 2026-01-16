@@ -888,11 +888,19 @@ const resp = await fetch(url, {
       // Master ID: internalProductId (tu ID). providerProductId queda “en sombra”.
       let rpcCatalogIndex = null; // { [internalProductId]: product }
       const RPC_PROJECT_ID = "recargaspacuba-7aaa8";
-      const RPC_COLLECTION = "catalog_products";
+      // Selector de catálogo (Ding vs Innoverit)
+      // - "ding"     => catalog_products
+      // - "innoverit"=> catalog_products_innoverit
+      const RPC_CATALOG_PROVIDER = "innoverit";
+
+      const RPC_COLLECTION = (RPC_CATALOG_PROVIDER === "ding")
+        ? "catalog_products"
+        : "catalog_products_innoverit";
 
       function rpcIsLocalhost() {
         return location.hostname === "localhost" || location.hostname === "127.0.0.1";
       }
+
 
       function rpcDecodeValue(v) {
         if (!v || typeof v !== "object") return null;
@@ -943,16 +951,30 @@ const resp = await fetch(url, {
           }
         } catch (_) {}
 
-        const resp = await fetch(base, { method: "GET", headers });
-        const data = await resp.json().catch(() => null);
+        const allDocs = [];
+        let pageToken = "";
 
-        if (!resp.ok || !data) {
-          const code = (data && data.error && data.error.message) ? data.error.message : ("HTTP_" + resp.status);
-          throw new Error(code);
+        while (true) {
+          const url = new URL(base);
+          url.searchParams.set("pageSize", "1000");
+          if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+          const resp = await fetch(url.toString(), { method: "GET", headers });
+          const data = await resp.json().catch(() => null);
+
+          if (!resp.ok || !data) {
+            const code = (data && data.error && data.error.message) ? data.error.message : ("HTTP_" + resp.status);
+            throw new Error(code);
+          }
+
+          const docs = Array.isArray(data.documents) ? data.documents : [];
+          allDocs.push(...docs);
+
+          pageToken = (data && data.nextPageToken) ? String(data.nextPageToken) : "";
+          if (!pageToken) break;
         }
 
-        const docs = Array.isArray(data.documents) ? data.documents : [];
-        return docs.map(d => {
+        return allDocs.map(d => {
           const name = String(d.name || "");
           const docId = name.split("/").pop();
           const fields = rpcDecodeFields(d.fields || {});
@@ -1467,9 +1489,11 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             });
 
             const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
-            const amount = (resp && resp.amount != null && Number.isFinite(Number(resp.amount)))
-              ? Number(resp.amount)
-              : Number(precioActual);
+            const amount = Number.isFinite(Number(precioActual))
+              ? Number(precioActual)
+              : ((resp && resp.amount != null && Number.isFinite(Number(resp.amount)))
+                ? Number(resp.amount)
+                : 0);
 
             if (!orderId) throw new Error("order-missing-id");
 
