@@ -1511,6 +1511,31 @@ if (correoTituloEl) {
             btn.classList.toggle("activo", activo);
             btn.disabled = !activo;
             btn.setAttribute("aria-disabled", activo ? "false" : "true");
+
+            // Click: canje manual vía soporte (solo si está activo)
+            if (!btn.__rpcCanjeBound) {
+              btn.__rpcCanjeBound = true;
+              btn.addEventListener("click", () => {
+                try {
+                  // Revalida por seguridad
+                  const txt = (document.getElementById("monedasActuales")?.textContent || "0").toString();
+                  const n = Number(txt.replace(/[^\d]/g, "")) || 0;
+                  if (n < target) return;
+
+                  // Mensaje simple (sin automatizar recarga)
+                  if (typeof showToastSuccess === "function") {
+                    showToastSuccess("Canje disponible: contacta con soporte para recibir tu recarga gratis.");
+                  } else {
+                    alert("Canje disponible: contacta con soporte para recibir tu recarga gratis.");
+                  }
+
+                  // (Opcional) llevar a Cuenta como “hub” de soporte
+                  setTimeout(() => {
+                    try { window.location.href = "cuenta.html"; } catch (_) {}
+                  }, 800);
+                } catch (_) {}
+              });
+            }
           }
         }
 
