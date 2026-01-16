@@ -231,8 +231,9 @@ body.page-historial {
 
 /* ===== HISTORIAL (SISTEMA UNIFICADO) =====
    Objetivo: todas las tarjetas mismo tamaño (fijo), chip arriba-derecha,
-   y contenido clamp (2 líneas) sin parches por tarjeta. */
-.historial-container .card--gradient {
+   y contenido clamp (2 líneas) sin parches por tarjeta.
+   Nota: EXCLUYE el card de monedas (.card-monedas) para que no herede el layout en fila. */
+.historial-container .card--gradient:not(.card-monedas) {
   width: 100%;
   box-sizing: border-box;
 
@@ -255,18 +256,18 @@ body.page-historial {
 }
 
 /* Icono (izquierda): no encoger */
-.historial-container .card--gradient > :first-child {
+.historial-container .card--gradient:not(.card-monedas) > :first-child {
   flex: 0 0 auto;
 }
 
 /* Contenido (centro): puede encogerse y partir */
-.historial-container .card--gradient > :nth-child(2) {
+.historial-container .card--gradient:not(.card-monedas) > :nth-child(2) {
   flex: 1 1 auto;
   min-width: 0;
 }
 
 /* Chip (derecha): siempre arriba-derecha, no encoge */
-.historial-container .card--gradient > :last-child {
+.historial-container .card--gradient:not(.card-monedas) > :last-child {
   position: absolute;
   top: 14px;
   right: 16px;
@@ -285,7 +286,7 @@ body.page-historial {
 }
 
 /* Título: 1 línea */
-.historial-container .card--gradient > :nth-child(2) > :first-child {
+.historial-container .card--gradient:not(.card-monedas) > :nth-child(2) > :first-child {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;
@@ -293,7 +294,7 @@ body.page-historial {
 }
 
 /* Textos intermedios: 2 líneas (opción A) */
-.historial-container .card--gradient > :nth-child(2) > :not(.fecha):not(:first-child) {
+.historial-container .card--gradient:not(.card-monedas) > :nth-child(2) > :not(.fecha):not(:first-child) {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -304,13 +305,13 @@ body.page-historial {
 }
 
 /* Fecha: reservar espacio fijo (evita saltos) */
-.historial-container .card--gradient .fecha {
+.historial-container .card--gradient:not(.card-monedas) .fecha {
   min-height: 14px;
   line-height: 14px;
 }
 
 /* Mantener el brillo controlado dentro del tamaño fijo */
-.historial-container .card--gradient::before {
+.historial-container .card--gradient:not(.card-monedas)::before {
   inset: -10px;
 }
 

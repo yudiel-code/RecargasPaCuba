@@ -169,6 +169,218 @@
       box-shadow: 0 10px 24px rgba(0,0,0,0.40);
       font-size: 14px;
     }
+
+    .card-titulo-monedas {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .card-descripcion-monedas {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .monedas-resumen {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 10px;
+    }
+
+    .monedas-valores {
+      font-size: 13px;
+    }
+
+    .monedas-valores .principal {
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .monedas-valores .secundario {
+      font-size: 11px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    .monedas-badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      background: rgba(30, 64, 175, 0.85);
+      border: 1px solid rgba(191, 219, 254, 0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .barra-progreso-wrap {
+      margin-bottom: 10px;
+    }
+
+    .barra-progreso-label {
+      font-size: 11px;
+      opacity: 0.9;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .barra-progreso {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      overflow: hidden;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+    }
+
+    .barra-progreso-inner {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #a3e635);
+      width: 0%;
+      transition: width 0.4s ease-out;
+    }
+
+    .tabla-monedas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 4px;
+    }
+
+    .tabla-monedas th,
+    .tabla-monedas td {
+      padding: 4px 3px;
+      text-align: left;
+    }
+
+    .tabla-monedas th {
+      font-weight: 600;
+      opacity: 0.9;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .tabla-monedas td {
+      opacity: 0.95;
+      border-bottom: 1px dashed rgba(51, 65, 85, 0.7);
+    }
+
+    .tabla-monedas tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tabla-monedas td span.destacado {
+      color: #facc15;
+      font-weight: 600;
+    }
+
+    .canje-wrap {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .canje-info {
+      font-size: 11px;
+      opacity: 0.9;
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .canje-info strong {
+      color: #bef264;
+    }
+
+    .btn-canje {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(15, 23, 42, 0.7);
+      color: rgba(148, 163, 184, 0.9);
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+    }
+
+    .btn-canje.activo {
+      background: linear-gradient(135deg, #22c55e, #a3e635);
+      color: #052e16;
+      border-style: solid;
+    }
+
+    .card-lista {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      font-size: 11px;
+      opacity: 0.95;
+    }
+
+    .card-lista li {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(248, 250, 252, 0.85);
+    }
+
+    .monedas-icon {
+      width: 50px;
+      height: 50px;
+      fill: #fff;
+    }
+
+    /* FIX layout: el card base es flex (fila). Este debe ser columna. */
+    .card.card-monedas{
+      display:flex !important;
+      flex-direction:column !important;
+      align-items:stretch !important;
+      justify-content:flex-start !important;
+      gap:12px;
+    }
+
+    .card.card-monedas > *{
+      width:100% !important;
+      min-width:0 !important;
+    }
+
+    .card-monedas .card-header{
+      display:flex !important;
+      align-items:flex-start !important;
+      justify-content:space-between !important;
+      gap:12px !important;
+    }
+
+    .card-monedas .card-title{
+      font-size:15px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+
+    .card-monedas .card-sub{
+      font-size:11px;
+      opacity:0.9;
+    }
+
+    .card-monedas .card-main{
+      display:flex !important;
+      align-items:flex-start !important;
+      justify-content:flex-start !important;
+      gap:14px !important;
+    }
   </style>
 </head>
 
@@ -205,6 +417,101 @@
       </div>
       <div class="estado azul" id="correo-estado">Sin movimientos</div>
     </div>
+
+    <section class="card card--gradient card-monedas">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Programa de monedas</div>
+          <div class="card-sub">Gana recompensas con tus recargas recurrentes</div>
+        </div>
+        <svg class="monedas-icon" viewBox="0 0 64 64">
+          <circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="42" cy="32" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+          <circle cx="26" cy="42" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+      </div>
+
+      <div class="card-main" style="align-items:flex-start;">
+        <div class="monedas-resumen">
+          <div class="monedas-valores">
+            <div class="principal"><span id="monedasActuales">0</span> monedas</div>
+            <div class="secundario">Recarga y acumula hasta llegar a tu recompensa</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="barra-progreso-wrap">
+        <div class="barra-progreso-label">
+          <span>Progreso hacia el canje</span>
+          <span id="monedasProgresoTexto">0 / 999</span>
+        </div>
+        <div class="barra-progreso">
+          <div id="barraProgresoInner" class="barra-progreso-inner"></div>
+        </div>
+      </div>
+
+      <table class="tabla-monedas">
+        <thead>
+          <tr>
+            <th>Recarga</th>
+            <th>Importe</th>
+            <th>Monedas</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cubacel</td>
+            <td>10 €</td>
+            <td>13</td>
+          </tr>
+          <tr>
+            <td>Cubacel</td>
+            <td>20 €</td>
+            <td>27</td>
+          </tr>
+          <tr>
+            <td>Cubacel</td>
+            <td>30 €</td>
+            <td>41</td>
+          </tr>
+          <tr>
+            <td>Cubacel</td>
+            <td>50 €</td>
+            <td><span class="destacado">69</span></td>
+          </tr>
+          <tr>
+            <td>Nauta</td>
+            <td>Cualquier importe</td>
+            <td>5 (fijo)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ul class="card-lista">
+        <li>
+          <span class="bullet"></span>
+          <span>Las monedas se suman automáticamente cada vez que completas una recarga.</span>
+        </li>
+        <li>
+          <span class="bullet"></span>
+          <span>Al llegar a <strong>999 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
+        </li>
+        <li>
+          <span class="bullet"></span>
+          <span>Las monedas no son dinero real, son puntos promocionales internos.</span>
+        </li>
+      </ul>
+
+      <div class="canje-wrap">
+        <div class="canje-info">
+          <strong>Canje disponible a partir de 999 monedas.</strong><br>
+          Una vez canjeado, el saldo promocional se sumará a tu balance para futuras recargas.
+        </div>
+        <button id="btnCanje" class="btn-canje">
+          Canjear 999 monedas por 20 €
+        </button>
+      </div>
+    </section>
  
   </div>
  
@@ -1139,8 +1446,77 @@ if (correoTituloEl) {
           console.error("Error preparando dataset Firestore:", e);
         }
 
+        // ===== Monedas (SOLO COMPLETED) =====
+        function isCompletedMovimiento(m) {
+          const s = (m && m.status ? String(m.status) : "").trim().toUpperCase();
+          const e = (m && m.estado ? String(m.estado) : "").trim().toUpperCase();
+          return (s === "COMPLETED") || (e === "OK");
+        }
+
+        function isNautaMovimiento(m) {
+          const pid = (m && m.productId ? String(m.productId) : "").toLowerCase();
+          const dest = (m && m.numero ? String(m.numero) : "");
+          return pid.includes("nauta") || dest.includes("@");
+        }
+
+        function coinsForMovimiento(m) {
+          if (!m) return 0;
+          if (!isCompletedMovimiento(m)) return 0;
+
+          // Nauta: fijo
+          if (isNautaMovimiento(m)) return 5;
+
+          const imp = Number(m.importe);
+          if (!Number.isFinite(imp)) return 0;
+
+          if (imp >= 10 && imp < 20) return 13;
+          if (imp >= 20 && imp < 30) return 27;
+          if (imp >= 30 && imp < 50) return 41;
+          if (imp >= 50) return 69;
+
+          return 0;
+        }
+
+        function updateMonedasCardFromLista() {
+          const elActual = document.getElementById("monedasActuales");
+          const elTxt = document.getElementById("monedasProgresoTexto");
+          const elBar = document.getElementById("barraProgresoInner");
+          const btn = document.getElementById("btnCanje");
+
+          if (!elActual || !elTxt || !elBar) return;
+
+          const target = 999;
+          const seen = new Set();
+          let total = 0;
+
+          (Array.isArray(lista) ? lista : []).forEach((m) => {
+            if (!m || m.tipo !== "recarga") return;
+
+            const key =
+              (m.orderId || (m.extra && m.extra.orderId) || m.id || "").toString();
+            if (key && seen.has(key)) return;
+            if (key) seen.add(key);
+
+            total += coinsForMovimiento(m);
+          });
+
+          elActual.textContent = String(total);
+          elTxt.textContent = `${total} / ${target}`;
+
+          const pct = Math.max(0, Math.min(100, (total / target) * 100));
+          elBar.style.width = `${pct}%`;
+
+          if (btn) {
+            const activo = total >= target;
+            btn.classList.toggle("activo", activo);
+            btn.disabled = !activo;
+            btn.setAttribute("aria-disabled", activo ? "false" : "true");
+          }
+        }
+
         // Un solo render (ya con dataset final elegido) y reveal
         renderCardsFromLista(true);
+        updateMonedasCardFromLista();
         revealHistorialOnce();
       })();
     });

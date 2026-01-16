@@ -688,6 +688,68 @@ const resp = await fetch(url, {
           ...payload
         };
 
+        // ===== Monedas persistentes (SOLO COMPLETED) =====
+        try {
+          const sRaw = (item && item.status != null) ? String(item.status) : "";
+          const eRaw = (item && item.estado != null) ? String(item.estado) : "";
+          let st = (sRaw || eRaw).trim().toUpperCase();
+          if (st === "OK" || st === "SUCCESS") st = "COMPLETED";
+
+          const isCompleted = (st === "COMPLETED");
+
+          if (isCompleted) {
+            const pid = (item && (item.productId || item.productoId || item.productoID) != null)
+              ? String(item.productId || item.productoId || item.productoID).toLowerCase()
+              : "";
+            const destino = (item && (item.numero || item.destino || item.destination) != null)
+              ? String(item.numero || item.destino || item.destination)
+              : "";
+
+            const isNauta = pid.includes("nauta") || destino.includes("@");
+
+            let impRaw = (item && (item.importe ?? item.amount ?? item.price ?? item.precio ?? item.valor));
+            let impNum = NaN;
+            if (impRaw !== undefined && impRaw !== null && impRaw !== "") {
+              impNum = Number(String(impRaw).replace(",", "."));
+            }
+
+            let coins = 0;
+            if (isNauta) {
+              coins = 5;
+            } else if (Number.isFinite(impNum)) {
+              if (impNum >= 10 && impNum < 20) coins = 13;
+              else if (impNum >= 20 && impNum < 30) coins = 27;
+              else if (impNum >= 30 && impNum < 50) coins = 41;
+              else if (impNum >= 50) coins = 69;
+            }
+
+            if (coins > 0) {
+              const idKeyBase =
+                (item && (item.orderId || (item.extra && item.extra.orderId) || item.id || item.idConfirmacion || item.idConfirm || item.orderID))
+                  ? String(item.orderId || (item.extra && item.extra.orderId) || item.id || item.idConfirmacion || item.idConfirm || item.orderID)
+                  : "";
+              const fallbackKey = `${item.fecha}|${destino}|${Number.isFinite(impNum) ? impNum.toFixed(2) : ""}`;
+              const key = (idKeyBase || fallbackKey).trim();
+
+              const rawM = localStorage.getItem("rpc_monedas_v1") || '{"total":0,"seen":{}}';
+              let state = null;
+              try { state = JSON.parse(rawM); } catch (_) { state = null; }
+              if (!state || typeof state !== "object") state = { total: 0, seen: {} };
+              if (!state.seen || typeof state.seen !== "object") state.seen = {};
+
+              if (!state.seen[key]) {
+                state.seen[key] = true;
+                state.total = Number(state.total || 0) + coins;
+                state.updatedAt = new Date().toISOString();
+                localStorage.setItem("rpc_monedas_v1", JSON.stringify(state));
+              }
+
+              // opcional: guarda el detalle en el movimiento
+              item.monedas = coins;
+            }
+          }
+        } catch (_) {}
+
         lista.unshift(item);
         localStorage.setItem("rpc_historial", JSON.stringify(lista));
         return item;

@@ -947,101 +947,6 @@
       <section class="card card--gradient">
         <div class="card-header">
           <div>
-            <div class="card-title">Programa de monedas</div>
-            <div class="card-sub">Gana recompensas con tus recargas recurrentes</div>
-          </div>
-          <svg class="monedas-icon" viewBox="0 0 64 64">
-            <circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
-            <circle cx="42" cy="32" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
-            <circle cx="26" cy="42" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
-          </svg>
-        </div>
-
-        <div class="card-main" style="align-items:flex-start;">
-          <div class="monedas-resumen">
-            <div class="monedas-valores">
-              <div class="principal"><span id="monedasActuales">0</span> monedas</div>
-              <div class="secundario">Recarga y acumula hasta llegar a tu recompensa</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="barra-progreso-wrap">
-          <div class="barra-progreso-label">
-            <span>Progreso hacia el canje</span>
-            <span id="monedasProgresoTexto">0 / 999</span>
-          </div>
-          <div class="barra-progreso">
-            <div id="barraProgresoInner" class="barra-progreso-inner"></div>
-          </div>
-        </div>
-
-        <table class="tabla-monedas">
-          <thead>
-            <tr>
-              <th>Recarga</th>
-              <th>Importe</th>
-              <th>Monedas</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Cubacel</td>
-              <td>10 €</td>
-              <td>13</td>
-            </tr>
-            <tr>
-              <td>Cubacel</td>
-              <td>20 €</td>
-              <td>27</td>
-            </tr>
-            <tr>
-              <td>Cubacel</td>
-              <td>30 €</td>
-              <td>41</td>
-            </tr>
-            <tr>
-              <td>Cubacel</td>
-              <td>50 €</td>
-              <td><span class="destacado">69</span></td>
-            </tr>
-            <tr>
-              <td>Nauta</td>
-              <td>Cualquier importe</td>
-              <td>5 (fijo)</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <ul class="card-lista">
-          <li>
-            <span class="bullet"></span>
-            <span>Las monedas se suman automáticamente cada vez que completas una recarga.</span>
-          </li>
-          <li>
-            <span class="bullet"></span>
-            <span>Al llegar a <strong>999 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
-          </li>
-          <li>
-            <span class="bullet"></span>
-            <span>Las monedas no son dinero real, son puntos promocionales internos.</span>
-          </li>
-        </ul>
-
-        <div class="canje-wrap">
-          <div class="canje-info">
-            <strong>Canje disponible a partir de 999 monedas.</strong><br>
-            Una vez canjeado, el saldo promocional se sumará a tu balance para futuras recargas.
-          </div>
-          <button id="btnCanje" class="btn-canje">
-            Canjear 999 monedas por 20 €
-          </button>
-        </div>
-      </section>
-
-      <section class="card card--gradient">
-        <div class="card-header">
-          <div>
             <div class="card-title">Centro legal</div>
             <div class="card-sub">Información legal y documentación de tu cuenta y la app</div>
           </div>
@@ -1718,79 +1623,6 @@
       });
     }
 
-    function obtenerMonedasCubacel(importe) {
-      const packs = [
-        { ref: 10, coins: 13 },
-        { ref: 20, coins: 27 },
-        { ref: 30, coins: 41 },
-        { ref: 50, coins: 69 }
-      ];
-
-      let elegido = packs[0];
-      packs.forEach(function(p) {
-        if (Math.abs(importe - p.ref) < Math.abs(importe - elegido.ref)) {
-          elegido = p;
-        }
-      });
-      return elegido.coins;
-    }
-
-    function actualizarUIConMonedas(totalMonedas) {
-      const monedasActualesEl     = document.getElementById("monedasActuales");
-      const monedasProgresoTexto  = document.getElementById("monedasProgresoTexto");
-      const barraProgresoInner    = document.getElementById("barraProgresoInner");
-
-      if (monedasActualesEl)    monedasActualesEl.textContent = totalMonedas;
-      const objetivo = 999;
-      const progreso = Math.min(100, (totalMonedas / objetivo) * 100);
-
-      if (monedasProgresoTexto) {
-        monedasProgresoTexto.textContent = totalMonedas + " / " + objetivo;
-      }
-      if (barraProgresoInner) {
-        barraProgresoInner.style.width = progreso + "%";
-      }
-
-      const btnCanjeLocal = document.getElementById("btnCanje");
-      if (btnCanjeLocal) {
-        if (totalMonedas >= objetivo) {
-          btnCanjeLocal.classList.add("activo");
-          btnCanjeLocal.textContent = "Canjear ahora 999 monedas por 20 €";
-        } else {
-          btnCanjeLocal.classList.remove("activo");
-          btnCanjeLocal.textContent = "Canjear 999 monedas por 20 €";
-        }
-      }
-    }
-
-    function calcularMonedas() {
-      let totalMonedas = 0;
-
-      if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
-        totalMonedas = window.UserData.recalcularMonedas();
-      } else {
-        const historial = getHistorialSeguro();
-        historial.forEach(function(item) {
-          if (item.tipo === "recarga") {
-            const imp = Number(item.importe) || 0;
-            const operador = item.operador || "";
-
-            if (operador === "Cubacel") {
-              totalMonedas += obtenerMonedasCubacel(imp);
-            } else if (operador === "Nauta") {
-              totalMonedas += 5;
-            } else {
-              if (imp > 0) {
-                totalMonedas += obtenerMonedasCubacel(imp);
-              }
-            }
-          }
-        });
-      }
-
-      actualizarUIConMonedas(totalMonedas);
-    }
-
     const confirmarSaldoBtn = document.getElementById("confirmarSaldoBtn");
     if (confirmarSaldoBtn && inputSaldo) {
       confirmarSaldoBtn.addEventListener("click", function() {
@@ -1905,18 +1737,9 @@
       });
     }
 
-    const btnCanje = document.getElementById("btnCanje");
-    if (btnCanje) {
-      btnCanje.addEventListener("click", function() {
-        if (!btnCanje.classList.contains("activo")) return;
-        showToastSuccess("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
-      });
-    }
-
     cargarSaldo();
     cargarUltimoMovimiento();
     inicializarAvatar();
-    calcularMonedas();
     marcarMetodoActivo();
     actualizarTextoMetodo();
     };
