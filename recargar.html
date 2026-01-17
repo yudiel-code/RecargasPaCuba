@@ -1621,59 +1621,49 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
           }
 
           if (pm === "PAYPAL" || pm === "REVOLUT") {
-            // ✅ Links Revolut (según importe) — de los enlaces que pasaste
-            const REVOLUT_LINKS_BY_AMOUNT = {
-              "42.44": "https://checkout.revolut.com/pay/15c28ad7-9814-456e-bc85-13751cdbbde9",
-              "32.08": "https://checkout.revolut.com/pay/c624b0bd-cbef-42e3-8ccb-c0727017dbec",
-              "25.87": "https://checkout.revolut.com/pay/f26f0792-ef76-42e0-8d65-a1e44de0a12e",
-              "21.72": "https://checkout.revolut.com/pay/421f41f5-9a60-4dca-a961-8a05255491f3",
-              "30.01": "https://checkout.revolut.com/pay/7e165786-bff7-4bc6-83ae-a2d44903661f",
-              "22.86": "https://checkout.revolut.com/pay/e49b8820-0c95-4a19-94bc-caf4f12f75fc",
-              "66.56": "https://checkout.revolut.com/pay/8b0c5d9b-47a4-45d7-8ccd-acf5c99ff50e",
-              "23.77": "https://checkout.revolut.com/pay/18e9e032-3daf-4c47-a1c5-2eb5bc475650",
-              "35.15": "https://checkout.revolut.com/pay/a48ff0a8-393e-461d-bad5-5d31e4ac11eb",
-              "69.29": "https://checkout.revolut.com/pay/b66d3d0a-f1bb-40f1-82a1-3d138686aa89",
-              "9.04":  "https://checkout.revolut.com/pay/2a9ca531-3ba6-477f-a2fb-47f789acb4d0",
-              "14.40": "https://checkout.revolut.com/pay/fa3603c6-7121-4d54-8ed3-4a25c9c63f12"
-            };
+            // ✅ Migrado a catálogo (Innoverit): el link se lee del producto (Firestore) para que lo rellenes manualmente.
+            // Acepta varios nombres de campo para no depender de un único esquema.
+            function rpcResolvePayUrl(product, method) {
+              const p = (product && typeof product === "object") ? product : {};
+              const m = String(method || "").toUpperCase();
 
-            // ✅ Links PayPal (según productId) — como en tu captura
-            const PAYPAL_LINKS_BY_PRODUCT = {
-              "cubacel-bundle-10gb-30d": "https://www.paypal.com/ncp/payment/URZC5Z7NEMYKY",
-              "cubacel-bundle-16gb-30d": "https://www.paypal.com/ncp/payment/V9VK922NYQ9NS",
-              "cubacel-bundle-500cup-330d": "https://www.paypal.com/ncp/payment/AD8DMZWQQ9A8Y",
-              "cubacel-bundle-5gb-35d": "https://www.paypal.com/ncp/payment/UYRC2CV4VGSKN",
-              "cubacel-bundle-600cup-330d": "https://www.paypal.com/ncp/payment/84Z66MZW9VKRW",
-              "cubacel-bundle-700cup-330d": "https://www.paypal.com/ncp/payment/RL6ZNKG94LPKG",
-              "cubacel-cpe-data-10gb-promo": "https://www.paypal.com/ncp/payment/2TYPQ9M2BKVRU",
-              "cubacel-cpe-data-50gb-promo": "https://www.paypal.com/ncp/payment/EGY9WDRFP65PY",
-              "cubacel-tourist-data-10gb": "https://www.paypal.com/ncp/payment/LKVANARED6JMY",
-              "cubacel-tourist-data-20gb": "https://www.paypal.com/ncp/payment/DQ5FRBE833QNW",
-              "cubacel-tourist-data-50gb": "https://www.paypal.com/ncp/payment/LXVQXEEJETSEN",
-              "nauta-topup-600cup-30d": "https://www.paypal.com/ncp/payment/WRZSUUFMHL7CS",
-              "nauta-unlimited-30d-promo": "https://www.paypal.com/ncp/payment/WRZSUUFMHL7CS",
-              "nauta-topup-360cup-15d": "https://www.paypal.com/ncp/payment/H3GRC9CH6C2S8",
-              "nauta-unlimited-15d-promo": "https://www.paypal.com/ncp/payment/H3GRC9CH6C2S8"
-            };
+              // 1) Mapas tipo { PAYPAL: "...", REVOLUT: "..." } (case-insensitive)
+              const maps = [
+                p.paymentLinks,
+                p.payment_links,
+                p.payLinks,
+                p.pay_links,
+                p.linksPago,
+                p.links_pago
+              ];
+              for (const mp of maps) {
+                if (!mp || typeof mp !== "object") continue;
+                const v =
+                  mp[m] ||
+                  mp[m.toLowerCase()] ||
+                  mp[(m === "PAYPAL") ? "paypal" : "revolut"] ||
+                  mp[(m === "PAYPAL") ? "PayPal" : "Revolut"];
+                if (typeof v === "string" && v.trim()) return v.trim();
+              }
 
-            const pending = (typeof rpcReadPendingCheckout === "function") ? rpcReadPendingCheckout() : null;
+              // 2) Campos directos por método
+              const keys = (m === "PAYPAL")
+                ? ["paypalLink", "paypalUrl", "paypalURL", "paymentLinkPayPal", "paymentLinkPaypal", "linkPayPal", "linkPaypal", "paypal"]
+                : ["revolutLink", "revolutUrl", "revolutURL", "paymentLinkRevolut", "linkRevolut", "revolut"];
 
-            const importeNum = pending ? Number(pending.importe) : NaN;
-            const importeKey = Number.isFinite(importeNum) ? importeNum.toFixed(2) : "";
+              for (const k of keys) {
+                const v = p[k];
+                if (typeof v === "string" && v.trim()) return v.trim();
+              }
 
-            const productKey = pending && pending.productId ? String(pending.productId).trim() : "";
+              return "";
+            }
 
-            const revolutUrlByAmount = (importeKey && REVOLUT_LINKS_BY_AMOUNT[importeKey])
-              ? String(REVOLUT_LINKS_BY_AMOUNT[importeKey])
-              : "";
-
-            const paypalUrlByProduct = (productKey && PAYPAL_LINKS_BY_PRODUCT[productKey])
-              ? String(PAYPAL_LINKS_BY_PRODUCT[productKey])
-              : "";
+            const prod = (productoActual && typeof productoActual === "object") ? productoActual : null;
 
             const url = (pm === "PAYPAL")
-              ? String(paypalUrlByProduct || window.RPC_PAYPAL_URL || "")
-              : String(revolutUrlByAmount || window.RPC_REVOLUT_URL || "");
+              ? String(rpcResolvePayUrl(prod, "PAYPAL") || window.RPC_PAYPAL_URL || "")
+              : String(rpcResolvePayUrl(prod, "REVOLUT") || window.RPC_REVOLUT_URL || "");
 
             if (!url) {
               const msg = (pm === "PAYPAL")
