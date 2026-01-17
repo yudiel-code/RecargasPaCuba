@@ -595,3 +595,10 @@ textarea:focus-visible,
 .legal-links a {
   text-decoration: underline;
 }
+
+/* Recibe: permitir salto de linea en textos largos */
+.receive-block .receive-main {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
