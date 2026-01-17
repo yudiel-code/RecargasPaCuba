@@ -1489,11 +1489,9 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             });
 
             const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
-            const amount = Number.isFinite(Number(precioActual))
-              ? Number(precioActual)
-              : ((resp && resp.amount != null && Number.isFinite(Number(resp.amount)))
-                ? Number(resp.amount)
-                : 0);
+            const amount = (resp && resp.amount != null && Number.isFinite(Number(resp.amount)))
+              ? Number(resp.amount)
+              : Number(precioActual);
 
             if (!orderId) throw new Error("order-missing-id");
 
