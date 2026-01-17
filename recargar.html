@@ -1195,13 +1195,38 @@ const resp = await fetch(url, {
           const all = await rpcFetchCatalog(authUser);
           const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
           if (!visible.length) return;
-          // Orden por precio (menor -> mayor): sellAmountEur (fallback sendAmountEur)
+          // Orden: 1) Paquete 2) Promo variable 3) Normal; dentro de cada grupo: precio (menor -> mayor)
+    const rpcGroupRank = (p) => {
+      const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
+      const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
+      const isBundle = (typeTxt === "bundle") || internalId.includes("bundle");
+      if (isBundle) return 0;
+
+      const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
+      if (isPromoVar) return 1;
+
+      return 2;
+    };
+
     const rpcSortEur = (p) => {
       const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
       const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
       return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
     };
-    visible.sort((a, b) => rpcSortEur(a) - rpcSortEur(b));
+
+    visible.sort((a, b) => {
+      const ga = rpcGroupRank(a);
+      const gb = rpcGroupRank(b);
+      if (ga !== gb) return ga - gb;
+
+      const pa = rpcSortEur(a);
+      const pb = rpcSortEur(b);
+      if (pa !== pb) return pa - pb;
+
+      const ka = String((a && (a.__docId || a.internalProductId)) || "");
+      const kb = String((b && (b.__docId || b.internalProductId)) || "");
+      return ka.localeCompare(kb, "es");
+    });
 
           rpcCatalogIndex = {};
           visible.forEach(p => {
