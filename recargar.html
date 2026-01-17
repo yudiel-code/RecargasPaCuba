@@ -1172,43 +1172,11 @@ const resp = await fetch(url, {
         const cub = [];
         const nau = [];
 
-        // Orden: 1) Paquete (Bundle) 2) Promo variable 3) Normal
-        // Dentro de cada grupo: por precio (sellAmountEur) ascendente
-        function rpcSortGroupRank(p) {
-          const internalId = String(p.internalProductId || "").trim().toLowerCase();
-          const typeTxt = String(p.productType || p.type || "").trim().toLowerCase();
-          const isBundle = (typeTxt === "bundle") || internalId.includes("bundle");
-          if (isBundle) return 0;
-
-          const isPromoVar = !!p.isPromo && !!p.variablePromo;
-          if (isPromoVar) return 1;
-
-          // Todo lo demás (incluye "Promo fija" si existe) cae aquí
-          return 2;
+        for (const p of products) {
+          const cat = String(p.category || "").toUpperCase();
+          if (cat === "NAUTA") nau.push(p);
+          else cub.push(p);
         }
-
-        function rpcSortPriceNum(p) {
-          const raw = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
-          const n = (typeof raw === "number") ? raw : Number(String(raw).replace(",", "."));
-          return (Number.isFinite(n) && n > 0) ? n : Number.POSITIVE_INFINITY;
-        }
-
-        function rpcCatalogSort(a, b) {
-          const ga = rpcSortGroupRank(a);
-          const gb = rpcSortGroupRank(b);
-          if (ga !== gb) return ga - gb;
-
-          const pa = rpcSortPriceNum(a);
-          const pb = rpcSortPriceNum(b);
-          if (pa !== pb) return pa - pb;
-
-          const ia = String(a.internalProductId || "");
-          const ib = String(b.internalProductId || "");
-          return ia.localeCompare(ib, "es");
-        }
-
-        cub.sort(rpcCatalogSort);
-        nau.sort(rpcCatalogSort);
 
         // Solo reemplazamos si hay algo que renderizar (evita dejar la página vacía si falla).
         if (!cub.length && !nau.length) return false;
