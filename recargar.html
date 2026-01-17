@@ -1087,9 +1087,11 @@ const resp = await fetch(url, {
         const category = String(p.category || "").toUpperCase();
         const isPromo = !!p.isPromo;
         const variablePromo = !!p.variablePromo;
-        const baseEur = Number(p.sendAmountEur);
-const sellEur = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : NaN;
-const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
+        const costEur = Number(p.sendAmountEur);
+        const sellRaw = (p.sellAmountEur != null) ? p.sellAmountEur : null;
+        const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
+        const sellEur = Number.isFinite(sellNum) ? sellNum : (Number.isFinite(costEur) ? costEur : NaN);
+        const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(Math.round(sellEur * 100) / 100) : "—";
         const receiveTxt = rpcResolveReceiveText(p);
 
         const badgeClass = isPromo ? "badge promo" : "badge";
@@ -1157,12 +1159,15 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
           const all = await rpcFetchCatalog(authUser);
           const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
           if (!visible.length) return;
-          // Orden por precio (menor -> mayor). Si en UI el precio es sendAmountEur + 1,
-    // ordenar por sendAmountEur da el mismo orden (el +1 es constante).
+          // Orden por precio (menor -> mayor): sellAmountEur (fallback sendAmountEur)
     const rpcSortEur = (p) => {
-      const v = (p && p.sendAmountEur != null) ? p.sendAmountEur : null;
-      const n = (typeof v === "number") ? v : Number(String(v).replace(",", "."));
-      return Number.isFinite(n) ? n : 999999;
+      const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
+      const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
+      if (Number.isFinite(nSell)) return nSell;
+
+      const vCost = (p && p.sendAmountEur != null) ? p.sendAmountEur : null;
+      const nCost = (typeof vCost === "number") ? vCost : Number(String(vCost).replace(",", "."));
+      return Number.isFinite(nCost) ? nCost : 999999;
     };
     visible.sort((a, b) => rpcSortEur(a) - rpcSortEur(b));
 
@@ -1459,8 +1464,11 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
 
           if (catProd) {
             productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
-            const baseEur = Number(catProd.sendAmountEur);
-precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : 0;
+            const costEur = Number(catProd.sendAmountEur);
+            const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
+            const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
+            const sellEur = Number.isFinite(sellNum) ? sellNum : (Number.isFinite(costEur) ? costEur : 0);
+            precioActual = Math.round(sellEur * 100) / 100;
             beneficioActual = String(catProd.receiveText || "").trim();
             operadorActual = String(catProd.category || "").toUpperCase();
 
@@ -1583,11 +1591,13 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             });
 
             const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
-            const amount = (resp && resp.amount != null && Number.isFinite(Number(resp.amount)))
-              ? Number(resp.amount)
-              : Number(precioActual);
+
+            // ✅ El precio mostrado/cobrado viene del catálogo (sellAmountEur -> precioActual)
+            const amount = Number(precioActual);
 
             if (!orderId) throw new Error("order-missing-id");
+
+            const costEur = Number(productoActual && productoActual.sendAmountEur);
 
             const pending = {
               clientId: orderId, // ✅ este es tu ID (se usa en Concepto)
@@ -1595,7 +1605,12 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
               productId: String(productoId),
               operador: String(operadorActual || ""),
               beneficio: String(beneficioActual || ""),
-              importe: Number(amount),
+              // Precio final (cliente)
+              importe: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : 0,
+              // Coste (proveedor)
+              sendAmountEur: Number.isFinite(costEur) ? Math.round(costEur * 100) / 100 : null,
+              // Precio (catálogo) explícito
+              sellAmountEur: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : null,
               metodoPago: String(selectedPayMethod || "PAYPAL"),
               destino: destinoNormalized,
               createdAt: new Date().toISOString()

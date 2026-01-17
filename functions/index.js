@@ -230,14 +230,19 @@ exports.createOrder = onRequest(async (req, res) => {
       const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
       const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
 
-      // Importe desde catálogo (EUR) + margen fijo (+1.00 EUR)
-      const baseEur = Number(p.sendAmountEur);
+      // Importe desde catálogo (EUR): sellAmountEur (fallback a sendAmountEur) sin +1
+      const sellEur = Number(p.sellAmountEur);
+      const sendEur = Number(p.sendAmountEur);
+
+      let baseEur = sellEur;
+      if (!Number.isFinite(baseEur) || baseEur <= 0) baseEur = sendEur;
+
       if (!Number.isFinite(baseEur) || baseEur <= 0) {
         return sendJson(res, 500, { ok: false, error: "INVALID_PRODUCT_AMOUNT", productId });
       }
-      const amt = Math.round((baseEur + 1.0 + Number.EPSILON) * 100) / 100;
+      const amt = Math.round((baseEur + Number.EPSILON) * 100) / 100;
 
-      // Currency: al usar sendAmountEur, la moneda es EUR
+      // Currency: al usar importes en EUR, la moneda es EUR
       const cur = "EUR";
 
       product = { id: productId, kind, amount: amt, currency: cur };
