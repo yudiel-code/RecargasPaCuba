@@ -602,3 +602,12 @@ textarea:focus-visible,
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+/* Recibe: wrap real en textos largos (override) */
+.card .receive-block { min-width: 0; }
+.card .receive-block .receive-main{
+  min-width: 0;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
