@@ -982,7 +982,7 @@ const resp = await fetch(url, {
         });
       }
 
-      function rpcToEsOfferText(input) {
+        function rpcToEsOfferText(input) {
         let t = String(input || "").replace(/\s+/g, " ").trim();
         if (!t) return "";
 
@@ -1021,6 +1021,66 @@ const resp = await fetch(url, {
         return t;
       }
 
+      function rpcResolveReceiveText(p) {
+        const prod = (p && typeof p === "object") ? p : {};
+
+        // 1) Preferente: receiveText (traducible)
+        const primary = rpcToEsOfferText(prod.receiveText);
+        if (primary) return primary;
+
+        // Helpers deterministas (solo leen campos existentes)
+        function pickStr(key) {
+          const v = prod[key];
+          return (typeof v === "string" && v.trim()) ? v.trim() : "";
+        }
+        function toNum(v) {
+          const n = (typeof v === "number") ? v : Number(v);
+          return Number.isFinite(n) ? n : null;
+        }
+
+        // 2) Fallback por campos explícitos de “receive/benefit” (sin transformar)
+        const str =
+          pickStr("receiveAmountText") ||
+          pickStr("receiveAmountRaw") ||
+          pickStr("receiveRaw") ||
+          pickStr("receive") ||
+          pickStr("benefitText") ||
+          pickStr("benefit") ||
+          pickStr("benefitRaw");
+        if (str) return str;
+
+        // 3) Fallback por objeto receive { text | amount+currency/unit }
+        if (prod.receive && typeof prod.receive === "object") {
+          const r = prod.receive;
+
+          const rt = (typeof r.text === "string" && r.text.trim()) ? r.text.trim() : "";
+          if (rt) return rt;
+
+          const amt = toNum(r.amount ?? r.value ?? r.qty);
+          if (amt != null) {
+            const cur = (typeof r.currency === "string" && r.currency.trim()) ? r.currency.trim() : "";
+            const unit = (typeof r.unit === "string" && r.unit.trim()) ? r.unit.trim() : "";
+            if (cur) return `${amt} ${cur}`;
+            if (unit) return `${amt} ${unit}`;
+            return String(amt);
+          }
+        }
+
+        // 4) Fallback por receiveAmount + (receiveCurrency/receiveUnit) si existen
+        const amt2 = toNum(prod.receiveAmount ?? prod.receiveValue ?? prod.receiveQty);
+        if (amt2 != null) {
+          const cur2 =
+            ((typeof prod.receiveCurrency === "string" && prod.receiveCurrency.trim()) ? prod.receiveCurrency.trim() : "") ||
+            ((typeof prod.receiveUnit === "string" && prod.receiveUnit.trim()) ? prod.receiveUnit.trim() : "") ||
+            ((typeof prod.receiveAmountCurrency === "string" && prod.receiveAmountCurrency.trim()) ? prod.receiveAmountCurrency.trim() : "");
+          return cur2 ? `${amt2} ${cur2}` : String(amt2);
+        }
+
+        // 5) No hay datos suficientes
+        return "";
+      }
+
+
       function rpcBuildCard(p) {
         const internalId = String(p.internalProductId || "").trim();
         const cardKey = String(p.__docId || "").trim() || internalId; // ✅ key único por doc (evita colisiones)
@@ -1030,7 +1090,7 @@ const resp = await fetch(url, {
         const baseEur = Number(p.sendAmountEur);
 const sellEur = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : NaN;
 const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
-        const receiveTxt = rpcToEsOfferText(p.receiveText);
+        const receiveTxt = rpcResolveReceiveText(p);
 
         const badgeClass = isPromo ? "badge promo" : "badge";
         const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal";
