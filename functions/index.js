@@ -206,12 +206,19 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
 
-  // Resolver producto: SOLO catalog_products (Firestore) — catalog-only
+  // Resolver producto: preferente catalog_products_innoverit, fallback catalog_products
   let product = null;
 
   try {
-    const snap = await db.collection("catalog_products").doc(productId).get();
-    if (snap.exists) {
+    const collections = ["catalog_products_innoverit", "catalog_products"];
+    let snap = null;
+
+    for (const c of collections) {
+      const s = await db.collection(c).doc(productId).get();
+      if (s.exists) { snap = s; break; }
+    }
+
+    if (snap && snap.exists) {
       const p = snap.data() || {};
 
       // Switch ON/OFF desde Firestore
