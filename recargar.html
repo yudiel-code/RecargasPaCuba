@@ -1023,6 +1023,7 @@ const resp = await fetch(url, {
 
       function rpcBuildCard(p) {
         const internalId = String(p.internalProductId || "").trim();
+        const cardKey = String(p.__docId || "").trim() || internalId; // ✅ key único por doc (evita colisiones)
         const category = String(p.category || "").toUpperCase();
         const isPromo = !!p.isPromo;
         const variablePromo = !!p.variablePromo;
@@ -1061,7 +1062,7 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
 
           <div class="card-footer">
             <div class="fees">Tasas e impuestos incluidos.</div>
-            <button class="cta" data-product-id="${internalId}" data-category="${category}">Entrar para comprar</button>
+            <button class="cta" data-product-id="${cardKey}" data-category="${category}">Entrar para comprar</button>
           </div>
         `;
         return article;
@@ -1098,8 +1099,33 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
           if (!visible.length) return;
 
           rpcCatalogIndex = {};
-          visible.forEach(p => { rpcCatalogIndex[String(p.internalProductId).trim()] = p; });
+          visible.forEach(p => {
+            const k = String(p.__docId || "").trim() || String(p.internalProductId || "").trim();
+            if (k) rpcCatalogIndex[k] = p;
+          });
           window.__rpcCatalogIndex = rpcCatalogIndex; // debug rápido
+
+          // ✅ Guard anti-colisión: en Innoverit hay internalProductId duplicados (ej. nauta-internet).
+          // La clave del índice DEBE ser única (preferimos __docId).
+          try {
+            const keys = Object.keys(rpcCatalogIndex || {});
+            if (keys.length && keys.some(k => !k || String(k).trim() === "")) {
+              console.warn("rpcCatalogIndex: found empty key");
+            }
+            const byInternal = {};
+            keys.forEach(k => {
+              const p = rpcCatalogIndex[k];
+              const id = String(p && p.internalProductId || "").trim();
+              if (!id) return;
+              byInternal[id] = (byInternal[id] || 0) + 1;
+            });
+            const dup = Object.entries(byInternal).filter(([,n]) => n > 1);
+            if (dup.length) {
+              // expected for Innoverit NAUTA; just log top few
+              dup.sort((a,b)=>b[1]-a[1]);
+              console.log("rpcCatalogIndex dup internalProductId (expected):", dup.slice(0,5));
+            }
+          } catch (_) {}
 
           rpcRenderCatalog(visible);
         } catch (e) {
