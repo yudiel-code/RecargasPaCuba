@@ -1095,6 +1095,15 @@ const resp = await fetch(url, {
         const ctaTxt = hasValidSell ? "Entrar para comprar" : "No disponible";
         const ctaAttr = hasValidSell ? "" : ' disabled aria-disabled="true"';
         const receiveTxt = rpcResolveReceiveText(p);
+        const promoNoteRaw = String(p.promoNote || "").trim();
+        const promoNoteTxt = promoNoteRaw
+          ? promoNoteRaw
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;")
+          : "";
 
         const badgeClass = isPromo ? "badge promo" : "badge";
         const typeTxt = String(p.productType || p.type || "").trim().toLowerCase();
@@ -1120,6 +1129,7 @@ const resp = await fetch(url, {
             <div class="receive-block">
               <div class="receive-label">Recibe</div>
               <div class="receive-main">${receiveTxt || "—"}</div>
+              ${promoNoteTxt ? `<div class="receive-note">${promoNoteTxt}</div>` : ""}
             </div>
           </div>
 
