@@ -1024,9 +1024,15 @@ const resp = await fetch(url, {
       function rpcResolveReceiveText(p) {
         const prod = (p && typeof p === "object") ? p : {};
 
-        // 1) Preferente: receiveText (traducible)
-        const primary = rpcToEsOfferText(prod.receiveText);
-        if (primary) return primary;
+        // 1) Preferente: receiveText (traducible o texto libre)
+        const receiveTextRaw = (typeof prod.receiveText === "string") ? prod.receiveText.trim() : "";
+        const internalId = (typeof prod.internalProductId === "string") ? prod.internalProductId.trim() : "";
+
+        // Si receiveText viene igual que el internalProductId (caso importador), lo ignoramos para no mostrar el ID
+        if (receiveTextRaw && receiveTextRaw !== internalId) {
+          const translated = rpcToEsOfferText(receiveTextRaw);
+          return translated || receiveTextRaw; // si no traduce, muestra el texto tal cual
+        }
 
         // Helpers deterministas (solo leen campos existentes)
         function pickStr(key) {
