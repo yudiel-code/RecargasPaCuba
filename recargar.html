@@ -1028,10 +1028,24 @@ const resp = await fetch(url, {
         const receiveTextRaw = (typeof prod.receiveText === "string") ? prod.receiveText.trim() : "";
         const internalId = (typeof prod.internalProductId === "string") ? prod.internalProductId.trim() : "";
 
-        // Si receiveText viene igual que el internalProductId (caso importador), lo ignoramos para no mostrar el ID
-        if (receiveTextRaw && receiveTextRaw !== internalId) {
-          const translated = rpcToEsOfferText(receiveTextRaw);
-          return translated || receiveTextRaw; // si no traduce, muestra el texto tal cual
+        if (receiveTextRaw) {
+          // Si es texto libre (no es el ID), úsalo
+          if (receiveTextRaw !== internalId) {
+            const translated = rpcToEsOfferText(receiveTextRaw);
+            return translated || receiveTextRaw;
+          }
+
+          // Si viene igual que el ID, intenta derivar un texto limpio (sin enseñar el ID)
+          const id = internalId.toLowerCase();
+
+          let m = id.match(/^cubacel-cup-(\d+)$/);
+          if (m) return `${m[1]} CUP`;
+
+          m = id.match(/^cubacel-bundle-(\d+)gb-(\d+)d$/);
+          if (m) return `${m[1]} GB · ${m[2]} días`;
+
+          // Si no se puede derivar, al menos no lo dejes vacío (evita "—")
+          return receiveTextRaw;
         }
 
         // Helpers deterministas (solo leen campos existentes)
