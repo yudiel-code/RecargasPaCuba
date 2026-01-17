@@ -230,17 +230,14 @@ exports.createOrder = onRequest(async (req, res) => {
       const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
       const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
 
-      // Importe desde catálogo (EUR): sellAmountEur (fallback a sendAmountEur) sin +1
+      // Importe desde catálogo (EUR): SOLO sellAmountEur (sin fallback, sin +1)
       const sellEur = Number(p.sellAmountEur);
-      const sendEur = Number(p.sendAmountEur);
 
-      let baseEur = sellEur;
-      if (!Number.isFinite(baseEur) || baseEur <= 0) baseEur = sendEur;
-
-      if (!Number.isFinite(baseEur) || baseEur <= 0) {
-        return sendJson(res, 500, { ok: false, error: "INVALID_PRODUCT_AMOUNT", productId });
+      if (!Number.isFinite(sellEur) || sellEur <= 0) {
+        return sendJson(res, 500, { ok: false, error: "INVALID_SELL_AMOUNT", productId });
       }
-      const amt = Math.round((baseEur + Number.EPSILON) * 100) / 100;
+
+      const amt = Math.round((sellEur + Number.EPSILON) * 100) / 100;
 
       // Currency: al usar importes en EUR, la moneda es EUR
       const cur = "EUR";

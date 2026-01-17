@@ -1087,11 +1087,13 @@ const resp = await fetch(url, {
         const category = String(p.category || "").toUpperCase();
         const isPromo = !!p.isPromo;
         const variablePromo = !!p.variablePromo;
-        const costEur = Number(p.sendAmountEur);
         const sellRaw = (p.sellAmountEur != null) ? p.sellAmountEur : null;
         const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
-        const sellEur = Number.isFinite(sellNum) ? sellNum : (Number.isFinite(costEur) ? costEur : NaN);
-        const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(Math.round(sellEur * 100) / 100) : "—";
+        const hasValidSell = (Number.isFinite(sellNum) && sellNum > 0);
+        const sellEur = hasValidSell ? sellNum : NaN;
+        const priceTxt = hasValidSell ? rpcFormatEur(Math.round(sellEur * 100) / 100) : "—";
+        const ctaTxt = hasValidSell ? "Entrar para comprar" : "No disponible";
+        const ctaAttr = hasValidSell ? "" : ' disabled aria-disabled="true"';
         const receiveTxt = rpcResolveReceiveText(p);
 
         const badgeClass = isPromo ? "badge promo" : "badge";
@@ -1124,7 +1126,7 @@ const resp = await fetch(url, {
 
           <div class="card-footer">
             <div class="fees">Tasas e impuestos incluidos.</div>
-            <button class="cta" data-product-id="${cardKey}" data-category="${category}">Entrar para comprar</button>
+            <button class="cta" data-product-id="${cardKey}" data-category="${category}"${ctaAttr}>${ctaTxt}</button>
           </div>
         `;
         return article;
@@ -1163,11 +1165,7 @@ const resp = await fetch(url, {
     const rpcSortEur = (p) => {
       const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
       const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
-      if (Number.isFinite(nSell)) return nSell;
-
-      const vCost = (p && p.sendAmountEur != null) ? p.sendAmountEur : null;
-      const nCost = (typeof vCost === "number") ? vCost : Number(String(vCost).replace(",", "."));
-      return Number.isFinite(nCost) ? nCost : 999999;
+      return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
     };
     visible.sort((a, b) => rpcSortEur(a) - rpcSortEur(b));
 
@@ -1464,11 +1462,16 @@ const resp = await fetch(url, {
 
           if (catProd) {
             productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
-            const costEur = Number(catProd.sendAmountEur);
             const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
             const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
-            const sellEur = Number.isFinite(sellNum) ? sellNum : (Number.isFinite(costEur) ? costEur : 0);
-            precioActual = Math.round(sellEur * 100) / 100;
+
+            // ✅ Regla: SOLO sellAmountEur; si falta o es inválido -> no permitir compra
+            if (!(Number.isFinite(sellNum) && sellNum > 0)) {
+              showToastError("Oferta no disponible: precio no configurado.");
+              return;
+            }
+
+            precioActual = Math.round(sellNum * 100) / 100;
             beneficioActual = String(catProd.receiveText || "").trim();
             operadorActual = String(catProd.category || "").toUpperCase();
 
