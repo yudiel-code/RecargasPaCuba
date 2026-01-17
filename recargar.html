@@ -1097,7 +1097,11 @@ const resp = await fetch(url, {
         const receiveTxt = rpcResolveReceiveText(p);
 
         const badgeClass = isPromo ? "badge promo" : "badge";
-        const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal";
+        const typeTxt = String(p.productType || p.type || "").trim().toLowerCase();
+        const isBundle = (typeTxt === "bundle") || internalId.toLowerCase().includes("bundle");
+        const badgeTxt = isBundle
+          ? "Paquete"
+          : (isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal");
         const operatorTxt = `${category || "RECARGA"} · ${String(p.country || "Cuba")}`;
 
         const article = document.createElement("article");
