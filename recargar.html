@@ -1157,6 +1157,14 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
           const all = await rpcFetchCatalog(authUser);
           const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
           if (!visible.length) return;
+          // Orden por precio (menor -> mayor). Si en UI el precio es sendAmountEur + 1,
+    // ordenar por sendAmountEur da el mismo orden (el +1 es constante).
+    const rpcSortEur = (p) => {
+      const v = (p && p.sendAmountEur != null) ? p.sendAmountEur : null;
+      const n = (typeof v === "number") ? v : Number(String(v).replace(",", "."));
+      return Number.isFinite(n) ? n : 999999;
+    };
+    visible.sort((a, b) => rpcSortEur(a) - rpcSortEur(b));
 
           rpcCatalogIndex = {};
           visible.forEach(p => {
