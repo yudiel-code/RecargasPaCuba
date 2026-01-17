@@ -611,3 +611,16 @@ textarea:focus-visible,
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+/* FIX: permitir que "Recibe" encoja y envuelva texto largo */
+.card .card-main .receive-block{
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.card .card-main .receive-block .receive-main{
+  min-width: 0;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
