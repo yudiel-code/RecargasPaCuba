@@ -1294,17 +1294,54 @@ if (correoTituloEl) {
 
               const payMethodTxt = (() => {
                 try {
-                  const raw =
-                    (m && (m.paymentMethod || m.metodoPago || m.metodo || m.payment || m.pago)) ||
-                    (m && m.extra && (m.extra.paymentMethod || m.extra.metodoPago || m.extra.metodo || m.extra.payment || m.extra.pago));
-                  const s = (raw == null) ? "" : String(raw).trim();
+                  // Prioriza el campo real que tú guardas: m.metodo (y variantes),
+                  // y NO uses m.payment/m.pago porque son genéricos y provocan "Otro".
+                  const candidates = [
+                    m && m.metodo,
+                    m && m.metodoPago,
+                    m && m.paymentMethod,
+                    m && m.payment_method,
+
+                    m && m.extra && m.extra.metodo,
+                    m && m.extra && m.extra.metodoPago,
+                    m && m.extra && m.extra.paymentMethod,
+                    m && m.extra && m.extra.payment_method,
+
+                    // Si alguna vez lo guardas como link:
+                    m && m.paymentLink,
+                    m && m.payment_link,
+                    m && m.payLink,
+                    m && m.pay_link,
+                    m && m.linkPago,
+                    m && m.link_pago,
+                    m && m.urlPago,
+                    m && m.url_pago,
+
+                    m && m.extra && m.extra.paymentLink,
+                    m && m.extra && m.extra.payment_link,
+                    m && m.extra && m.extra.payLink,
+                    m && m.extra && m.extra.pay_link,
+                    m && m.extra && m.extra.linkPago,
+                    m && m.extra && m.extra.link_pago,
+                    m && m.extra && m.extra.urlPago,
+                    m && m.extra && m.extra.url_pago
+                  ];
+
+                  let s = "";
+                  for (const v of candidates) {
+                    if (v == null) continue;
+                    const t = String(v).trim();
+                    if (t) { s = t; break; }
+                  }
+
                   const up = s.toUpperCase();
-                  if (!up) return "Otro";
                   if (up.includes("PAYPAL")) return "PayPal";
                   if (up.includes("BIZUM")) return "Bizum";
                   if (up.includes("REVOLUT")) return "Revolut";
-                  return "Otro";
-                } catch (_) { return "Otro"; }
+
+                  // Si hay valor pero no coincide con los 3 conocidos:
+                  return s ? "Otro" : "—";
+                } catch (_) { return "—"; }
               })();
 
               const fila = document.createElement("div");
