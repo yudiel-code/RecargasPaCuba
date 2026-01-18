@@ -708,6 +708,92 @@
           } catch (_) {}
         }
 
+        // ===== Pago (método real, SIN adivinar) =====
+        // Fuente prioritaria:
+        // 1) el propio movimiento (metodo / metodoPago / paymentMethod / payment_method)
+        // 2) índice por orderId proveniente de Firestore (/recargas o /orders) si existe
+        // 3) otro movimiento local con el MISMO orderId que sí tenga metodo
+        // Si no hay dato -> "—"
+        let __paymentByOrderId = Object.create(null);
+
+        function rpcGetOrderId(m) {
+          try {
+            const oid = (m && (m.orderId || (m.extra && m.extra.orderId)))
+              ? String(m.orderId || (m.extra && m.extra.orderId))
+              : "";
+            return oid.trim();
+          } catch (_) {
+            return "";
+          }
+        }
+
+        function rpcGetPaymentRawFromMovimiento(m) {
+          try {
+            const direct = m && (m.metodo || m.metodoPago || m.paymentMethod || m.payment_method);
+            if (direct != null) {
+              const s = String(direct).trim();
+              if (s) return s;
+            }
+            const ex = (m && m.extra && typeof m.extra === "object") ? m.extra : null;
+            const exv = ex && (ex.metodo || ex.metodoPago || ex.paymentMethod || ex.payment_method);
+            if (exv != null) {
+              const s2 = String(exv).trim();
+              if (s2) return s2;
+            }
+            return "";
+          } catch (_) {
+            return "";
+          }
+        }
+
+        function rpcNormalizePaymentLabel(raw) {
+          try {
+            const s = (raw == null) ? "" : String(raw).trim();
+            if (!s) return "—";
+            const up = s.toUpperCase();
+            if (up.includes("PAYPAL")) return "PayPal";
+            if (up.includes("BIZUM")) return "Bizum";
+            if (up.includes("REVOLUT")) return "Revolut";
+            return s; // si viene un método distinto, muéstralo tal cual
+          } catch (_) {
+            return "—";
+          }
+        }
+
+        function rpcResolvePaymentLabelForMovimiento(m, list) {
+          try {
+            // 1) Directo en el movimiento (dato real)
+            const direct = rpcGetPaymentRawFromMovimiento(m);
+            if (direct) return rpcNormalizePaymentLabel(direct);
+
+            const oid = rpcGetOrderId(m);
+            if (!oid) return "—";
+
+            // 2) Índice por orderId (Firestore)
+            try {
+              const pm = (__paymentByOrderId && __paymentByOrderId[oid] != null)
+                ? String(__paymentByOrderId[oid]).trim()
+                : "";
+              if (pm) return rpcNormalizePaymentLabel(pm);
+            } catch (_) {}
+
+            // 3) Otro movimiento local con el MISMO orderId
+            if (Array.isArray(list)) {
+              for (const x of list) {
+                if (!x) continue;
+                const xo = rpcGetOrderId(x);
+                if (!xo || xo !== oid) continue;
+                const xr = rpcGetPaymentRawFromMovimiento(x);
+                if (xr) return rpcNormalizePaymentLabel(xr);
+              }
+            }
+
+            return "—";
+          } catch (_) {
+            return "—";
+          }
+        }
+
         // ===== Selección estable por ID =====
         let selectedRecargaId = null;
         let __lastRecargaFingerprint = null;
@@ -825,20 +911,7 @@
           const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
           const numeroTxtC = (u && u.numero) ? u.numero : "";
 
-          const payMethodTxt = (() => {
-            try {
-              const raw =
-                (u && (u.paymentMethod || u.metodoPago || u.metodo || u.payment || u.pago)) ||
-                (u && u.extra && (u.extra.paymentMethod || u.extra.metodoPago || u.extra.metodo || u.extra.payment || u.extra.pago));
-              const s = (raw == null) ? "" : String(raw).trim();
-              const up = s.toUpperCase();
-              if (!up) return "Otro";
-              if (up.includes("PAYPAL")) return "PayPal";
-              if (up.includes("BIZUM")) return "Bizum";
-              if (up.includes("REVOLUT")) return "Revolut";
-              return "Otro";
-            } catch (_) { return "Otro"; }
-          })();
+          const payMethodTxt = rpcResolvePaymentLabelForMovimiento(u, lista);
 
           const correoDescTxt = `${emailTxt} | ${importeTxt}${numeroTxtC ? ` | ${numeroTxtC}` : ""} | Pago: ${payMethodTxt} | ID: ${idTxt}`;
 
@@ -1292,57 +1365,7 @@ if (correoTituloEl) {
               const estadoBase = (m.estado || "").toString();
               const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
 
-              const payMethodTxt = (() => {
-                try {
-                  // Prioriza el campo real que tú guardas: m.metodo (y variantes),
-                  // y NO uses m.payment/m.pago porque son genéricos y provocan "Otro".
-                  const candidates = [
-                    m && m.metodo,
-                    m && m.metodoPago,
-                    m && m.paymentMethod,
-                    m && m.payment_method,
-
-                    m && m.extra && m.extra.metodo,
-                    m && m.extra && m.extra.metodoPago,
-                    m && m.extra && m.extra.paymentMethod,
-                    m && m.extra && m.extra.payment_method,
-
-                    // Si alguna vez lo guardas como link:
-                    m && m.paymentLink,
-                    m && m.payment_link,
-                    m && m.payLink,
-                    m && m.pay_link,
-                    m && m.linkPago,
-                    m && m.link_pago,
-                    m && m.urlPago,
-                    m && m.url_pago,
-
-                    m && m.extra && m.extra.paymentLink,
-                    m && m.extra && m.extra.payment_link,
-                    m && m.extra && m.extra.payLink,
-                    m && m.extra && m.extra.pay_link,
-                    m && m.extra && m.extra.linkPago,
-                    m && m.extra && m.extra.link_pago,
-                    m && m.extra && m.extra.urlPago,
-                    m && m.extra && m.extra.url_pago
-                  ];
-
-                  let s = "";
-                  for (const v of candidates) {
-                    if (v == null) continue;
-                    const t = String(v).trim();
-                    if (t) { s = t; break; }
-                  }
-
-                  const up = s.toUpperCase();
-                  if (up.includes("PAYPAL")) return "PayPal";
-                  if (up.includes("BIZUM")) return "Bizum";
-                  if (up.includes("REVOLUT")) return "Revolut";
-
-                  // Si hay valor pero no coincide con los 3 conocidos:
-                  return s ? "Otro" : "—";
-                } catch (_) { return "—"; }
-              })();
+              const payMethodTxt = rpcResolvePaymentLabelForMovimiento(m, lista);
 
               const fila = document.createElement("div");
               fila.className = "modal-item";
@@ -1437,22 +1460,27 @@ if (correoTituloEl) {
 
             /* debug logs removed */
 
-            // Index de estados por orderId (recargas > orders)
+            // Index de estados y método de pago por orderId (recargas > orders)
             const __statusByOrderId = Object.create(null);
+            __paymentByOrderId = Object.create(null);
 
             try {
               if (Array.isArray(fsOrdersMaybe)) {
                 fsOrdersMaybe.forEach((o) => {
                   const k = (o && o.id) ? String(o.id) : "";
                   const s = (o && o.status) ? String(o.status).trim().toUpperCase() : "";
+                  const pm = (o && o.paymentMethod != null) ? String(o.paymentMethod).trim() : "";
                   if (k && s) __statusByOrderId[k] = s;
+                  if (k && pm) __paymentByOrderId[k] = pm;
                 });
               }
               if (Array.isArray(fsRecargasMaybe)) {
                 fsRecargasMaybe.forEach((r) => {
                   const k = (r && r.id) ? String(r.id) : "";
                   const s = (r && r.status) ? String(r.status).trim().toUpperCase() : "";
+                  const pm = (r && r.paymentMethod != null) ? String(r.paymentMethod).trim() : "";
                   if (k && s) __statusByOrderId[k] = s; // override: recargas manda
+                  if (k && pm) __paymentByOrderId[k] = pm; // override: recargas manda
                 });
               }
             } catch (_) {}
