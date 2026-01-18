@@ -296,12 +296,13 @@ exports.createOrder = onRequest(async (req, res) => {
       status: "PENDING",
       amount,
       currency,
+      paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
       channel: "sandbox",
-      paymentMethod: paymentMethodUp || null,
       authSource: uidRes.source, // "token" | "body"
       createdAt: FieldValue.serverTimestamp(),
       createdAtMs: nowMs,
     });
+
 
     logger.info("createOrder OK", { orderId, uid, productId: product.id, authSource: uidRes.source });
 
