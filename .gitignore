@@ -77,3 +77,8 @@ firestore-debug.log
 # local emulator trash
 _emulator_trash/
 
+# Innoverit local test artifacts
+innoverit_history_all.csv
+innoverit_snapshot_*.json
+innoverit_verification_payload.json
+innoverit_helpers.ps1
