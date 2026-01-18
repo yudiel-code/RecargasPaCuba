@@ -718,10 +718,12 @@
 
         function rpcGetOrderId(m) {
           try {
-            const oid = (m && (m.orderId || (m.extra && m.extra.orderId)))
-              ? String(m.orderId || (m.extra && m.extra.orderId))
-              : "";
-            return oid.trim();
+            const oid =
+              (m && (m.orderId || (m.extra && m.extra.orderId))) ? (m.orderId || (m.extra && m.extra.orderId)) :
+              (m && m.id) ? m.id :
+              (m && m.clientId) ? m.clientId :
+              "";
+            return String(oid || "").trim();
           } catch (_) {
             return "";
           }
