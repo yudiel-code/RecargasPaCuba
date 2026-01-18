@@ -1649,7 +1649,8 @@ const resp = await fetch(url, {
             const resp = await createOrderSandbox({
               uid: String(user.uid),
               productId: String(productoId),
-              destino: destinoNormalized
+              destino: destinoNormalized,
+              paymentMethod: String(selectedPayMethod || "PAYPAL")
             });
 
             const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";

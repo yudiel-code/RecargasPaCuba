@@ -165,12 +165,17 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
   }
 
-  let { uid, productId, destino } = body;
+  let { uid, productId, destino, paymentMethod } = body;
 
   // Normaliza inputs
   const uidBody = typeof uid === "string" ? uid.trim() : "";
   productId = typeof productId === "string" ? productId.trim().toLowerCase() : "";
   destino = typeof destino === "string" ? destino.trim() : "";
+
+  const paymentMethodUp = typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : "";
+  if (paymentMethodUp && paymentMethodUp !== "PAYPAL" && paymentMethodUp !== "REVOLUT" && paymentMethodUp !== "BIZUM") {
+    return sendJson(res, 400, { ok: false, error: "INVALID_PAYMENT_METHOD" });
+  }
 
     // UID: token-first (prod), body fallback (emulador)
   const uidRes = await resolveUid(req, uidBody);
@@ -292,6 +297,7 @@ exports.createOrder = onRequest(async (req, res) => {
       amount,
       currency,
       channel: "sandbox",
+      paymentMethod: paymentMethodUp || null,
       authSource: uidRes.source, // "token" | "body"
       createdAt: FieldValue.serverTimestamp(),
       createdAtMs: nowMs,
