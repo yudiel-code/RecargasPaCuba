@@ -4,6 +4,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebas
 import {
   getAuth,
   signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
   sendPasswordResetEmail,
   sendEmailVerification,
   signOut,
@@ -85,6 +87,9 @@ window.firebaseFirestoreSetDoc = setDoc;
 window.firebaseFirestoreServerTimestamp = serverTimestamp;
 
 window.firebaseSignIn = signInWithEmailAndPassword;
+window.firebaseSignInWithPhoneNumber = signInWithPhoneNumber;
+window.firebaseRecaptchaVerifier = RecaptchaVerifier;
+
 window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
 window.firebaseSendEmailVerification = sendEmailVerification;
 window.firebaseSignOut = signOut;
@@ -105,6 +110,8 @@ export {
   app,
   auth,
   signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
   sendPasswordResetEmail,
   sendEmailVerification,
   signOut,
