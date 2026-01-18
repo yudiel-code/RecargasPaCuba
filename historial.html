@@ -824,7 +824,23 @@
           const emailTxt   = (sessionEmailSnapshot || localStorage.getItem("usuario") || emailUsuarioBase || "Sin correo registrado").toString();
           const importeTxt = isNaN(importeR) ? "" : `${importeR.toFixed(2)} €`;
           const numeroTxtC = (u && u.numero) ? u.numero : "";
-          const correoDescTxt = `${emailTxt} | ${importeTxt}${numeroTxtC ? ` | ${numeroTxtC}` : ""} | ID: ${idTxt}`;
+
+          const payMethodTxt = (() => {
+            try {
+              const raw =
+                (u && (u.paymentMethod || u.metodoPago || u.metodo || u.payment || u.pago)) ||
+                (u && u.extra && (u.extra.paymentMethod || u.extra.metodoPago || u.extra.metodo || u.extra.payment || u.extra.pago));
+              const s = (raw == null) ? "" : String(raw).trim();
+              const up = s.toUpperCase();
+              if (!up) return "Otro";
+              if (up.includes("PAYPAL")) return "PayPal";
+              if (up.includes("BIZUM")) return "Bizum";
+              if (up.includes("REVOLUT")) return "Revolut";
+              return "Otro";
+            } catch (_) { return "Otro"; }
+          })();
+
+          const correoDescTxt = `${emailTxt} | ${importeTxt}${numeroTxtC ? ` | ${numeroTxtC}` : ""} | Pago: ${payMethodTxt} | ID: ${idTxt}`;
 
           safeSetText(correoDesc, correoDescTxt);
           safeSetText(correoFecha, fechaTxt);
@@ -1039,6 +1055,7 @@ if (correoTituloEl) {
               importe: importeNum,
               createdAtMs: createdAtMs,
               fecha: formatFechaFromCreatedAt(data.createdAt),
+              paymentMethod: (data.paymentMethod || data.payment_method || data.metodoPago || data.metodo || data.payment || data.pago || ""),
               status: canonicalStatus,
               estado: estado
             };
@@ -1120,6 +1137,7 @@ if (correoTituloEl) {
               importe: importeNum,
               createdAtMs: createdAtMs,
               fecha: formatFechaFromCreatedAt(data.createdAt),
+              paymentMethod: (data.paymentMethod || data.payment_method || data.metodoPago || data.metodo || data.payment || data.pago || ""),
               status: statusUp,
               estado: estado
             };
@@ -1274,10 +1292,25 @@ if (correoTituloEl) {
               const estadoBase = (m.estado || "").toString();
               const estadoTxt  = estadoBase === "OK" ? "Entregada" : "En proceso";
 
+              const payMethodTxt = (() => {
+                try {
+                  const raw =
+                    (m && (m.paymentMethod || m.metodoPago || m.metodo || m.payment || m.pago)) ||
+                    (m && m.extra && (m.extra.paymentMethod || m.extra.metodoPago || m.extra.metodo || m.extra.payment || m.extra.pago));
+                  const s = (raw == null) ? "" : String(raw).trim();
+                  const up = s.toUpperCase();
+                  if (!up) return "Otro";
+                  if (up.includes("PAYPAL")) return "PayPal";
+                  if (up.includes("BIZUM")) return "Bizum";
+                  if (up.includes("REVOLUT")) return "Revolut";
+                  return "Otro";
+                } catch (_) { return "Otro"; }
+              })();
+
               const fila = document.createElement("div");
               fila.className = "modal-item";
               fila.textContent =
-                `${normalizeFechaText(m) || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | ID: ${idTxt}`;
+                `${normalizeFechaText(m) || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | Pago: ${payMethodTxt} | ID: ${idTxt}`;
               modalLista.appendChild(fila);
             });
           }
