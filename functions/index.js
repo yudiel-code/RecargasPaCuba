@@ -165,7 +165,21 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
   }
 
-  let { uid, productId, destino, paymentMethod } = body;
+  const payload = (body && typeof body === "object" && body.data && typeof body.data === "object")
+    ? body.data
+    : body;
+
+  let { uid, productId, destino, paymentMethod } = payload;
+
+  // Compat: acepta nombres alternativos (por si el cliente manda legacy)
+  if (paymentMethod == null || paymentMethod === "") {
+    paymentMethod =
+      payload.metodoPago ??
+      payload.metodo ??
+      payload.payment_method ??
+      payload.payment ??
+      "";
+  }
 
   // Normaliza inputs
   const uidBody = typeof uid === "string" ? uid.trim() : "";
@@ -176,6 +190,9 @@ exports.createOrder = onRequest(async (req, res) => {
   if (paymentMethodUp && paymentMethodUp !== "PAYPAL" && paymentMethodUp !== "REVOLUT" && paymentMethodUp !== "BIZUM") {
     return sendJson(res, 400, { ok: false, error: "INVALID_PAYMENT_METHOD" });
   }
+
+  // Persistimos el valor canónico para evitar null en /orders
+  paymentMethod = paymentMethodUp;
 
     // UID: token-first (prod), body fallback (emulador)
   const uidRes = await resolveUid(req, uidBody);
