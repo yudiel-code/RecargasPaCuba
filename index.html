@@ -43,45 +43,29 @@
         </a>
       </div>
 
-      <div id="rpc-login-tabs" style="display:flex;gap:10px;margin-top:10px;margin-bottom:10px;">
-        <button id="rpc-tab-email" type="button" class="btn btn-primary btn-lg" style="flex:1;padding:12px 10px;" aria-pressed="true">Email</button>
-        <button id="rpc-tab-sms" type="button" class="btn btn-primary btn-lg" style="flex:1;padding:12px 10px;opacity:.65;" aria-pressed="false">SMS</button>
+      <input id="login-identifier" class="input-pill" placeholder="Email / Usuario" />
+
+      <div class="password-wrap">
+        <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
+        <span
+          id="toggle-pass"
+          class="toggle-pass"
+          role="button"
+          aria-label="Mostrar contraseña"
+          aria-pressed="false"
+        >
+          <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+            <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+          </svg>
+          <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+            <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+          </svg>
+        </span>
       </div>
 
-      <div id="rpc-box-email">
-        <input id="login-identifier" class="input-pill" placeholder="Email / Usuario" />
+      <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
 
-        <div class="password-wrap">
-          <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
-          <span
-            id="toggle-pass"
-            class="toggle-pass"
-            role="button"
-            aria-label="Mostrar contraseña"
-            aria-pressed="false"
-          >
-            <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-              <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-            </svg>
-            <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
-              <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
-            </svg>
-          </span>
-        </div>
-
-        <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
-        <button id="btn-forgot" class="link-forgot" type="button">¿Olvidaste tu contraseña?</button>
-      </div>
-
-      <div id="rpc-box-sms" style="display:none;">
-        <input id="login-phone" class="input-pill" placeholder="Teléfono (ej: +34600000000)" inputmode="tel" autocomplete="tel" />
-        <button id="btn-phone-send" class="btn btn-primary btn-lg btn-full" type="button">Enviar código SMS</button>
-
-        <input id="login-sms-code" class="input-pill" placeholder="Código SMS" inputmode="numeric" autocomplete="one-time-code" />
-        <button id="btn-phone-confirm" class="btn btn-primary btn-lg btn-full" type="button">Confirmar código</button>
-
-        <div id="recaptcha-container" style="margin-top:10px;"></div>
-      </div>
+<button id="btn-forgot" class="link-forgot" type="button">¿Olvidaste tu contraseña?</button>
 
 <button
   id="btn-login-google"
@@ -224,32 +208,6 @@
 
   const MAX_INTENTOS = 5;
   const BLOQUEO_TIEMPO = 10 * 60 * 1000;
-
-  // UI: Tabs Email / SMS
-  (function rpcInitLoginTabs() {
-    const tabEmail = document.getElementById("rpc-tab-email");
-    const tabSms = document.getElementById("rpc-tab-sms");
-    const boxEmail = document.getElementById("rpc-box-email");
-    const boxSms = document.getElementById("rpc-box-sms");
-    if (!tabEmail || !tabSms || !boxEmail || !boxSms) return;
-
-    function setMode(mode) {
-      const isEmail = mode === "email";
-      boxEmail.style.display = isEmail ? "" : "none";
-      boxSms.style.display = isEmail ? "none" : "";
-
-      tabEmail.style.opacity = isEmail ? "1" : ".65";
-      tabSms.style.opacity = isEmail ? ".65" : "1";
-
-      tabEmail.setAttribute("aria-pressed", isEmail ? "true" : "false");
-      tabSms.setAttribute("aria-pressed", isEmail ? "false" : "true");
-    }
-
-    tabEmail.addEventListener("click", () => setMode("email"));
-    tabSms.addEventListener("click", () => setMode("sms"));
-
-    setMode("email");
-  })();
 
   function resolvePostAuthRedirect() {
     const params = new URLSearchParams(window.location.search || "");
@@ -500,164 +458,6 @@
         showToastError(mensaje);
       }
     };
-  }
-
-  // ==============================
-  // PHONE SIGN-IN (SMS)
-  // ==============================
-  let __rpcPhoneConfirm = null;
-  let __rpcRecaptcha = null;
-
-  function rpcNormalizeE164(raw) {
-    const s = String(raw || "").trim();
-    return s;
-  }
-
-  async function rpcEnsureRecaptcha() {
-    if (__rpcRecaptcha) return __rpcRecaptcha;
-
-    if (!window.firebaseAuth || !window.firebaseRecaptchaVerifier) {
-      throw new Error("firebase-phone-no-disponible");
-    }
-
-    const container = document.getElementById("recaptcha-container");
-    if (!container) throw new Error("recaptcha-container-missing");
-
-    // Limpia por si quedó algo previo
-    container.innerHTML = "";
-
-    __rpcRecaptcha = new window.firebaseRecaptchaVerifier(window.firebaseAuth, container, {
-      size: "invisible"
-    });
-
-    // Render explícito para asegurar inicialización
-    try { await __rpcRecaptcha.render(); } catch (_) {}
-
-    return __rpcRecaptcha;
-  }
-
-  const btnPhoneSend = document.getElementById("btn-phone-send");
-  if (btnPhoneSend) {
-    btnPhoneSend.addEventListener("click", async () => {
-      try {
-        if (estaBloqueado()) {
-          const hasta = new Date(Number(localStorage.getItem("login_bloqueado_hasta")));
-          showToastError("Aviso: login bloqueado hasta: " + hasta.toLocaleTimeString());
-          return;
-        }
-
-        const phoneRaw = (document.getElementById("login-phone")?.value || "").trim();
-        const phone = rpcNormalizeE164(phoneRaw);
-
-        if (!phone || !phone.startsWith("+") || phone.length < 8) {
-          showToastError("Introduce un teléfono válido en formato internacional. Ej: +34600000000");
-          return;
-        }
-
-        if (typeof window.firebaseSignInWithPhoneNumber !== "function") {
-          showToastError("Login por SMS no disponible. Inténtalo más tarde.");
-          return;
-        }
-
-        const recaptchaVerifier = await rpcEnsureRecaptcha();
-        __rpcPhoneConfirm = await window.firebaseSignInWithPhoneNumber(window.firebaseAuth, phone, recaptchaVerifier);
-
-        showToastSuccess("Código enviado. Revisa tu SMS e introdúcelo.");
-      } catch (error) {
-        console.error("Phone send error:", error);
-
-        let intentos = Number(localStorage.getItem("login_intentos")) || 0;
-        intentos++;
-        localStorage.setItem("login_intentos", intentos);
-
-        if (intentos >= MAX_INTENTOS) {
-          const bloqueoHasta = Date.now() + BLOQUEO_TIEMPO;
-          localStorage.setItem("login_bloqueado_hasta", bloqueoHasta);
-          showToastError("Aviso: demasiados intentos. Bloqueado 10 minutos.");
-          return;
-        }
-
-        let msg = "No se pudo enviar el código SMS.";
-        const code = error?.code || "";
-        if (code === "auth/invalid-phone-number") msg = "El teléfono no es válido.";
-        else if (code === "auth/too-many-requests") msg = "Demasiados intentos. Inténtalo más tarde.";
-        else if (code === "auth/captcha-check-failed") msg = "Falló la verificación. Reintenta.";
-        else if (error?.message === "firebase-phone-no-disponible") msg = "Servicio SMS no disponible.";
-
-        showToastError(`${msg}\nIntentos: ${intentos}/${MAX_INTENTOS}`);
-      }
-    });
-  }
-
-  const btnPhoneConfirm = document.getElementById("btn-phone-confirm");
-  if (btnPhoneConfirm) {
-    btnPhoneConfirm.addEventListener("click", async () => {
-      try {
-        if (!__rpcPhoneConfirm || typeof __rpcPhoneConfirm.confirm !== "function") {
-          showToastError("Primero pulsa “Enviar código SMS”.");
-          return;
-        }
-
-        const codeRaw = (document.getElementById("login-sms-code")?.value || "").trim();
-        const code = String(codeRaw || "").replace(/\s+/g, "");
-
-        if (!code || code.length < 4) {
-          showToastError("Introduce el código SMS.");
-          return;
-        }
-
-        const cred = await __rpcPhoneConfirm.confirm(code);
-        const user = cred?.user;
-        if (!user) {
-          showToastError("No se pudo iniciar sesión por SMS.");
-          return;
-        }
-
-        // Reseteo intentos
-        localStorage.removeItem("login_intentos");
-        localStorage.removeItem("login_bloqueado_hasta");
-
-        // Guardamos un “usuario” mínimo (con phone) sin romper tu flujo.
-        try {
-          const rawPrev = localStorage.getItem("usuarioRegistrado") || "{}";
-          let prev = {};
-          try { prev = JSON.parse(rawPrev); } catch (e) { prev = {}; }
-          if (!prev || typeof prev !== "object") prev = {};
-
-          delete prev.pass;
-          delete prev.forzarCambio;
-
-          const usuarioMin = {
-            ...prev,
-            nombre: user.displayName || prev.nombre || "",
-            email: (user.email || "").toLowerCase(), // puede venir vacío en phone-only
-            telefono: user.phoneNumber || "",
-            activo: true
-          };
-
-          localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
-          if (user.email) localStorage.setItem("usuario", (user.email || "").toLowerCase());
-        } catch (e) {
-          console.error("Error guardando sesión phone:", e);
-        }
-
-        const finalDest = window.resolvePostAuthRedirect();
-        if (!window.__authRedirected) {
-          window.__authRedirected = true;
-          window.location.href = finalDest;
-        }
-      } catch (error) {
-        console.error("Phone confirm error:", error);
-
-        let msg = "Código incorrecto o expirado.";
-        const code = error?.code || "";
-        if (code === "auth/invalid-verification-code") msg = "Código incorrecto.";
-        else if (code === "auth/code-expired") msg = "El código expiró. Envíalo de nuevo.";
-        else if (code === "auth/session-expired") msg = "Sesión expirada. Envía el código otra vez.";
-
-        showToastError(msg);
-      }
-    });
   }
 
   // El botón "copiar y usar" se deja sin comportamiento en el nuevo flujo
