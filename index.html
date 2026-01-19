@@ -479,6 +479,7 @@
 <!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
 <script type="module">
   import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+  import { signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -492,6 +493,18 @@
 
       const emailLower = (user.email || "").toLowerCase();
       const isVerified = (!emailLower) || (user.emailVerified === true);
+
+      // Si venimos de "pendiente verificación" y ahora ya está verificado,
+      // forzamos re-login (signOut) para que tenga que poner email+pass.
+      const pending = (localStorage.getItem("rpc_email_verify_pending") || "").toLowerCase();
+      if (isVerified && pending && pending === emailLower) {
+        try { localStorage.removeItem("rpc_email_verify_pending"); } catch (_) {}
+        if (typeof window.showToastError === "function") {
+          window.showToastError("Correo verificado. Inicia sesión de nuevo con tu email y contraseña.");
+        }
+        try { await signOut(auth); } catch (e) { console.error("Error signOut post-verificación:", e); }
+        return;
+      }
 
       const raw = localStorage.getItem("usuarioRegistrado") || "{}";
       const datos = JSON.parse(raw);
