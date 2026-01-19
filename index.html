@@ -478,15 +478,35 @@
 
      <script>
   (function () {
-    let msg = "";
-    try { msg = sessionStorage.getItem("rpc_post_register_toast") || ""; } catch (_) { msg = ""; }
-    if (!msg) return;
+    const params = new URLSearchParams(window.location.search || "");
+    const toastFlag = (params.get("toast") || "").toLowerCase();
 
-    try { sessionStorage.removeItem("rpc_post_register_toast"); } catch (_) {}
+    let msg = "";
+
+    // Prioridad: flag por URL (más fiable en móvil)
+    if (toastFlag === "verify") {
+      msg = "Registro completado. Revisa tu correo para verificar y luego inicia sesion.";
+      // Quitar el param para que no se repita al refrescar
+      try {
+        params.delete("toast");
+        const newQs = params.toString();
+        const newUrl = window.location.pathname + (newQs ? ("?" + newQs) : "") + (window.location.hash || "");
+        window.history.replaceState({}, "", newUrl);
+      } catch (_) {}
+      // Limpiar también el fallback si existiera
+      try { sessionStorage.removeItem("rpc_post_register_toast"); } catch (_) {}
+    } else {
+      // Fallback: sessionStorage
+      try { msg = sessionStorage.getItem("rpc_post_register_toast") || ""; } catch (_) { msg = ""; }
+    }
+
+    if (!msg) return;
 
     const tryShow = () => {
       if (typeof window.showToastSuccess === "function") {
         window.showToastSuccess(msg);
+        // Ahora sí: limpiar tras pintar
+        try { sessionStorage.removeItem("rpc_post_register_toast"); } catch (_) {}
         return;
       }
       setTimeout(tryShow, 50);

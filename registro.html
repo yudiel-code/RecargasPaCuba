@@ -313,6 +313,10 @@
         localStorage.removeItem("usuarioRegistrado");
         const currentParams = new URLSearchParams(window.location.search || "");
         const targetUrl = new URL("index.html", window.location.href);
+
+        // Flag para que el login muestre el aviso aunque el toast se pierda por el redirect
+        targetUrl.searchParams.set("toast", "verify");
+
         let vParam = currentParams.get("v");
         if (!vParam) {
           try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
@@ -324,10 +328,8 @@
         if (nextParam) {
           targetUrl.searchParams.set("next", nextParam);
         }
-        
-        try { localStorage.removeItem("rpc_register_in_progress"); } catch (_) {}
-
         window.location.href = targetUrl.toString();
+
       } catch (error) {
         try { localStorage.removeItem("rpc_register_in_progress"); } catch (_) {}
 
