@@ -518,10 +518,14 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
   const statusFrom = String(before.status || "");
   const statusTo   = String(after.status  || "");
 
-  // Gate estricto: SOLO PAID -> COMPLETED
-  if (!(statusFrom === "PAID" && statusTo === "COMPLETED")) {
+  // Gate: cualquier transición hacia COMPLETED (incluye PENDING->COMPLETED)
+  if (!(statusTo === "COMPLETED" && statusFrom !== "COMPLETED")) {
     return;
   }
+
+  // Solo sandbox (tu modo de pruebas)
+  const channel = String(after.channel || "");
+  if (channel !== "sandbox") return;
 
   const orderId = (event.params && event.params.orderId) ? String(event.params.orderId) : "";
   if (!orderId) return;
@@ -529,42 +533,216 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
   const orderRef = db.collection("orders").doc(orderId);
   const nowMs = Date.now();
 
+  function pickInnoveritApiKey() {
+    let k = String(process.env.INNOVERIT_APIKEY || process.env.INNOVERIT_API_KEY || "").trim();
+    if (k) return k;
+    try {
+      const cfg = require("firebase-functions").config();
+      k = String((cfg && cfg.innoverit && cfg.innoverit.apikey) ? cfg.innoverit.apikey : "").trim();
+      return k;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function postForm(url, paramsObj) {
+    const body = new URLSearchParams();
+    for (const [k, v] of Object.entries(paramsObj || {})) body.set(k, String(v));
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const text = await resp.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (_) {}
+    return { httpStatus: resp.status, text, json };
+  }
+
   try {
-    await db.runTransaction(async (tx) => {
-      const snap = await tx.get(orderRef);
-      if (!snap.exists) return;
+    const snap = await orderRef.get();
+    if (!snap.exists) return;
 
-      const cur = snap.data() || {};
-      const curStatus = String(cur.status || "");
+    const order = snap.data() || {};
+    if (String(order.status || "") !== "COMPLETED") return;
 
-      // Si alguien lo movió ya, no hacemos nada.
-      if (curStatus !== "COMPLETED") return;
+    // Idempotencia: si ya guardamos resultado proveedor, salir
+    const sentMs = Number(order.providerSentAtMs);
+    if (Number.isFinite(sentMs) && sentMs > 0) return;
 
-      // Idempotencia: si ya procesamos COMPLETED, no repetir.
-      const processedMs = Number(cur.completedProcessedAtMs);
-      if (Number.isFinite(processedMs) && processedMs > 0) return;
-
-      // Audit event
-      const eventRef = orderRef.collection("events").doc();
-      tx.set(eventRef, {
-        type: "COMPLETED_MANUAL",
-        statusFrom: "PAID",
-        statusTo: "COMPLETED",
-        createdAt: FieldValue.serverTimestamp(),
-        createdAtMs: nowMs,
-      });
-
-      // Marca de procesamiento (no llama proveedor, no cambia status)
-      tx.update(orderRef, {
+    const apiKey = pickInnoveritApiKey();
+    if (!apiKey) {
+      await orderRef.update({
+        provider: "innoverit",
+        providerResult: "ERROR",
+        providerError: "INNOVERIT_APIKEY_MISSING",
+        providerErrorAt: FieldValue.serverTimestamp(),
+        providerErrorAtMs: nowMs,
         completedProcessedAt: FieldValue.serverTimestamp(),
         completedProcessedAtMs: nowMs,
-        completedResult: "NOOP",
+        completedResult: "PROVIDER_ERROR",
       });
+      return;
+    }
+
+    const productId = String(order.productId || "").trim().toLowerCase();
+    const destination = String(order.destination || "").trim();
+    if (!productId || !destination) {
+      await orderRef.update({
+        provider: "innoverit",
+        providerResult: "ERROR",
+        providerError: "MISSING_PRODUCT_OR_DESTINATION",
+        providerErrorAt: FieldValue.serverTimestamp(),
+        providerErrorAtMs: nowMs,
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "PROVIDER_ERROR",
+      });
+      return;
+    }
+
+    // Resolver producto (docId = productId interno) para obtener id_product real de Innoverit
+    let prodSnap = await db.collection("catalog_products_innoverit").doc(productId).get();
+    if (!prodSnap.exists) prodSnap = await db.collection("catalog_products").doc(productId).get();
+
+    if (!prodSnap.exists) {
+      await orderRef.update({
+        provider: "innoverit",
+        providerResult: "ERROR",
+        providerError: "CATALOG_PRODUCT_NOT_FOUND",
+        providerErrorAt: FieldValue.serverTimestamp(),
+        providerErrorAtMs: nowMs,
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "PROVIDER_ERROR",
+      });
+      return;
+    }
+
+    const p = prodSnap.data() || {};
+    const providerName = String(p.provider || "innoverit").trim().toLowerCase();
+    if (providerName !== "innoverit") {
+      await orderRef.update({
+        provider: "innoverit",
+        providerResult: "SKIPPED",
+        providerError: "NOT_INNOVERIT_PRODUCT",
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "SKIPPED",
+      });
+      return;
+    }
+
+    const idProduct = String(p.providerProductId || p.providerSku || "").trim();
+    if (!idProduct) {
+      await orderRef.update({
+        provider: "innoverit",
+        providerResult: "ERROR",
+        providerError: "MISSING_PROVIDER_PRODUCT_ID",
+        providerErrorAt: FieldValue.serverTimestamp(),
+        providerErrorAtMs: nowMs,
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "PROVIDER_ERROR",
+      });
+      return;
+    }
+
+    // 1) (Opcional) intentar ver si ya existe por key (evita dobles envíos si hubo retry)
+    const details = await postForm("https://www.innoverit.com/api/v2/product/get/details", {
+      apikey: apiKey,
+      key: orderId,
     });
 
-    logger.info("onOrderCompleted manual stub OK", { orderId, statusFrom, statusTo });
+    if (details.json && Number(details.json.error_code) === 0) {
+      const evRef = orderRef.collection("events").doc();
+      await evRef.set({
+        type: "INNOVERIT_ALREADY_EXISTS",
+        statusFrom,
+        statusTo,
+        createdAt: FieldValue.serverTimestamp(),
+        createdAtMs: nowMs,
+        providerHttpStatus: details.httpStatus,
+        providerErrorCode: Number(details.json.error_code),
+        providerStatus: String(details.json.status || ""),
+        providerMessage: String(details.json.message || ""),
+        providerRechargeId: details.json.recharge_id ?? null,
+        providerReferenceCode: details.json.reference_code ?? null,
+      });
+
+      await orderRef.update({
+        provider: "innoverit",
+        providerKey: orderId,
+        providerHttpStatus: details.httpStatus,
+        providerErrorCode: Number(details.json.error_code),
+        providerStatus: String(details.json.status || ""),
+        providerMessage: String(details.json.message || ""),
+        providerRechargeId: details.json.recharge_id ?? null,
+        providerReferenceCode: details.json.reference_code ?? null,
+        providerBalance: details.json.balance ?? null,
+        providerRaw: String(details.text || "").slice(0, 10000),
+        providerSentAt: FieldValue.serverTimestamp(),
+        providerSentAtMs: nowMs,
+        providerResult: "EXISTS",
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "PROVIDER_EXISTS",
+      });
+
+      return;
+    }
+
+    // 2) Enviar recarga
+    const send = await postForm("https://www.innoverit.com/api/v2/product/send", {
+      apikey: apiKey,
+      id_product: idProduct,
+      destination,
+      key: orderId,
+      note: `RPC order ${orderId}`,
+    });
+
+    const j = send.json || {};
+    const errCode = (j && j.error_code != null) ? Number(j.error_code) : null;
+    const ok = (errCode === 0);
+
+    const eventRef = orderRef.collection("events").doc();
+    await eventRef.set({
+      type: ok ? "INNOVERIT_SEND_OK" : "INNOVERIT_SEND_ERROR",
+      statusFrom,
+      statusTo,
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+      providerHttpStatus: send.httpStatus,
+      providerErrorCode: errCode,
+      providerStatus: String(j.status || ""),
+      providerMessage: String(j.message || ""),
+      providerRechargeId: j.recharge_id ?? null,
+      providerReferenceCode: j.reference_code ?? null,
+      destination: String(j.destination || destination),
+    });
+
+    await orderRef.update({
+      provider: "innoverit",
+      providerKey: orderId,
+      providerHttpStatus: send.httpStatus,
+      providerErrorCode: errCode,
+      providerStatus: String(j.status || ""),
+      providerMessage: String(j.message || ""),
+      providerRechargeId: j.recharge_id ?? null,
+      providerReferenceCode: j.reference_code ?? null,
+      providerBalance: j.balance ?? null,
+      providerRaw: String(send.text || "").slice(0, 10000),
+      providerSentAt: FieldValue.serverTimestamp(),
+      providerSentAtMs: nowMs,
+      providerResult: ok ? "SENT" : "ERROR",
+      completedProcessedAt: FieldValue.serverTimestamp(),
+      completedProcessedAtMs: nowMs,
+      completedResult: ok ? "PROVIDER_SENT" : "PROVIDER_ERROR",
+    });
+
+    logger.info("onOrderCompleted Innoverit send DONE", { orderId, ok, httpStatus: send.httpStatus, errCode });
   } catch (e) {
-    logger.error("onOrderCompleted manual stub ERROR", { orderId, message: String(e && e.message ? e.message : e) });
+    logger.error("onOrderCompleted Innoverit send ERROR", { orderId, message: String(e && e.message ? e.message : e) });
   }
 });
 
