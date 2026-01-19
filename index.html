@@ -636,8 +636,7 @@
           };
 
           localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
-          const usuarioKey = (user.email || user.phoneNumber || "").toString().toLowerCase();
-          if (usuarioKey) localStorage.setItem("usuario", usuarioKey);
+          if (user.email) localStorage.setItem("usuario", (user.email || "").toLowerCase());
         } catch (e) {
           console.error("Error guardando sesión phone:", e);
         }
@@ -683,15 +682,12 @@
       const nuevo = {
         ...resto,
         nombre: resto.nombre || user.displayName || "",
-        email: (user.email || resto.email || "").toLowerCase(),
-        telefono: user.phoneNumber || resto.telefono || "",
+        email: (user.email || "").toLowerCase(),
         activo: true
       };
 
       localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
-
-      const usuarioKey = (user.email || user.phoneNumber || resto.email || resto.telefono || "").toString().toLowerCase();
-      if (usuarioKey) localStorage.setItem("usuario", usuarioKey);
+      localStorage.setItem("usuario", (user.email || "").toLowerCase());
 
       // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
       const finalDest = window.resolvePostAuthRedirect();
