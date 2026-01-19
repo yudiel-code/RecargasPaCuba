@@ -28,6 +28,12 @@
       "firebase-export-*/**",
       "**/firebase-export-*/**",
       "**/*.log"
+    ],
+    "rewrites": [
+      {
+        "source": "/refreshInnoveritStatus",
+        "function": "refreshInnoveritStatus"
+      }
     ]
   },
   "functions": [
