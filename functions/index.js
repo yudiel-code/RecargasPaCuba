@@ -437,6 +437,172 @@ exports.markOrderRefunded = onRequest(async (req, res) => {
 });
 
 /**
+ * STATUS_REFRESH (Innoverit): refresca el estado del envío y lo guarda en /orders + /events
+ * - Requiere App Check
+ * - Requiere auth en prod (token Bearer) y valida ownership (uid de la orden)
+ * - NO cambia status de la orden, solo actualiza provider*
+ */
+exports.refreshInnoveritStatus = onRequest(async (req, res) => {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).send("");
+  }
+
+  if (!(await requireAppCheck(req, res))) return;
+
+  if (req.method !== "POST") {
+    return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+  }
+
+  const body = safeParseBody(req);
+  if (!body) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
+  }
+
+  const payload = (body && typeof body === "object" && body.data && typeof body.data === "object")
+    ? body.data
+    : body;
+
+  let { uid, orderId } = payload;
+
+  const uidBody = typeof uid === "string" ? uid.trim() : "";
+  orderId = typeof orderId === "string" ? orderId.trim() : "";
+
+  if (!orderId || orderId.length > 128) {
+    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
+  }
+
+  // UID: token-first (prod), body fallback (emulador)
+  const uidRes = await resolveUid(req, uidBody);
+  if (!uidRes.ok) {
+    return sendJson(res, 401, { ok: false, error: uidRes.error });
+  }
+  uid = uidRes.uid;
+
+  function pickInnoveritApiKey() {
+    let k = String(process.env.INNOVERIT_APIKEY || process.env.INNOVERIT_API_KEY || "").trim();
+    if (k) return k;
+    try {
+      const cfg = require("firebase-functions").config();
+      k = String((cfg && cfg.innoverit && cfg.innoverit.apikey) ? cfg.innoverit.apikey : "").trim();
+      return k;
+    } catch (_) {
+      return "";
+    }
+  }
+
+  async function postForm(url, paramsObj) {
+    const body = new URLSearchParams();
+    for (const [k, v] of Object.entries(paramsObj || {})) body.set(k, String(v));
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const text = await resp.text();
+    let json = null;
+    try { json = JSON.parse(text); } catch (_) {}
+    return { httpStatus: resp.status, text, json };
+  }
+
+  const nowMs = Date.now();
+  const orderRef = db.collection("orders").doc(orderId);
+
+  try {
+    const snap = await orderRef.get();
+    if (!snap.exists) {
+      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
+    }
+
+    const order = snap.data() || {};
+
+    // ownership
+    const ownerUid = String(order.uid || "");
+    if (!ownerUid || ownerUid !== uid) {
+      return sendJson(res, 403, { ok: false, error: "FORBIDDEN", orderId });
+    }
+
+    // solo innoverit + sandbox (para no tocar prod sin querer)
+    if (String(order.provider || "innoverit").toLowerCase() !== "innoverit") {
+      return sendJson(res, 400, { ok: false, error: "NOT_INNOVERIT_ORDER", orderId });
+    }
+    if (String(order.channel || "") !== "sandbox") {
+      return sendJson(res, 400, { ok: false, error: "NOT_SANDBOX_ORDER", orderId });
+    }
+
+    const apiKey = pickInnoveritApiKey();
+    if (!apiKey) {
+      await orderRef.update({
+        provider: "innoverit",
+        providerLastCheckAt: FieldValue.serverTimestamp(),
+        providerLastCheckAtMs: nowMs,
+        providerCheckResult: "ERROR",
+        providerCheckError: "INNOVERIT_APIKEY_MISSING",
+      });
+      return sendJson(res, 500, { ok: false, error: "INNOVERIT_APIKEY_MISSING" });
+    }
+
+    const key = String(order.providerKey || orderId).trim();
+
+    const details = await postForm("https://www.innoverit.com/api/v2/product/get/details", {
+      apikey: apiKey,
+      key,
+    });
+
+    const j = details.json || {};
+    const errCode = (j && j.error_code != null) ? Number(j.error_code) : null;
+    const ok = (errCode === 0);
+
+    // event
+    const evRef = orderRef.collection("events").doc();
+    await evRef.set({
+      type: ok ? "INNOVERIT_STATUS_REFRESH_OK" : "INNOVERIT_STATUS_REFRESH_ERROR",
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+      providerHttpStatus: details.httpStatus,
+      providerErrorCode: errCode,
+      providerStatus: String(j.status || ""),
+      providerMessage: String(j.message || ""),
+      providerRechargeId: j.recharge_id ?? null,
+      providerReferenceCode: j.reference_code ?? null,
+      destination: String(j.destination || order.destination || ""),
+    });
+
+    // update order (sin tocar status)
+    await orderRef.update({
+      provider: "innoverit",
+      providerKey: key,
+      providerHttpStatus: details.httpStatus,
+      providerErrorCode: errCode,
+      providerStatus: String(j.status || ""),
+      providerMessage: String(j.message || ""),
+      providerRechargeId: j.recharge_id ?? (order.providerRechargeId ?? null),
+      providerReferenceCode: j.reference_code ?? (order.providerReferenceCode ?? null),
+      providerBalance: (j.balance != null ? j.balance : (order.providerBalance ?? null)),
+      providerRaw: String(details.text || "").slice(0, 10000),
+      providerLastCheckAt: FieldValue.serverTimestamp(),
+      providerLastCheckAtMs: nowMs,
+      providerCheckResult: ok ? "OK" : "ERROR",
+    });
+
+    return sendJson(res, 200, {
+      ok: true,
+      orderId,
+      providerHttpStatus: details.httpStatus,
+      providerErrorCode: errCode,
+      providerStatus: String(j.status || ""),
+      providerMessage: String(j.message || ""),
+      providerRechargeId: j.recharge_id ?? null,
+      providerReferenceCode: j.reference_code ?? null,
+    });
+  } catch (e) {
+    logger.error("refreshInnoveritStatus ERROR", { orderId, message: String(e && e.message ? e.message : e) });
+    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+/**
  * Sandbox Fulfillment: cuando una order pasa a PAID, la completamos automáticamente.
  * - Solo channel: "sandbox"
  * - Solo transición PENDING -> PAID
