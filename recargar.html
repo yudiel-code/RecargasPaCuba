@@ -1520,10 +1520,7 @@ const resp = await fetch(url, {
           const catProd = (productId && window.__rpcCatalogIndex) ? window.__rpcCatalogIndex[String(productId).trim()] : null;
 
           if (catProd) {
-            // ✅ Usar el docId real (único) para crear la orden (NAUTA lo necesita)
-            const docKey = String(catProd.__docId || productId || "").trim();
-            productoActual = { id: docKey, ...catProd };
-
+            productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
             const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
             const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
 
