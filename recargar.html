@@ -62,6 +62,41 @@
       width: 100%;
     }
 
+    /* ✅ Banner superior (Firestore: ui_banners/recargar_top) */
+    .rpc-banner {
+      display: none;
+      border-radius: 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.10);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+    }
+
+    .rpc-banner--navbar {
+      background: linear-gradient(135deg, #16a34a, #38bdf8);
+      border-color: rgba(187, 247, 208, 0.55);
+    }
+
+    .rpc-banner--promo {
+      border-color: rgba(255, 177, 59, 0.75);
+    }
+
+    .rpc-banner-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      margin-bottom: 4px;
+    }
+
+    .rpc-banner-msg {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.95;
+      white-space: pre-line;
+      line-height: 1.35;
+    }
+
     /* Pestañas CUBACEL / NAUTA */
     .tabs {
       display: grid;
@@ -443,6 +478,12 @@ body.catalog-ready .cards { visibility: visible; }
 
   <main class="app">
     <div class="app-content">
+
+    <!-- ✅ BANNER OFERTA (controlado por Firestore) -->
+    <section id="rpc-offer-banner" class="rpc-banner" aria-live="polite">
+      <div id="rpc-offer-banner-title" class="rpc-banner-title"></div>
+      <div id="rpc-offer-banner-msg" class="rpc-banner-msg"></div>
+    </section>
 
     <!-- PESTAÑAS -->
     <div class="tabs">
@@ -937,6 +978,73 @@ const resp = await fetch(url, {
         }
       }
 
+      async function rpcFetchDoc(docPath, user) {
+        const base = rpcIsLocalhost()
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${docPath}`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${docPath}`;
+
+        const headers = { "Content-Type": "application/json" };
+        try {
+          if (user && typeof user.getIdToken === "function") {
+            const t = await user.getIdToken();
+            if (t) headers["Authorization"] = `Bearer ${t}`;
+          }
+        } catch (_) {}
+
+        const resp = await fetch(base, { method: "GET", headers });
+        const data = await resp.json().catch(() => null);
+
+        if (!resp.ok || !data) {
+          const code = (data && data.error && data.error.message) ? data.error.message : ("HTTP_" + resp.status);
+          throw new Error(code);
+        }
+
+        const name = String(data.name || "");
+        const docId = name.split("/").pop();
+        const fields = rpcDecodeFields(data.fields || {});
+        return { __docId: docId, ...fields };
+      }
+
+      function rpcRenderTopBanner(bannerDoc) {
+        const el = document.getElementById("rpc-offer-banner");
+        const titleEl = document.getElementById("rpc-offer-banner-title");
+        const msgEl = document.getElementById("rpc-offer-banner-msg");
+        if (!el || !titleEl || !msgEl) return;
+
+        const d = (bannerDoc && typeof bannerDoc === "object") ? bannerDoc : null;
+        const enabled = !!(d && d.enabled);
+
+        if (!enabled) {
+          el.style.display = "none";
+          titleEl.textContent = "";
+          msgEl.textContent = "";
+          el.classList.remove("rpc-banner--navbar", "rpc-banner--promo");
+          return;
+        }
+
+        const title = (typeof d.title === "string") ? d.title.trim() : "";
+        const msg = (typeof d.message === "string") ? d.message.trim() : "";
+        const variant = (typeof d.variant === "string") ? d.variant.trim().toLowerCase() : "";
+        const bg = (typeof d.bg === "string") ? d.bg.trim().toLowerCase() : "";
+
+        titleEl.textContent = title || "Información";
+        msgEl.textContent = msg || "";
+
+        el.classList.toggle("rpc-banner--navbar", bg === "navbar");
+        el.classList.toggle("rpc-banner--promo", variant === "promo");
+
+        el.style.display = "block";
+      }
+
+      async function rpcLoadTopBanner(user) {
+        try {
+          const d = await rpcFetchDoc("ui_banners/recargar_top", user);
+          rpcRenderTopBanner(d);
+        } catch (e) {
+          rpcRenderTopBanner(null);
+        }
+      }
+
       async function rpcFetchCatalog(user) {
         const base = rpcIsLocalhost()
           ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`
@@ -1189,6 +1297,9 @@ const resp = await fetch(url, {
 
         return true;
       }
+
+      // ✅ Banner superior (Firestore)
+      rpcLoadTopBanner(authUser);
 
       (async function rpcLoadAndRenderCatalog() {
         try {
