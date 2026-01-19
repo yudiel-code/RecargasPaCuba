@@ -767,6 +767,30 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
       return;
     }
 
+    // Gate: si la orden es sandbox, NO enviar a proveedor (evita envíos reales por accidente)
+    const channel = String(order.channel || "").trim().toLowerCase();
+    if (channel === "sandbox") {
+      const evRef = orderRef.collection("events").doc();
+      await evRef.set({
+        type: "INNOVERIT_SKIPPED_SANDBOX",
+        statusFrom,
+        statusTo,
+        createdAt: FieldValue.serverTimestamp(),
+        createdAtMs: nowMs,
+        provider: "innoverit",
+      });
+
+      await orderRef.update({
+        provider: "innoverit",
+        providerResult: "SKIPPED",
+        providerError: "SANDBOX_CHANNEL_NO_SEND",
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: "SKIPPED",
+      });
+      return;
+    }
+
     // Resolver producto (docId = productId interno) para obtener id_product real de Innoverit
     let prodSnap = await db.collection("catalog_products_innoverit").doc(productId).get();
     if (!prodSnap.exists) prodSnap = await db.collection("catalog_products").doc(productId).get();
