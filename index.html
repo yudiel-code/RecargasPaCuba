@@ -316,6 +316,9 @@
         localStorage.removeItem("login_intentos");
         localStorage.removeItem("login_bloqueado_hasta");
 
+        const emailLower = (user.email || emailLogin).toLowerCase();
+        const isVerified = (!emailLower) || (user.emailVerified === true);
+
         // Sincronizar usuarioRegistrado SIN contraseña ni forzarCambio
         try {
           const rawPrev = localStorage.getItem("usuarioRegistrado") || "{}";
@@ -329,15 +332,22 @@
           const usuarioMin = {
             ...prev,
             nombre: user.displayName || prev.nombre || "",
-            email: (user.email || emailLogin).toLowerCase(),
-            activo: true
+            email: emailLower,
+            activo: isVerified
           };
           localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
         } catch (e) {
           console.error("Error sincronizando datos locales tras login:", e);
         }
 
-        localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
+        // Gate: si NO está verificado, NO redirigir (se queda en login)
+        if (!isVerified) {
+          try { localStorage.setItem("rpc_email_verify_pending", emailLower); } catch (_) {}
+          showToastError("Tu correo aún no está verificado. Abre el enlace del email para continuar (revisa Spam).");
+          return;
+        }
+
+        localStorage.setItem("usuario", emailLower);
         const finalDest = window.resolvePostAuthRedirect();
         if (!window.__authRedirected) {
           window.__authRedirected = true;
@@ -470,10 +480,19 @@
 <script type="module">
   import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (!user) return;
 
     try {
+      // Best-effort: refrescar emailVerified una vez (evita quedar bloqueado tras verificar)
+      if (user.email && user.emailVerified === false && !window.__rpcEmailVerifyReloaded) {
+        window.__rpcEmailVerifyReloaded = true;
+        try { await user.reload(); } catch (_) {}
+      }
+
+      const emailLower = (user.email || "").toLowerCase();
+      const isVerified = (!emailLower) || (user.emailVerified === true);
+
       const raw = localStorage.getItem("usuarioRegistrado") || "{}";
       const datos = JSON.parse(raw);
 
@@ -482,12 +501,22 @@
       const nuevo = {
         ...resto,
         nombre: resto.nombre || user.displayName || "",
-        email: (user.email || "").toLowerCase(),
-        activo: true
+        email: emailLower,
+        activo: isVerified
       };
 
       localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
-      localStorage.setItem("usuario", (user.email || "").toLowerCase());
+
+      // Gate: si el email NO está verificado, NO redirigir a páginas protegidas
+      if (!isVerified) {
+        try { localStorage.setItem("rpc_email_verify_pending", emailLower); } catch (_) {}
+        if (typeof window.showToastError === "function") {
+          window.showToastError("Tu correo aún no está verificado. Abre el enlace del email para continuar (revisa Spam).");
+        }
+        return;
+      }
+
+      localStorage.setItem("usuario", emailLower);
 
       // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
       const finalDest = window.resolvePostAuthRedirect();
