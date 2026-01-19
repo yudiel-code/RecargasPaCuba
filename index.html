@@ -476,6 +476,25 @@
 <!-- ✅ Firebase centralizado en js/firebase.js -->
 <script type="module" src="js/firebase.js?v=r1"></script>
 
+     <script>
+  (function () {
+    let msg = "";
+    try { msg = sessionStorage.getItem("rpc_post_register_toast") || ""; } catch (_) { msg = ""; }
+    if (!msg) return;
+
+    try { sessionStorage.removeItem("rpc_post_register_toast"); } catch (_) {}
+
+    const tryShow = () => {
+      if (typeof window.showToastSuccess === "function") {
+        window.showToastSuccess(msg);
+        return;
+      }
+      setTimeout(tryShow, 50);
+    };
+    tryShow();
+  })();
+</script>
+
 <!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
 <script type="module">
   import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";

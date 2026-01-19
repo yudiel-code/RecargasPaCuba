@@ -183,6 +183,11 @@
     onAuthStateChanged(auth, (user) => {
       if (!user) return;
 
+      // Guard: si estamos registrando, NO redirigir (deja que se muestre el toast)
+      try {
+        if (localStorage.getItem("rpc_register_in_progress") === "1") return;
+      } catch (_) {}
+
       try {
         const data = localStorage.getItem("usuarioRegistrado");
         let usuario = {};
@@ -224,7 +229,9 @@
     }
 
     const btnRegister = document.getElementById("btn-register");
-    btnRegister.addEventListener("click", async () => {
+    btnRegister.addEventListener("click", async (event) => {
+      try { if (event) event.preventDefault(); } catch (_) {}
+      try { localStorage.setItem("rpc_register_in_progress", "1"); } catch (_) {}
       const nombre = (document.getElementById("reg-nombre").value || "").trim();
       const email = (document.getElementById("reg-email").value || "").trim().toLowerCase();
       const pass1 = document.getElementById("new-pass").value.trim();
@@ -281,10 +288,14 @@
         localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
         localStorage.setItem("usuario", email);
 
-        showToastSuccess("Registro completado. Revisa tu correo para verificar y luego inicia sesion.");
+        const okMsg = "Registro completado. Revisa tu correo para verificar y luego inicia sesion.";
+        showToastSuccess(okMsg);
 
-        // Dejar tiempo para que el toast se vea antes de redirigir
-        await new Promise(r => setTimeout(r, 1500));
+        // Persistir mensaje para mostrarlo también en el login tras el redirect
+        try { sessionStorage.setItem("rpc_post_register_toast", okMsg); } catch (_) {}
+
+        // Pequeña pausa para que se vea aquí también
+        await new Promise(r => setTimeout(r, 600));
 
         try {
           // Preferente: Modular SDK wrapper expuesto en window.firebaseSignOut (signOut)
@@ -313,8 +324,12 @@
         if (nextParam) {
           targetUrl.searchParams.set("next", nextParam);
         }
+        
+        try { localStorage.removeItem("rpc_register_in_progress"); } catch (_) {}
+
         window.location.href = targetUrl.toString();
       } catch (error) {
+        try { localStorage.removeItem("rpc_register_in_progress"); } catch (_) {}
 
         console.error("Error en registro:", error);
         let mensaje = "No se pudo completar el registro.";
