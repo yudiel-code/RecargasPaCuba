@@ -306,7 +306,34 @@ exports.createOrder = onRequest(async (req, res) => {
     const orderId = ref.id;
     const nowMs = Date.now();
 
-    await ref.set({
+    // Coste privado (solo admin): se guarda en /orders_private/{orderId}
+    // Fail-open: si no se puede leer el coste, se guarda null y NO se rompe el flujo.
+    let costEur = null;
+    let costRaw = "";
+    let commissionPct = null;
+
+    try {
+      const privCols = ["catalog_private_innoverit", "catalog_private"];
+      for (const c of privCols) {
+        const s = await db.collection(c).doc(product.id).get();
+        if (!s.exists) continue;
+
+        const d = s.data() || {};
+        const v = Number(d.sendAmountEur);
+        costEur = Number.isFinite(v) ? Math.round((v + Number.EPSILON) * 100) / 100 : null;
+
+        costRaw = (typeof d.sendAmountRaw === "string") ? d.sendAmountRaw : "";
+
+        const cp = Number(d.commissionPct);
+        commissionPct = Number.isFinite(cp) ? cp : null;
+
+        break;
+      }
+    } catch (_) {}
+
+    const batch = db.batch();
+
+    batch.set(ref, {
       uid,
       productId: product.id,
       destination: destinoNormalized,
@@ -320,6 +347,25 @@ exports.createOrder = onRequest(async (req, res) => {
       createdAtMs: nowMs,
     });
 
+    const refPriv = db.collection("orders_private").doc(orderId);
+    batch.set(refPriv, {
+      uid,
+      orderId,
+      productId: product.id,
+      destination: destinoNormalized,
+      amount,
+      currency,
+      paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
+      channel: "sandbox",
+      authSource: uidRes.source,
+      costEur,
+      costRaw,
+      commissionPct,
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+    });
+
+    await batch.commit();
 
     logger.info("createOrder OK", { orderId, uid, productId: product.id, authSource: uidRes.source });
 
@@ -335,6 +381,164 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
   }
 });
+
+exports.migrateCatalogCostsToPrivate = onRequest(async (req, res) => {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+
+  // Solo admin (por ID token)
+  const token = getBearerToken(req);
+  if (!token) return sendJson(res, 401, { ok: false, error: "MISSING_AUTH" });
+
+  let decoded;
+  try {
+    decoded = await admin.auth().verifyIdToken(token);
+  } catch (e) {
+    return sendJson(res, 401, { ok: false, error: "INVALID_ID_TOKEN" });
+  }
+
+  const email = String(decoded?.email || "").toLowerCase();
+  const verified = !!decoded?.email_verified;
+  if (!verified || email !== "recargaspacubaapp@gmail.com") {
+    return sendJson(res, 403, { ok: false, error: "NOT_ADMIN" });
+  }
+
+  try {
+    const snap = await db.collection("catalog_products_innoverit").get();
+
+    let moved = 0;
+    let skipped = 0;
+
+    let batch = db.batch();
+    let ops = 0;
+    let commits = 0;
+
+    for (const d of snap.docs) {
+      const p = d.data() || {};
+      const hasAny =
+        p.sendAmountEur != null ||
+        p.sendAmountRaw != null ||
+        p.commissionPct != null;
+
+      if (!hasAny) { skipped++; continue; }
+
+      const privRef = db.collection("catalog_private_innoverit").doc(d.id);
+      const privPatch = {
+        ...(p.sendAmountEur != null ? { sendAmountEur: p.sendAmountEur } : {}),
+        ...(p.sendAmountRaw != null ? { sendAmountRaw: p.sendAmountRaw } : {}),
+        ...(p.commissionPct != null ? { commissionPct: p.commissionPct } : {}),
+        updatedAt: FieldValue.serverTimestamp(),
+      };
+
+      batch.set(privRef, privPatch, { merge: true }); ops++;
+
+      batch.update(d.ref, {
+        sendAmountEur: FieldValue.delete(),
+        sendAmountRaw: FieldValue.delete(),
+        commissionPct: FieldValue.delete(),
+        updatedAt: FieldValue.serverTimestamp(),
+      }); ops++;
+
+      moved++;
+
+      // 500 ops máx por batch; dejamos margen
+      if (ops >= 450) {
+        await batch.commit();
+        commits++;
+        batch = db.batch();
+        ops = 0;
+      }
+    }
+
+    if (ops > 0) {
+      await batch.commit();
+      commits++;
+    }
+
+    return sendJson(res, 200, { ok: true, moved, skipped, commits, total: snap.size });
+  } catch (e) {
+    logger.error("migrateCatalogCostsToPrivate error", e);
+    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
+exports.migrateCatalogProviderToPrivate = onRequest(async (req, res) => {
+  setCors(req, res);
+
+  if (req.method === "OPTIONS") return res.status(204).send("");
+  if (req.method !== "POST") return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
+
+  // Solo admin (por ID token)
+  const token = getBearerToken(req);
+  if (!token) return sendJson(res, 401, { ok: false, error: "MISSING_AUTH" });
+
+  let decoded;
+  try {
+    decoded = await admin.auth().verifyIdToken(token);
+  } catch (e) {
+    return sendJson(res, 401, { ok: false, error: "INVALID_ID_TOKEN" });
+  }
+
+  const email = String(decoded?.email || "").toLowerCase();
+  const verified = !!decoded?.email_verified;
+  if (!verified || email !== "recargaspacubaapp@gmail.com") {
+    return sendJson(res, 403, { ok: false, error: "NOT_ADMIN" });
+  }
+
+  try {
+    const snap = await db.collection("catalog_products_innoverit").get();
+
+    let moved = 0;
+    let skipped = 0;
+
+    let batch = db.batch();
+    let ops = 0;
+    let commits = 0;
+
+    for (const d of snap.docs) {
+      const p = d.data() || {};
+      const provider = (typeof p.provider === "string") ? p.provider.trim() : "";
+
+      if (!provider) { skipped++; continue; }
+
+      const privRef = db.collection("catalog_private_innoverit").doc(d.id);
+
+      batch.set(privRef, {
+        provider,
+        updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      ops++;
+
+      batch.update(d.ref, {
+        provider: FieldValue.delete(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      ops++;
+
+      moved++;
+
+      if (ops >= 450) {
+        await batch.commit();
+        commits++;
+        batch = db.batch();
+        ops = 0;
+      }
+    }
+
+    if (ops > 0) {
+      await batch.commit();
+      commits++;
+    }
+
+    return sendJson(res, 200, { ok: true, moved, skipped, commits, total: snap.size });
+  } catch (e) {
+    logger.error("migrateCatalogProviderToPrivate error", e);
+    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
+  }
+});
+
 
 /**
  * Fase 3 (sandbox): markOrderPaid

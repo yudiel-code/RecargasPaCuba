@@ -1766,12 +1766,10 @@ const resp = await fetch(url, {
 
             const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
 
-            // ✅ El precio mostrado/cobrado viene del catálogo (sellAmountEur -> precioActual)
+            // ✅ El precio mostrado/cobrado viene del catálogo (sellAmountEur -> precioActual) 
             const amount = Number(precioActual);
 
             if (!orderId) throw new Error("order-missing-id");
-
-            const costEur = Number(productoActual && productoActual.sendAmountEur);
 
             const pending = {
               clientId: orderId, // ✅ este es tu ID (se usa en Concepto)
@@ -1781,14 +1779,13 @@ const resp = await fetch(url, {
               beneficio: String(beneficioActual || ""),
               // Precio final (cliente)
               importe: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : 0,
-              // Coste (proveedor)
-              sendAmountEur: Number.isFinite(costEur) ? Math.round(costEur * 100) / 100 : null,
               // Precio (catálogo) explícito
-              sellAmountEur: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : null,
+              sellAmountEur: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : null,   
               metodoPago: String(selectedPayMethod || "PAYPAL"),
               destino: destinoNormalized,
               createdAt: new Date().toISOString()
             };
+
 
             window.__rpcPendingCheckout = pending;
             localStorage.setItem("rpc_pending_checkout", JSON.stringify(pending));
