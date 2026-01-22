@@ -1153,7 +1153,7 @@ async function telegramSendMessage(token, chatId, text) {
 }
 
 // Notifica al crear una orden (dedupe por doc fijo en /orders/{orderId}/events/TELEGRAM_NEW_ORDER)
-exports.onOrderCreatedTelegram = onDocumentCreated("orders/{orderId}", async (event) => {
+exports.onOrderCreatedTelegram = onDocumentCreated({ document: "orders/{orderId}", secrets: ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"] }, async (event) => {
   const snap = event.data;
   if (!snap) return;
 
