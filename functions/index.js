@@ -9,7 +9,7 @@
 
 const { setGlobalOptions } = require("firebase-functions");
 const { onRequest } = require("firebase-functions/https");
-const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 
 const admin = require("firebase-admin");
@@ -1113,6 +1113,115 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
     logger.info("onOrderCompleted Innoverit send DONE", { orderId, ok, httpStatus: send.httpStatus, errCode });
   } catch (e) {
     logger.error("onOrderCompleted Innoverit send ERROR", { orderId, message: String(e && e.message ? e.message : e) });
+  }
+});
+
+function pickTelegramBotToken() {
+  return String(
+    process.env.TELEGRAM_BOT_TOKEN ||
+    process.env.RPC_TELEGRAM_BOT_TOKEN ||
+    ""
+  ).trim();
+}
+
+function pickTelegramChatId() {
+  return String(
+    process.env.TELEGRAM_CHAT_ID ||
+    process.env.RPC_TELEGRAM_CHAT_ID ||
+    ""
+  ).trim();
+}
+
+async function telegramSendMessage(token, chatId, text) {
+  const url = `https://api.telegram.org/bot${token}/sendMessage`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+    }),
+  });
+
+  const data = await resp.json().catch(() => null);
+  if (!resp.ok || !data || data.ok !== true) {
+    const desc = data && data.description ? data.description : `HTTP_${resp.status}`;
+    throw new Error(`TELEGRAM_SEND_FAILED:${desc}`);
+  }
+  return data;
+}
+
+// Notifica al crear una orden (dedupe por doc fijo en /orders/{orderId}/events/TELEGRAM_NEW_ORDER)
+exports.onOrderCreatedTelegram = onDocumentCreated("orders/{orderId}", async (event) => {
+  const snap = event.data;
+  if (!snap) return;
+
+  const order = snap.data() || {};
+  const orderId = String(event.params?.orderId || "");
+
+  // Ajusta filtros si quieres (por ahora: solo órdenes nuevas PENDING)
+  if (String(order.status || "") !== "PENDING") return;
+
+  const token = pickTelegramBotToken();
+  const chatId = pickTelegramChatId();
+  if (!token || !chatId) {
+    logger.warn("telegram_config_missing", { hasToken: !!token, hasChatId: !!chatId });
+    return;
+  }
+
+  const orderRef = snap.ref;
+  const notifyRef = orderRef.collection("events").doc("TELEGRAM_NEW_ORDER");
+  const nowMs = Date.now();
+
+  // Estado: PENDING -> SENT (permite retry si quedó en ERROR/PENDING)
+  let shouldSend = false;
+
+  await db.runTransaction(async (tx) => {
+    const n = await tx.get(notifyRef);
+    const state = n.exists ? String((n.data() || {}).state || "") : "";
+
+    if (state === "SENT") return;
+
+    tx.set(notifyRef, {
+      type: "TELEGRAM_NEW_ORDER",
+      state: "PENDING",
+      createdAt: FieldValue.serverTimestamp(),
+      createdAtMs: nowMs,
+    }, { merge: true });
+
+    shouldSend = true;
+  });
+
+  if (!shouldSend) return;
+
+  const text =
+    `🆕 Nueva orden\n` +
+    `ID: ${orderId}\n` +
+    `Producto: ${String(order.productId || "-")}\n` +
+    `Destino: ${String(order.destination || "-")}\n` +
+    `Importe: ${String(order.amount ?? "-")} ${String(order.currency || "")}\n` +
+    `Pago: ${String(order.paymentMethod || "-")}\n` +
+    `Canal: ${String(order.channel || "-")}`;
+
+  try {
+    await telegramSendMessage(token, chatId, text);
+
+    await notifyRef.set({
+      state: "SENT",
+      sentAt: FieldValue.serverTimestamp(),
+      sentAtMs: nowMs,
+    }, { merge: true });
+  } catch (e) {
+    await notifyRef.set({
+      state: "ERROR",
+      lastError: String(e && e.message ? e.message : e),
+      lastAttemptAt: FieldValue.serverTimestamp(),
+      lastAttemptAtMs: nowMs,
+    }, { merge: true });
+
+    // fuerza retry del trigger
+    throw e;
   }
 });
 
