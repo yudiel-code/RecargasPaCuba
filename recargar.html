@@ -1306,24 +1306,18 @@ const resp = await fetch(url, {
           const all = await rpcFetchCatalog(authUser);
           const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
           if (!visible.length) return;
-          // Orden: si HAY promo variable => 1) Promo variable 2) Paquete 3) Normal; si NO hay promo => 1) Paquete 2) Normal; dentro de cada grupo: precio (menor -> mayor)
-    const rpcHasPromoVar = visible.some(p => !!(p && p.isPromo) && !!(p && p.variablePromo));
-
+          // Orden: 1) Promo variable 2) Paquete 3) Normal; dentro de cada grupo: precio (menor -> mayor)
     const rpcGroupRank = (p) => {
       const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
+      const docId = String((p && p.__docId) || "").trim().toLowerCase();
       const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
-      const isBundle = (typeTxt === "bundle") || internalId.includes("bundle");
 
+      const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
       const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
 
-      if (rpcHasPromoVar) {
-        if (isPromoVar) return 0;
-        if (isBundle) return 1;
-        return 2;
-      }
-
-      if (isBundle) return 0;
-      return 1;
+      if (isPromoVar) return 0;
+      if (isBundle) return 1;
+      return 2;
     };
 
     const rpcSortEur = (p) => {
