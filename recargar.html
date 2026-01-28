@@ -1289,6 +1289,45 @@ const resp = await fetch(url, {
         // Solo reemplazamos si hay algo que renderizar (evita dejar la página vacía si falla).
         if (!cub.length && !nau.length) return false;
 
+        const rpcGroupRank = (p) => {
+          const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
+          const docId = String((p && p.__docId) || "").trim().toLowerCase();
+          const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
+
+          const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
+          const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
+
+          if (isPromoVar) return 0;
+          if (isBundle) return 1;
+          return 2;
+        };
+
+        const rpcSortEur = (p) => {
+          const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
+          const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
+          return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
+        };
+
+        const rpcSortInPlace = (arr) => {
+          arr.sort((a, b) => {
+            const ga = rpcGroupRank(a);
+            const gb = rpcGroupRank(b);
+            if (ga !== gb) return ga - gb;
+
+            const pa = rpcSortEur(a);
+            const pb = rpcSortEur(b);
+            if (pa !== pb) return pa - pb;
+
+            const ka = String((a && (a.__docId || a.internalProductId)) || "");
+            const kb = String((b && (b.__docId || b.internalProductId)) || "");
+            return ka.localeCompare(kb, "es");
+          });
+        };
+
+        // ✅ Orden correcto dentro de cada categoría visible
+        rpcSortInPlace(cub);
+        rpcSortInPlace(nau);
+
         cubacel.innerHTML = "";
         nauta.innerHTML = "";
 
