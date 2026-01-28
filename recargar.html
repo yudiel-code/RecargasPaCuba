@@ -1306,17 +1306,24 @@ const resp = await fetch(url, {
           const all = await rpcFetchCatalog(authUser);
           const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
           if (!visible.length) return;
-          // Orden: 1) Paquete 2) Promo variable 3) Normal; dentro de cada grupo: precio (menor -> mayor)
+          // Orden: si HAY promo variable => 1) Promo variable 2) Paquete 3) Normal; si NO hay promo => 1) Paquete 2) Normal; dentro de cada grupo: precio (menor -> mayor)
+    const rpcHasPromoVar = visible.some(p => !!(p && p.isPromo) && !!(p && p.variablePromo));
+
     const rpcGroupRank = (p) => {
       const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
       const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
       const isBundle = (typeTxt === "bundle") || internalId.includes("bundle");
-      if (isBundle) return 0;
 
       const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
-      if (isPromoVar) return 1;
 
-      return 2;
+      if (rpcHasPromoVar) {
+        if (isPromoVar) return 0;
+        if (isBundle) return 1;
+        return 2;
+      }
+
+      if (isBundle) return 0;
+      return 1;
     };
 
     const rpcSortEur = (p) => {
