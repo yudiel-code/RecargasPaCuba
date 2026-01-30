@@ -55,8 +55,20 @@
         <span style="line-height:1;">Continuar con Google</span>
       </button>
 
-      <button id="btn-login-sms" class="btn btn-primary btn-lg btn-full" type="button" style="margin-top:12px;">
-        Continuar con tel&eacute;fono (SMS)
+      <button
+        id="btn-login-sms"
+        class="btn btn-primary btn-lg btn-full btn-google-icon"
+        type="button"
+        aria-label="Continuar con teléfono (SMS)"
+        style="position:relative;display:flex;align-items:center;justify-content:center;margin-top:12px;border:0;background:linear-gradient(135deg,#fbbf24,#f97316);color:#1f2933;"
+      >
+        <span aria-hidden="true" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.65);">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="display:block;fill:#1f2933;">
+            <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 5c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+          </svg>
+        </span>
+
+        <span style="line-height:1;">Continuar con tel&eacute;fono (SMS)</span>
       </button>
 
       <button id="btn-login-email" class="btn btn-primary btn-lg btn-full" type="button" style="margin-top:12px;">
