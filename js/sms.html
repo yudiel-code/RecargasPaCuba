@@ -122,8 +122,39 @@
           setStatus("confirmando-codigo");
           const cred = await confirmationResult.confirm(code);
 
-          setStatus("login-ok uid=" + cred.user.uid, "ok");
-          // No redirigimos a recargar: evitamos el loop. Solo confirmamos login.
+          // Redirección segura con allowlist (evita open redirect y loops raros)
+          const params = new URLSearchParams(window.location.search);
+          let nextRaw = String(params.get("next") || "").trim();
+
+          // Normaliza y separa path/query
+          if (nextRaw.startsWith("/")) nextRaw = nextRaw.slice(1);
+          if (nextRaw.startsWith("./")) nextRaw = nextRaw.slice(2);
+
+          let nextPath = nextRaw;
+          let nextQuery = "";
+          const qPos = nextRaw.indexOf("?");
+          if (qPos !== -1) {
+            nextPath = nextRaw.slice(0, qPos);
+            nextQuery = nextRaw.slice(qPos + 1);
+          }
+
+          // Allowlist estricta
+          const allowed = ["recargar.html", "historial.html", "cuenta.html"];
+          if (!allowed.includes(nextPath)) {
+            nextPath = "cuenta.html";
+            nextQuery = "";
+          }
+
+          // Preserva solo ?v=... si viene (opcional y seguro)
+          let q = "";
+          if (nextQuery) {
+            const qs = new URLSearchParams(nextQuery);
+            const v = qs.get("v");
+            if (v) q = "?v=" + encodeURIComponent(v);
+          }
+
+          setStatus("login-ok uid=" + cred.user.uid + " -> /" + nextPath, "ok");
+          window.location.replace("/" + nextPath + q);
         } catch (e) {
           console.error(e);
           setStatus("error: " + (e?.code || e?.message || "desconocido"), "err");
