@@ -11,7 +11,9 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithPhoneNumber,
+  RecaptchaVerifier
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
 import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
@@ -89,6 +91,8 @@ window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
 window.firebaseSendEmailVerification = sendEmailVerification;
 window.firebaseSignOut = signOut;
 window.firebaseOnAuthStateChanged = onAuthStateChanged;
+window.firebaseSignInWithPhoneNumber = signInWithPhoneNumber;
+window.firebaseRecaptchaVerifier = RecaptchaVerifier;
 
 window.firebaseGoogleSignIn = async (authInstance) => {
   const a = authInstance || window.firebaseAuth;
@@ -109,6 +113,8 @@ export {
   sendEmailVerification,
   signOut,
   onAuthStateChanged,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
   createUserWithEmailAndPassword,
   updateProfile,
   functions,
