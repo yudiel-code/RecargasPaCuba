@@ -157,6 +157,8 @@
 
     <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
 
+    <button id="btn-register-sms" class="btn btn-lg btn-full" style="margin-top:10px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.5);color:#fff;">Registrarme con SMS</button>
+
     <div id="msg" class="msg" style="display:none;"></div>
 
     <p class="register-login-back">
@@ -345,6 +347,46 @@
         showToastError(mensaje);
       }
     });
+
+    const btnRegisterSms = document.getElementById("btn-register-sms");
+    if (btnRegisterSms) {
+      btnRegisterSms.addEventListener("click", async (event) => {
+        try { if (event) event.preventDefault(); } catch (_) {}
+        try { btnRegisterSms.disabled = true; } catch (_) {}
+
+        try {
+          const currentParams = new URLSearchParams(window.location.search || "");
+          let nextParam = String(currentParams.get("next") || "").trim();
+          if (!nextParam) nextParam = "cuenta.html";
+
+          let vParam = currentParams.get("v");
+          if (!vParam) {
+            try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+          }
+
+          // Si existe v y next aún no lo trae, lo metemos dentro de next (sms.html solo preserva v si viene en next)
+          if (vParam && !/[?&]v=/.test(nextParam)) {
+            nextParam = nextParam + (nextParam.includes("?") ? "&" : "?") + "v=" + vParam;
+          }
+
+          if (typeof window.showToastSuccess === "function") {
+            window.showToastSuccess("Abriendo registro por SMS...");
+          }
+
+          const smsUrl = new URL("/js/sms.html", window.location.href);
+          smsUrl.searchParams.set("next", nextParam);
+
+          await new Promise(r => setTimeout(r, 250));
+          window.location.href = smsUrl.toString();
+        } catch (e) {
+          console.error(e);
+          if (typeof window.showToastError === "function") {
+            window.showToastError("No se pudo abrir el registro por SMS.");
+          }
+          try { btnRegisterSms.disabled = false; } catch (_) {}
+        }
+      });
+    }
 
     // Ojito 1
     function wirePassToggle(toggleId, inputId) {
