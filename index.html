@@ -581,13 +581,17 @@
         return;
       }
 
-      // Phone Auth (SMS) puede no tener email: evitamos loop con páginas que dependen de email en localStorage
-      if (!emailLower) {
-        console.warn("[RPC] Auth user sin email (probable SMS). No auto-redirect desde index.");
+      // ✅ Sesión "usuario" consistente para todos los providers:
+      // - Email/Google: usamos email
+      // - SMS: usamos phoneNumber o uid (fallback) para evitar quedarnos sin sesión
+      const sessionKey = (emailLower || (user.phoneNumber || "") || (user.uid || "")).toString().toLowerCase();
+
+      if (!sessionKey) {
+        console.warn("[RPC] No se pudo construir sessionKey (sin email/phone/uid). No redirect.");
         return;
       }
 
-      localStorage.setItem("usuario", emailLower);
+      try { localStorage.setItem("usuario", sessionKey); } catch (_) {}
 
       // Si el usuario ya está autenticado en Firebase, lo mandamos directo a su destino
       const finalDest = window.resolvePostAuthRedirect();
