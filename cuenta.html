@@ -1148,7 +1148,7 @@
     });
   }
 
-  const usuarioSesion = localStorage.getItem("usuario");
+  const usuarioSesion = (authUser && authUser.uid) ? "firebase" : localStorage.getItem("usuario");
 
     let datosUsuario;
     try {
@@ -1172,6 +1172,7 @@
       const v = new URLSearchParams(location.search || "").get("v");
       if (v) p.set("v", v);
       window.location.replace(`index.html?${p.toString()}`);
+      return;
     }
 
     const nombreMostrar = datosUsuario.nombre || "Usuario";
