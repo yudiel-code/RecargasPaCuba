@@ -16,7 +16,17 @@
     .muted { color:#4b5563; font-size: 13px; margin-top: 8px; }
     .ok { color:#0a7a2f; font-weight:700; }
     .err { color:#b91c1c; font-weight:700; }
-    #recaptcha-container { margin-top: 10px; }
+    /* reCAPTCHA (Firebase Phone Auth): funcional, pero sin UI visible */
+    #recaptcha-container {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+    }
     code { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 8px; }
   </style>
 </head>
@@ -38,9 +48,7 @@
       <div id="recaptcha-container"></div>
 
       <div id="status" class="muted">Estado: <code>idle</code></div>
-      <div class="muted">
-        Nota: esta página es solo para el preview <code>sms-tests</code>. No toca tu login actual.
-      </div>
+      <!-- Nota eliminada (preview) -->
     </div>
   </div>
 
@@ -73,12 +81,12 @@
       async function ensureVerifier() {
         if (verifier) return verifier;
 
-        // IMPORTANTE: usamos reCAPTCHA *visible* (default) para que sea estable en pruebas
+        // reCAPTCHA invisible: normalmente no muestra el cuadro; solo aparece un challenge si Firebase lo necesita
         verifier = new window.firebaseRecaptchaVerifier(
           window.firebaseAuth,
           "recaptcha-container",
           {
-            size: "normal",
+            size: "invisible",
             callback: () => {},
             "expired-callback": () => {}
           }
