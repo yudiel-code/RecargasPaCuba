@@ -1148,7 +1148,9 @@
     });
   }
 
-  const usuarioSesion = (authUser && authUser.uid) ? "firebase" : localStorage.getItem("usuario");
+  const usuarioSesion = (authUser && authUser.uid)
+  ? ((authUser.email || authUser.phoneNumber || authUser.uid) + "")
+  : localStorage.getItem("usuario");
 
     let datosUsuario;
     try {
@@ -1174,6 +1176,8 @@
       window.location.replace(`index.html?${p.toString()}`);
       return;
     }
+    // ✅ Mantener "usuario" consistente para Phone Auth (no depende de email)
+try { localStorage.setItem("usuario", (usuarioSesion || "").toLowerCase()); } catch (_) {}
 
     const nombreMostrar = datosUsuario.nombre || "Usuario";
     const nombreUsuarioEl = document.getElementById("nombreUsuario");
