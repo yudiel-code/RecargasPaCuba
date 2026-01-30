@@ -581,9 +581,15 @@
         return;
       }
 
+      // Phone Auth (SMS) puede no tener email: evitamos loop con páginas que dependen de email en localStorage
+      if (!emailLower) {
+        console.warn("[RPC] Auth user sin email (probable SMS). No auto-redirect desde index.");
+        return;
+      }
+
       localStorage.setItem("usuario", emailLower);
 
-      // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
+      // Si el usuario ya está autenticado en Firebase, lo mandamos directo a su destino
       const finalDest = window.resolvePostAuthRedirect();
       if (!window.__authRedirected) {
         window.__authRedirected = true;
