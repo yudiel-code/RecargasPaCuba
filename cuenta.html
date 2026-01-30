@@ -1179,13 +1179,17 @@
     // ✅ Mantener "usuario" consistente para Phone Auth (no depende de email)
 try { localStorage.setItem("usuario", (usuarioSesion || "").toLowerCase()); } catch (_) {}
 
-    const nombreMostrar = datosUsuario.nombre || "Usuario";
-    const nombreUsuarioEl = document.getElementById("nombreUsuario");
-    if (nombreUsuarioEl) nombreUsuarioEl.textContent = nombreMostrar;
+const nombreMostrar = datosUsuario.nombre || (authUser && authUser.displayName) || "Usuario";
+const nombreUsuarioEl = document.getElementById("nombreUsuario");
+if (nombreUsuarioEl) nombreUsuarioEl.textContent = nombreMostrar;
 
-    const correoMostrar = datosUsuario.email || "correo@ejemplo.com";
-    const correoUsuarioEl = document.getElementById("correoUsuario");
-    if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
+const correoMostrar =
+  (datosUsuario.email) ||
+  (authUser && (authUser.email || authUser.phoneNumber)) ||
+  "correo@ejemplo.com";
+const correoUsuarioEl = document.getElementById("correoUsuario");
+if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
+
 
     // ===== Capa de acceso a saldo / historial vía UserData (preparada para backend) =====
     function getSaldo() {
