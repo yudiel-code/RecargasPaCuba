@@ -627,6 +627,18 @@ body.catalog-ready .cards { visibility: visible; }
     if(recargarInitRun) return; 
     recargarInitRun=true;
 
+    // ✅ Referidos (first-touch): captura ?ref= y lo guarda una sola vez
+    try {
+      const params = new URLSearchParams(location.search);
+      const rawRef = (params.get("ref") || "").trim();
+      const isValidRef = /^[a-zA-Z0-9_-]{1,64}$/.test(rawRef);
+      const existing = localStorage.getItem("rpc_ref");
+      if (!existing && isValidRef) {
+        localStorage.setItem("rpc_ref", rawRef);
+        localStorage.setItem("rpc_ref_at", new Date().toISOString());
+      }
+    } catch (_) {}
+
     // Anti-flash
     document.documentElement.classList.add("loaded");
 
@@ -665,7 +677,7 @@ const token = await user.getIdToken(true);
 const resp = await fetch(url, {
   method: "POST",
   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-  body: JSON.stringify({ uid, productId, destino, paymentMethod })
+  body: JSON.stringify({ uid, productId, destino, paymentMethod, referrer: (localStorage.getItem("rpc_ref") || null) })
 });
 
 

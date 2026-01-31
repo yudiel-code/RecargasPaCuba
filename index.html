@@ -290,6 +290,31 @@
     const rawNext = (params.get("next") || sessionStorage.getItem("rpc_next") || "").trim();
     const rawV = (params.get("v") || sessionStorage.getItem("rpc_v") || "").trim();
 
+    // ✅ Referidos (first-touch): captura ref desde URL actual o desde next=...
+    try {
+      const existingRef = localStorage.getItem("rpc_ref");
+      if (!existingRef) {
+        let ref = (params.get("ref") || "").trim();
+
+        // Si no viene directo, intentar extraerlo de next (ej: recargar.html?ref=salonX)
+        if (!ref && rawNext) {
+          const qPos = rawNext.indexOf("?");
+          if (qPos >= 0) {
+            const nextQuery = rawNext.slice(qPos + 1);
+            const nextParams = new URLSearchParams(nextQuery);
+            ref = (nextParams.get("ref") || "").trim();
+          }
+        }
+
+        const isValidRef = /^[a-zA-Z0-9_-]{1,64}$/.test(ref);
+        if (isValidRef) {
+          localStorage.setItem("rpc_ref", ref);
+          localStorage.setItem("rpc_ref_at", new Date().toISOString());
+        }
+      }
+    } catch (_) {}
+
+
     // Allowlist: only these pages are valid post-auth destinations
     const allow = new Set(["recargar.html", "cuenta.html", "historial.html"]);
 
