@@ -25,6 +25,9 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 async function requireAppCheck(req, res) {
+  // En emulador, NO exigimos App Check para poder probar por cURL/PowerShell sin tocar prod.
+  if (isRunningInEmulator()) return true;
+
   const token = req.get("X-Firebase-AppCheck") || req.get("x-firebase-appcheck") || "";
   if (!token) {
     sendJson(res, 401, { ok: false, error: "APPCHECK_MISSING" });
@@ -171,6 +174,13 @@ exports.createOrder = onRequest(async (req, res) => {
 
   let { uid, productId, destino, paymentMethod } = payload;
 
+    // Referrer (first-touch): puede venir en payload o en el body raíz si el cliente envía { data:{...}, referrer:"..." }
+  const refRaw = (payload && typeof payload.referrer === "string" ? payload.referrer : "")
+    || (body && typeof body.referrer === "string" ? body.referrer : "");
+  const refCandidate = String(refRaw || "").trim();
+  const referrer = /^[a-zA-Z0-9_-]{1,64}$/.test(refCandidate) ? refCandidate : "";
+
+
   // Compat: acepta nombres alternativos (por si el cliente manda legacy)
   if (paymentMethod == null || paymentMethod === "") {
     paymentMethod =
@@ -253,7 +263,7 @@ exports.createOrder = onRequest(async (req, res) => {
       const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
 
       // Importe desde catálogo (EUR): SOLO sellAmountEur (sin fallback, sin +1)
-      const sellEur = Number(p.sellAmountEur);
+      const sellEur = Number((p.sellAmountEur != null && p.sellAmountEur !== "") ? p.sellAmountEur : p.sendAmountEur);
 
       if (!Number.isFinite(sellEur) || sellEur <= 0) {
         return sendJson(res, 500, { ok: false, error: "INVALID_SELL_AMOUNT", productId });
@@ -347,6 +357,7 @@ exports.createOrder = onRequest(async (req, res) => {
       createdAtMs: nowMs,
     });
 
+
     const refPriv = db.collection("orders_private").doc(orderId);
     batch.set(refPriv, {
       uid,
@@ -358,6 +369,7 @@ exports.createOrder = onRequest(async (req, res) => {
       paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
       channel: "sandbox",
       authSource: uidRes.source,
+      ...(referrer ? { referrer } : {}),
       costEur,
       costRaw,
       commissionPct,
