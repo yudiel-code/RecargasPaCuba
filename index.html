@@ -12,6 +12,19 @@
   <title>RecargasPaCuba</title>
   <script>
     const __rpcParams = new URLSearchParams(window.location.search || "");
+    // ✅ Captura referrer (first-touch) y persiste para que llegue hasta createOrder
+(function () {
+  try {
+    const raw = (__rpcParams.get("referrer") || __rpcParams.get("ref") || __rpcParams.get("r") || "").trim();
+    const ok = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : "";
+    if (ok) {
+      sessionStorage.setItem("rpc_referrer", ok);
+      localStorage.setItem("rpc_referrer", ok);
+      localStorage.setItem("referrer", ok);
+    }
+  } catch (_) {}
+})();
+
     const __rpcBuild = __rpcParams.get("v") || "prod";
     window.__RPC_BUILD = __rpcBuild;
     try { document.documentElement.dataset.rpcBuild = __rpcBuild; } catch (_) {}
