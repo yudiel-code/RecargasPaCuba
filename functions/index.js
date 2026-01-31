@@ -58,6 +58,9 @@ function setCors(req, res) {
     "https://www.recargaspacuba.net",
     "https://recargaspacuba.eu",
     "https://www.recargaspacuba.eu",
+
+    // ✅ sms-tests preview channel (CORS solo para pruebas)
+    "https://recargaspacuba-7aaa8--sms-tests-ref-nc1y7htv.web.app",
   ]);
 
   // Evita cachés cruzados entre orígenes
