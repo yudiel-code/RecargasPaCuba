@@ -82,3 +82,7 @@ innoverit_history_all.csv
 innoverit_snapshot_*.json
 innoverit_verification_payload.json
 innoverit_helpers.ps1
+
+# emulator imports (local only)
+functions/_imports/
+
