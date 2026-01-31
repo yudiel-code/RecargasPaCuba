@@ -651,7 +651,7 @@ body.catalog-ready .cards { visibility: visible; }
       }
 
       // ✅ FASE 2 (sandbox/emulador): helper para crear orden PENDING en backend
-      async function createOrderSandbox({ uid, productId, destino, paymentMethod }) {
+      async function createOrderSandbox({ uid, productId, destino, paymentMethod, referrer }) {
         const isLocal = (location.hostname === "localhost" || location.hostname === "127.0.0.1");
 const url = isLocal
   ? "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder"
@@ -665,7 +665,7 @@ const token = await user.getIdToken(true);
 const resp = await fetch(url, {
   method: "POST",
   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-  body: JSON.stringify({ uid, productId, destino, paymentMethod })
+  body: JSON.stringify({ uid, productId, destino, paymentMethod, ...(referrer ? { referrer } : {}) })
 });
 
 
@@ -1797,11 +1797,29 @@ const resp = await fetch(url, {
             const user = auth && auth.currentUser ? auth.currentUser : null;
             if (!user || !user.uid) throw new Error("firebase-no-auth");
 
+            const referrer = (function () {
+              try {
+                const qp = new URLSearchParams(location.search);
+                const raw = String(
+                  (qp.get("referrer") || qp.get("ref") || qp.get("r") || "") ||
+                  sessionStorage.getItem("rpc_referrer") ||
+                  sessionStorage.getItem("rpc_ref") ||
+                  localStorage.getItem("rpc_referrer") ||
+                  localStorage.getItem("rpc_ref") ||
+                  localStorage.getItem("rpc_ref_first_touch") ||
+                  localStorage.getItem("referrer") ||
+                  ""
+                ).trim();
+                return (/^[a-zA-Z0-9_-]{1,64}$/.test(raw)) ? raw : "";
+              } catch (_) { return ""; }
+            })();
+
             const resp = await createOrderSandbox({
               uid: String(user.uid),
               productId: String(productoId),
               destino: destinoNormalized,
-              paymentMethod: String(selectedPayMethod || "PAYPAL")
+              paymentMethod: String(selectedPayMethod || "PAYPAL"),
+              referrer
             });
 
             const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
