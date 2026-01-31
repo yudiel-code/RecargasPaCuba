@@ -42,10 +42,20 @@ const db = getFirestore(app);
 
 // App Check (reCAPTCHA v3 invisible)
 // Pega aquí tu SITE KEY (pública), NO la secret.
+
+// ✅ sms-tests preview: habilita AppCheck DEBUG token (debe ejecutarse ANTES de initializeAppCheck)
+try {
+  const h = String(location.hostname || "");
+  if (h.includes("--sms-tests-ref-") && h.endsWith(".web.app")) {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true; // imprime el token en consola
+  }
+} catch (_) {}
+
 const appCheck = initializeAppCheck(app, {
   provider: new ReCaptchaV3Provider("6LduKj8sAAAAAIBehDF4f5GIPXnnjOgA9LpZL5Wp"),
   isTokenAutoRefreshEnabled: true
 });
+
 
 // Adjuntar App Check token a tus Functions HTTP (cloudfunctions.net/createOrder y /mark* si aplica)
 const _fetch = window.fetch.bind(window);
