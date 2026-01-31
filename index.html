@@ -12,6 +12,32 @@
   <title>RecargasPaCuba</title>
   <script>
     const __rpcParams = new URLSearchParams(window.location.search || "");
+
+    // ✅ Referidos (first-touch): captura ref desde URL actual o desde next=... (antes del login)
+    try {
+      const existingRef = localStorage.getItem("rpc_ref");
+      if (!existingRef) {
+        let ref = (__rpcParams.get("ref") || "").trim();
+
+        // Si no viene directo, intentar extraerlo de next (ej: recargar.html?ref=salonX)
+        if (!ref) {
+          const rawNext = String(__rpcParams.get("next") || "").trim();
+          const qPos = rawNext.indexOf("?");
+          if (qPos >= 0) {
+            const nextQuery = rawNext.slice(qPos + 1);
+            const nextParams = new URLSearchParams(nextQuery);
+            ref = (nextParams.get("ref") || "").trim();
+          }
+        }
+
+        const isValidRef = /^[a-zA-Z0-9_-]{1,64}$/.test(ref);
+        if (isValidRef) {
+          localStorage.setItem("rpc_ref", ref);
+          localStorage.setItem("rpc_ref_at", new Date().toISOString());
+        }
+      }
+    } catch (_) {}
+
     const __rpcBuild = __rpcParams.get("v") || "prod";
     window.__RPC_BUILD = __rpcBuild;
     try { document.documentElement.dataset.rpcBuild = __rpcBuild; } catch (_) {}
