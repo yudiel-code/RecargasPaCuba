@@ -143,7 +143,7 @@ async function resolveUid(req, uidFromBody) {
  * Fase 2 (sandbox): createOrder (sin pago)
  * - valida server-side
  * - resuelve producto desde Firestore "catalog_products"
- * - calcula importe en servidor: sendAmountEur + 1.00 (EUR) y lo persiste en /orders.amount
+ * - calcula importe en servidor desde el catálogo: sellAmountEur (EUR) y lo persiste en /orders.amount
  * - crea orden PENDING en /orders
  * - responde { orderId, amount, currency, status }
  */
