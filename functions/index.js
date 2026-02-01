@@ -211,7 +211,7 @@ exports.createOrder = onRequest(async (req, res) => {
   }
   uid = uidRes.uid;
 
-  // ENFORCEMENT (PROD): requiere email verificado
+  // ENFORCEMENT (PROD): requiere email verificado SOLO para email/password
   if (!isRunningInEmulator()) {
     const token = getBearerToken(req);
     if (!token) {
@@ -219,9 +219,19 @@ exports.createOrder = onRequest(async (req, res) => {
     }
     try {
       const decoded = await admin.auth().verifyIdToken(token);
-      const verified = !!(decoded && decoded.email_verified);
-      if (!verified) {
-        return sendJson(res, 403, { ok: false, error: "EMAIL_NOT_VERIFIED" });
+
+      const providers = Array.isArray(decoded?.firebase?.sign_in_provider)
+        ? decoded.firebase.sign_in_provider
+        : String(decoded?.firebase?.sign_in_provider || "");
+
+      const signInProvider = String(decoded?.firebase?.sign_in_provider || "");
+
+      // Solo exigir verificación si es email/password (provider "password")
+      if (signInProvider === "password") {
+        const verified = !!decoded?.email_verified;
+        if (!verified) {
+          return sendJson(res, 403, { ok: false, error: "EMAIL_NOT_VERIFIED" });
+        }
       }
     } catch (e) {
       return sendJson(res, 401, { ok: false, error: "INVALID_ID_TOKEN" });
