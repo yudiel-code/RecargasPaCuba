@@ -345,6 +345,7 @@ exports.createOrder = onRequest(async (req, res) => {
 
     batch.set(ref, {
       uid,
+      orderId,
       productId: product.id,
       destination: destinoNormalized,
       status: "PENDING",
@@ -353,6 +354,7 @@ exports.createOrder = onRequest(async (req, res) => {
       paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
       channel: "sandbox",
       authSource: uidRes.source, // "token" | "body"
+      ...(referrer ? { referrer } : {}),
       createdAt: FieldValue.serverTimestamp(),
       createdAtMs: nowMs,
     });
