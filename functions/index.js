@@ -341,43 +341,74 @@ exports.createOrder = onRequest(async (req, res) => {
       }
     } catch (_) {}
 
-    const batch = db.batch();
+const batch = db.batch();
 
-    batch.set(ref, {
-      uid,
-      orderId,
-      productId: product.id,
-      destination: destinoNormalized,
-      status: "PENDING",
-      amount,
-      currency,
-      paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
-      channel: "sandbox",
-      authSource: uidRes.source, // "token" | "body"
-      ...(referrer ? { referrer } : {}),
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-    });
+// Referrer first-touch por UID (persistente en /users/{uid})
+const userRef = db.collection("users").doc(uid);
+let userReferrer = "";
+try {
+  const uSnap = await userRef.get();
+  if (uSnap.exists) {
+    const u = uSnap.data() || {};
+    const uRef = String(u.referrer || "").trim();
+    if (/^[a-zA-Z0-9_-]{1,64}$/.test(uRef)) userReferrer = uRef;
+  }
+} catch (_) {}
+
+let refFinal = "";
+
+// Si viene referrer en el request: se usa y se actualiza el del usuario (last-touch)
+if (referrer) {
+  refFinal = referrer;
+
+  // Guarda/actualiza el referrer del usuario (sirve para que aplique “para siempre” en otros dispositivos)
+  batch.set(userRef, {
+    referrer: referrer,
+    referrerUpdatedAt: FieldValue.serverTimestamp(),
+    referrerSource: "createOrder",
+  }, { merge: true });
+
+} else if (userReferrer) {
+  // Si no viene referrer, usa el último guardado del usuario
+  refFinal = userReferrer;
+}
+
+batch.set(ref, {
+  uid,
+  orderId,
+  productId: product.id,
+  destination: destinoNormalized,
+  status: "PENDING",
+  amount,
+  currency,
+  paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
+  channel: "sandbox",
+  authSource: uidRes.source, // "token" | "body"
+  ...(refFinal ? { referrer: refFinal } : {}),
+  createdAt: FieldValue.serverTimestamp(),
+  createdAtMs: nowMs,
+});
 
 
-    const refPriv = db.collection("orders_private").doc(orderId);
-    batch.set(refPriv, {
-      uid,
-      orderId,
-      productId: product.id,
-      destination: destinoNormalized,
-      amount,
-      currency,
-      paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
-      channel: "sandbox",
-      authSource: uidRes.source,
-      ...(referrer ? { referrer } : {}),
-      costEur,
-      costRaw,
-      commissionPct,
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-    });
+const refPriv = db.collection("orders_private").doc(orderId);
+batch.set(refPriv, {
+  uid,
+  orderId,
+  productId: product.id,
+  destination: destinoNormalized,
+  amount,
+  currency,
+  paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
+  channel: "sandbox",
+  authSource: uidRes.source,
+  ...(refFinal ? { referrer: refFinal } : {}),
+  costEur,
+  costRaw,
+  commissionPct,
+  createdAt: FieldValue.serverTimestamp(),
+  createdAtMs: nowMs,
+});
+
 
     await batch.commit();
 
