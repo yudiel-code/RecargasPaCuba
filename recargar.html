@@ -630,6 +630,20 @@ body.catalog-ready .cards { visibility: visible; }
     // Anti-flash
     document.documentElement.classList.add("loaded");
 
+    // ✅ Captura referrer (first-touch) ANTES del redirect a login
+    (function () {
+      try {
+        const qp = new URLSearchParams(location.search || "");
+        const raw = (qp.get("referrer") || qp.get("ref") || qp.get("r") || "").trim();
+        const ok = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : "";
+        if (ok) {
+          sessionStorage.setItem("rpc_referrer", ok);
+          localStorage.setItem("rpc_referrer", ok);
+          localStorage.setItem("referrer", ok); // compat
+        }
+      } catch (_) {}
+    })();
+
     // ✅ Seguridad inmediata: si no hay sesión real, salir antes de cualquier render
     try {
       const auth = window.firebaseAuth;
