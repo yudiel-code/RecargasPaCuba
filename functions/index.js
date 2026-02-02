@@ -1280,6 +1280,94 @@ exports.onOrderCreatedTelegram = onDocumentCreated({ document: "orders/{orderId}
   }
 });
 
+// Notifica COMPLETED a un grupo específico por referrer (valhalla). Dedupe por /events/TELEGRAM_COMPLETED_VALHALLA
+exports.onOrderCompletedTelegramValhalla = onDocumentUpdated(
+  { document: "orders/{orderId}", secrets: ["TELEGRAM_BOT_TOKEN"] },
+  async (event) => {
+    const before = event.data?.before?.data?.() || {};
+    const after  = event.data?.after?.data?.()  || {};
+
+    const statusFrom = String(before.status || "");
+    const statusTo   = String(after.status  || "");
+
+    // Solo transiciones hacia COMPLETED
+    if (!(statusTo === "COMPLETED" && statusFrom !== "COMPLETED")) return;
+
+    // Solo referrer=valhalla
+    const ref = String(after.referrer || "").trim().toLowerCase();
+    if (ref !== "valhalla") return;
+
+    const token = pickTelegramBotToken();
+    const chatId = "-5247604664"; // Órdenes COMPLETED • valhalla
+    if (!token || !chatId) return;
+
+    const orderId = String(event.params?.orderId || "");
+    if (!orderId) return;
+
+    const orderRef = db.collection("orders").doc(orderId);
+    const notifyRef = orderRef.collection("events").doc("TELEGRAM_COMPLETED_VALHALLA");
+    const nowMs = Date.now();
+
+    let shouldSend = false;
+
+    await db.runTransaction(async (tx) => {
+      const n = await tx.get(notifyRef);
+      const state = n.exists ? String((n.data() || {}).state || "") : "";
+      if (state === "SENT") return;
+
+      tx.set(
+        notifyRef,
+        {
+          type: "TELEGRAM_COMPLETED_VALHALLA",
+          state: "PENDING",
+          createdAt: FieldValue.serverTimestamp(),
+          createdAtMs: nowMs,
+        },
+        { merge: true }
+      );
+
+      shouldSend = true;
+    });
+
+    if (!shouldSend) return;
+
+    const dest = String(after.destination || "-");
+    const destSafe = dest.length > 4 ? `***${dest.slice(-4)}` : dest;
+
+    const text =
+      `✅ COMPLETED (valhalla)\n` +
+      `ID: ${orderId}\n` +
+      `Producto: ${String(after.productId || "-")}\n` +
+      `Destino: ${destSafe}\n` +
+      `Importe: ${String(after.amount ?? "-")} ${String(after.currency || "")}\n` +
+      `Canal: ${String(after.channel || "-")}`;
+
+    try {
+      await telegramSendMessage(token, chatId, text);
+
+      await notifyRef.set(
+        {
+          state: "SENT",
+          sentAt: FieldValue.serverTimestamp(),
+          sentAtMs: nowMs,
+        },
+        { merge: true }
+      );
+    } catch (e) {
+      await notifyRef.set(
+        {
+          state: "ERROR",
+          lastError: String(e?.message || e),
+          lastAttemptAt: FieldValue.serverTimestamp(),
+          lastAttemptAtMs: nowMs,
+        },
+        { merge: true }
+      );
+      throw e;
+    }
+  }
+);
+
 // exports.helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
