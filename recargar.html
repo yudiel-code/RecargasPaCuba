@@ -1685,7 +1685,13 @@ const resp = await fetch(url, {
           const catProd = (productId && window.__rpcCatalogIndex) ? window.__rpcCatalogIndex[String(productId).trim()] : null;
 
           if (catProd) {
-            productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
+            const internalPid = String(catProd.internalProductId || "").trim();
+            const providerPid = String(catProd.providerProductId || catProd.productId || "").trim();
+            const backendPid = ((String(catProd.category || "").toUpperCase() === "NAUTA") || categoryBtn === "NAUTA")
+              ? (providerPid || internalPid)
+              : internalPid;
+
+            productoActual = { id: backendPid, ...catProd };
             const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
             const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
 
