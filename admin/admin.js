@@ -62,8 +62,9 @@
       return;
     }
 
-    // Admin válido: no se usan flags locales
-    clearAdminFlags();
+    // Admin válido: mantener flags locales por compatibilidad con pantallas que aún los usan
+    localStorage.setItem("adminLogged", "1");
+    localStorage.setItem("adminEmail", email);
     showPage();
   });
 
