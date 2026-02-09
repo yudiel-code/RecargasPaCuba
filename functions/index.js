@@ -9,6 +9,7 @@
 
 const { setGlobalOptions } = require("firebase-functions");
 const { onRequest } = require("firebase-functions/https");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 const logger = require("firebase-functions/logger");
 
@@ -1439,6 +1440,99 @@ exports.onOrderCompletedTelegramValhalla = onDocumentUpdated(
     }
   }
 );
+
+exports.getAdminDashboardMetrics = onCall(async (request) => {
+  const ADMIN_EMAIL = "recargaspacubaapp@gmail.com";
+
+  // 🔒 Auth obligatorio
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "AUTH_REQUIRED");
+  }
+
+  const email = String(request.auth.token?.email || "").toLowerCase();
+  if (email !== ADMIN_EMAIL) {
+    throw new HttpsError("permission-denied", "NOT_ADMIN");
+  }
+
+  // ✅ App Check: exigir solo fuera de emulador
+  if (!isRunningInEmulator() && !request.app) {
+    throw new HttpsError("failed-precondition", "APPCHECK_REQUIRED");
+  }
+
+  const nowMs = Date.now();
+  const last24hMs = nowMs - (24 * 60 * 60 * 1000);
+
+  // Inicio de “hoy” en horario Canarias (Atlantic/Canary)
+  function startOfTodayCanaryMs() {
+    const tz = "Atlantic/Canary";
+    const now = new Date();
+
+    const ymd = new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(now);
+
+    const y = Number(ymd.find(p => p.type === "year")?.value);
+    const m = Number(ymd.find(p => p.type === "month")?.value);
+    const d = Number(ymd.find(p => p.type === "day")?.value);
+
+    const utcMidnight = Date.UTC(y, m - 1, d, 0, 0, 0);
+
+    const hms = new Intl.DateTimeFormat("en-GB", {
+      timeZone: tz,
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }).formatToParts(new Date(utcMidnight));
+
+    const hh = Number(hms.find(p => p.type === "hour")?.value || "0");
+    const mm = Number(hms.find(p => p.type === "minute")?.value || "0");
+    const ss = Number(hms.find(p => p.type === "second")?.value || "0");
+
+    const localSec = (hh * 3600) + (mm * 60) + ss; // 0 o 3600 en Canarias
+    return utcMidnight - (localSec * 1000);
+  }
+
+  const startTodayMs = startOfTodayCanaryMs();
+
+  // Recargas (COMPLETED) últimas 24h (por createdAtMs)
+  const snap24h = await db.collection("orders")
+    .where("status", "==", "COMPLETED")
+    .where("createdAtMs", ">=", last24hMs)
+    .get();
+
+  const recargas24h = snap24h.size;
+
+  // Ventas de hoy (COMPLETED desde 00:00 Canarias)
+  const snapHoy = await db.collection("orders")
+    .where("status", "==", "COMPLETED")
+    .where("createdAtMs", ">=", startTodayMs)
+    .get();
+
+  let ventasHoyEur = 0;
+  for (const doc of snapHoy.docs) {
+    const o = doc.data() || {};
+    const cur = String(o.currency || "").toUpperCase();
+    const amt = Number(o.amount);
+    if (cur === "EUR" && Number.isFinite(amt)) ventasHoyEur += amt;
+  }
+  ventasHoyEur = Math.round((ventasHoyEur + Number.EPSILON) * 100) / 100;
+
+  // Usuarios: proxy = cantidad de docs en /users (usuarios que han tenido actividad)
+  const usersSnap = await db.collection("users").get();
+  const usuariosTotal = usersSnap.size;
+
+  return {
+    ok: true,
+    recargas24h,
+    ventasHoyEur,
+    usuariosTotal,
+    tz: "Atlantic/Canary",
+  };
+});
 
 // exports.helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", { structuredData: true });
