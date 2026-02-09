@@ -425,12 +425,33 @@
 
       setStatus("Cargando ventas...");
 
-      let user;
-      try {
-        user = await waitForAuthUser(12000);
-      } catch (_) {
-        setStatus("No hay sesión admin válida.");
-        return;
+      let user = (window.firebaseAuth && window.firebaseAuth.currentUser) ? window.firebaseAuth.currentUser : null;
+
+      if (!user) {
+        try {
+          user = await new Promise((resolve, reject) => {
+            if (!window.firebaseOnAuthStateChanged || !window.firebaseAuth) {
+              reject(new Error("AUTH_API_MISSING"));
+              return;
+            }
+
+            let unsub = null;
+            const t = setTimeout(() => {
+              try { if (typeof unsub === "function") unsub(); } catch (_) {}
+              reject(new Error("AUTH_TIMEOUT"));
+            }, 12000);
+
+            unsub = window.firebaseOnAuthStateChanged(window.firebaseAuth, (u) => {
+              if (!u) return;
+              clearTimeout(t);
+              try { if (typeof unsub === "function") unsub(); } catch (_) {}
+              resolve(u);
+            });
+          });
+        } catch (_) {
+          setStatus("No hay sesión admin válida.");
+          return;
+        }
       }
 
       let idToken = "";
