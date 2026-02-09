@@ -1575,6 +1575,55 @@ exports.getAdminDashboardMetrics = onCall(async (request) => {
   };
 });
 
+exports.getAdminSales = onCall(async (request) => {
+  const ADMIN_EMAIL = "recargaspacubaapp@gmail.com";
+
+  // 🔒 Auth obligatorio
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "AUTH_REQUIRED");
+  }
+
+  const email = String(request.auth.token?.email || "").toLowerCase();
+  if (email !== ADMIN_EMAIL) {
+    throw new HttpsError("permission-denied", "NOT_ADMIN");
+  }
+
+  // ✅ App Check: exigir solo fuera de emulador
+  if (!isRunningInEmulator() && !request.app) {
+    throw new HttpsError("failed-precondition", "APPCHECK_REQUIRED");
+  }
+
+  const rawLimit = request.data?.limit;
+  let limit = Number(rawLimit);
+  if (!Number.isFinite(limit) || limit <= 0) limit = 50;
+  limit = Math.min(200, Math.floor(limit));
+
+  // No requiere índice compuesto: solo orderBy(createdAtMs)
+  const snap = await db.collection("orders")
+    .orderBy("createdAtMs", "desc")
+    .limit(limit)
+    .select("orderId", "productId", "destination", "amount", "currency", "createdAtMs", "status", "paymentMethod", "channel", "referrer")
+    .get();
+
+  const items = snap.docs.map((d) => {
+    const o = d.data() || {};
+    return {
+      id: String(o.orderId || d.id),
+      destination: String(o.destination || ""),
+      productId: String(o.productId || ""),
+      amount: (o.amount != null ? Number(o.amount) : null),
+      currency: String(o.currency || "EUR"),
+      createdAtMs: Number(o.createdAtMs || 0),
+      status: String(o.status || ""),
+      paymentMethod: String(o.paymentMethod || ""),
+      channel: String(o.channel || ""),
+      referrer: String(o.referrer || ""),
+    };
+  });
+
+  return { ok: true, limit, count: items.length, items };
+});
+
 // exports.helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
