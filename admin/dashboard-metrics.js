@@ -75,7 +75,7 @@
         return;
       }
 
-      setText(elRecargas, data.recargasHoy ?? 0);
+      setText(elRecargas, (data.recargas24h ?? data.recargasHoy ?? 0));
       setText(elVentas, formatEur(data.ventasHoyEur ?? 0));
       setText(elUsuarios, data.usuariosTotal ?? 0);
     } catch (e) {
