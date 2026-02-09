@@ -595,6 +595,78 @@ exports.migrateCatalogProviderToPrivate = onRequest(async (req, res) => {
 });
 
 
+const { onCall } = require("firebase-functions/v2/https");
+
+/**
+ * Admin Dashboard Metrics (callable)
+ * - No abre lecturas globales en cliente (agrega en backend)
+ * - Requiere sesión Firebase (request.auth)
+ * - Solo recargaspacubaapp@gmail.com
+ */
+exports.getAdminDashboardMetrics = onCall(async (request) => {
+  try {
+    if (!request.auth) {
+      return { ok: false, error: "MISSING_AUTH" };
+    }
+
+    const email = String(request.auth?.token?.email || "").toLowerCase();
+    if (email !== "recargaspacubaapp@gmail.com") {
+      return { ok: false, error: "NOT_ADMIN" };
+    }
+
+    const nowMs = Date.now();
+    const cutoffMs = nowMs - 24 * 60 * 60 * 1000;
+
+    // Orders últimas 24h (sin índices compuestos: filtramos status en memoria)
+    let recargasHoy = 0;
+    let ventasHoyEur = 0;
+
+    const snap = await db
+      .collection("orders")
+      .where("createdAtMs", ">=", cutoffMs)
+      .get();
+
+    for (const d of snap.docs) {
+      const o = d.data() || {};
+      if (String(o.status || "") !== "COMPLETED") continue;
+
+      recargasHoy++;
+
+      const cur = String(o.currency || "EUR").toUpperCase();
+      const amt = Number(o.amount);
+      if (cur === "EUR" && Number.isFinite(amt)) ventasHoyEur += amt;
+    }
+
+    ventasHoyEur = Math.round((ventasHoyEur + Number.EPSILON) * 100) / 100;
+
+    // Total usuarios en Firebase Auth (paginación)
+    let usuariosTotal = 0;
+    try {
+      let nextPageToken = undefined;
+      do {
+        const r = await admin.auth().listUsers(1000, nextPageToken);
+        usuariosTotal += Array.isArray(r.users) ? r.users.length : 0;
+        nextPageToken = r.pageToken;
+      } while (nextPageToken);
+    } catch (e) {
+      logger.error("getAdminDashboardMetrics listUsers error", { message: String(e?.message || e) });
+      usuariosTotal = 0; // fail-open
+    }
+
+    return {
+      ok: true,
+      windowHours: 24,
+      cutoffMs,
+      recargasHoy,
+      ventasHoyEur,
+      usuariosTotal,
+    };
+  } catch (e) {
+    logger.error("getAdminDashboardMetrics error", { message: String(e?.message || e) });
+    return { ok: false, error: "INTERNAL_ERROR" };
+  }
+});
+
 /**
  * Fase 3 (sandbox): markOrderPaid
  * - marca una orden PENDING -> PAID (solo sandbox)
