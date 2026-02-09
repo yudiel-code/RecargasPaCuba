@@ -1495,9 +1495,9 @@ exports.getAdminDashboardMetrics = onCall(async (request) => {
     throw new HttpsError("permission-denied", "NOT_ADMIN");
   }
 
-  // ✅ App Check: exigir solo fuera de emulador
+  // App Check opcional en admin (Auth + email admin ya protegen)
   if (!isRunningInEmulator() && !request.app) {
-    throw new HttpsError("failed-precondition", "APPCHECK_REQUIRED");
+    logger.warn("admin_callable_appcheck_missing");
   }
 
   const nowMs = Date.now();
