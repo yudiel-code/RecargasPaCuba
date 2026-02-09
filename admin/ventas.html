@@ -293,9 +293,9 @@
             <th>Estado</th>
           </tr>
           </thead>
-          <tbody>
+          <tbody id="salesBody">
           <tr>
-            <td colspan="6" class="table-empty">No hay ventas registradas</td>
+            <td colspan="6" class="table-empty" id="salesStatus">Cargando ventas...</td>
           </tr>
           </tbody>
         </table>
@@ -312,6 +312,177 @@
 <script>
   window.history.scrollRestoration = "manual";
   window.onload = () => window.scrollTo(0, 0);
+
+  (function () {
+    const TZX = "Atlantic/Canary";
+    const SALES_URL = "https://us-central1-recargaspacuba-7aaa8.cloudfunctions.net/getAdminSales";
+
+    const tbody = document.getElementById("salesBody");
+    const statusCell = document.getElementById("salesStatus");
+
+    function setStatus(msg) {
+      if (statusCell) statusCell.textContent = String(msg || "");
+    }
+
+    function escapeHtml(s) {
+      const str = String(s == null ? "" : s);
+      return str.replace(/[&<>"']/g, (c) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[c]));
+    }
+
+    function formatDate(ms) {
+      const n = Number(ms);
+      if (!Number.isFinite(n) || n <= 0) return "-";
+      try {
+        return new Date(n).toLocaleString("es-ES", { timeZone: TZX, hour12: true });
+      } catch (_) {
+        return new Date(n).toISOString();
+      }
+    }
+
+    function maskDest(dest) {
+      const d = String(dest || "");
+      if (!d) return "-";
+      if (d.includes("@")) return d;
+      const digits = d.replace(/[^\d]/g, "");
+      if (digits.length >= 4) return "***" + digits.slice(-4);
+      return d;
+    }
+
+    function formatPrice(amount, currency) {
+      const cur = String(currency || "EUR").toUpperCase();
+      const a = Number(amount);
+      if (!Number.isFinite(a)) return "-";
+      return a.toFixed(2) + " " + cur;
+    }
+
+    function clearBody() {
+      if (!tbody) return;
+      tbody.innerHTML = "";
+    }
+
+    function renderRows(items) {
+      if (!tbody) return;
+
+      clearBody();
+
+      if (!Array.isArray(items) || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No hay ventas registradas</td></tr>';
+        return;
+      }
+
+      const rows = items.map((it) => {
+        const id = escapeHtml(it?.id || "");
+        const dest = escapeHtml(maskDest(it?.destination || ""));
+        const pid = escapeHtml(it?.productId || "");
+        const price = escapeHtml(formatPrice(it?.amount, it?.currency));
+        const date = escapeHtml(formatDate(it?.createdAtMs));
+        const st = escapeHtml(it?.status || "");
+        return `<tr><td>${id}</td><td>${dest}</td><td>${pid}</td><td>${price}</td><td>${date}</td><td>${st}</td></tr>`;
+      }).join("");
+
+      tbody.innerHTML = rows;
+    }
+
+    async function waitForAuthUser(timeoutMs) {
+      const start = Date.now();
+      return new Promise((resolve, reject) => {
+        (function tick() {
+          const a = window.auth;
+          const u = a && a.currentUser;
+          if (u) return resolve(u);
+          if (Date.now() - start > timeoutMs) return reject(new Error("AUTH_TIMEOUT"));
+          setTimeout(tick, 200);
+        })();
+      });
+    }
+
+    async function getAppCheckToken() {
+      try {
+        if (typeof window.getAppCheckToken === "function") {
+          const t = await window.getAppCheckToken();
+          return String(t || "");
+        }
+        if (window.appCheck && typeof window.getToken === "function") {
+          const r = await window.getToken(window.appCheck, false);
+          return String(r && r.token ? r.token : "");
+        }
+        if (window.appCheck && typeof window.appCheck.getToken === "function") {
+          const r = await window.appCheck.getToken(false);
+          return String(r && r.token ? r.token : "");
+        }
+      } catch (_) {}
+      return "";
+    }
+
+    async function loadSales() {
+      if (!tbody || !statusCell) return;
+
+      setStatus("Cargando ventas...");
+
+      let user;
+      try {
+        user = await waitForAuthUser(12000);
+      } catch (_) {
+        setStatus("No hay sesión admin válida.");
+        return;
+      }
+
+      let idToken = "";
+      try { idToken = await user.getIdToken(); } catch (_) { idToken = ""; }
+      if (!idToken) {
+        setStatus("No se pudo obtener token de sesión.");
+        return;
+      }
+
+      const appCheckToken = await getAppCheckToken();
+      if (!appCheckToken) {
+        setStatus("App Check no disponible (bloquea la consulta).");
+        return;
+      }
+
+      try {
+        const resp = await fetch(SALES_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + idToken,
+            "X-Firebase-AppCheck": appCheckToken,
+          },
+          body: JSON.stringify({ data: { limit: 100 } }),
+        });
+
+        const text = await resp.text();
+        let json = null;
+        try { json = JSON.parse(text); } catch (_) {}
+
+        if (!resp.ok) {
+          const msg = (json && json.error && json.error.message) ? String(json.error.message) : ("HTTP_" + resp.status);
+          setStatus("Error cargando ventas: " + msg);
+          return;
+        }
+
+        const result = (json && json.result) ? json.result : null;
+
+        if (!result || result.ok !== true) {
+          const err = result && result.error ? result.error : "INTERNAL";
+          setStatus("Error cargando ventas: " + String(err));
+          return;
+        }
+
+        renderRows(result.items || []);
+      } catch (_) {
+        setStatus("Error cargando ventas.");
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadSales);
+  })();
 </script>
 
 </body>
