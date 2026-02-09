@@ -596,7 +596,7 @@ exports.migrateCatalogProviderToPrivate = onRequest(async (req, res) => {
 });
 
 
-const { onCall } = require("firebase-functions/v2/https");
+// onCall ya está importado arriba (evitar redeclare)
 
 /**
  * Admin Dashboard Metrics (callable)
