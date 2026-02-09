@@ -893,6 +893,7 @@
           <div class="usuario-datos">
             <div class="nombre" id="nombreUsuario">Usuario</div>
             <div class="correo" id="correoUsuario">correo@ejemplo.com</div>
+            <div class="correo" id="uidUsuario" style="opacity:.85; font-size:12px; margin-top:2px; word-break:break-all;">UID: —</div>
             <div class="tag">Cuenta creada y gestionada desde España</div>
           </div>
 
@@ -1151,6 +1152,10 @@
   const usuarioSesion = (authUser && authUser.uid)
   ? ((authUser.email || authUser.phoneNumber || authUser.uid) + "")
   : localStorage.getItem("usuario");
+
+  const uidReal = (authUser && authUser.uid) ? (authUser.uid + "") : "";
+  const uidEl = document.getElementById("uidUsuario");
+  if (uidEl) uidEl.textContent = uidReal ? ("UID: " + uidReal) : "UID: —";
 
     let datosUsuario;
     try {
