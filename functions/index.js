@@ -605,54 +605,91 @@ exports.migrateCatalogProviderToPrivate = onRequest(async (req, res) => {
  * - Solo recargaspacubaapp@gmail.com
  */
 exports.getAdminDashboardMetrics = onCall(async (request) => {
+  const t0 = Date.now();
+
   try {
     if (!request.auth) {
+      logger.warn("admin_metrics_missing_auth");
       return { ok: false, error: "MISSING_AUTH" };
     }
 
     const email = String(request.auth?.token?.email || "").toLowerCase();
     if (email !== "recargaspacubaapp@gmail.com") {
+      logger.warn("admin_metrics_not_admin", { email });
       return { ok: false, error: "NOT_ADMIN" };
     }
+
+    logger.info("admin_metrics_start", { email });
 
     const nowMs = Date.now();
     const cutoffMs = nowMs - 24 * 60 * 60 * 1000;
 
-    // Orders últimas 24h (sin índices compuestos: filtramos status en memoria)
     let recargasHoy = 0;
     let ventasHoyEur = 0;
+    let ordersScanned = 0;
 
-    const snap = await db
-      .collection("orders")
-      .where("createdAtMs", ">=", cutoffMs)
-      .get();
+    try {
+      const snap = await db
+        .collection("orders")
+        .where("createdAtMs", ">=", cutoffMs)
+        .select("status", "amount", "currency", "createdAtMs")
+        .get();
 
-    for (const d of snap.docs) {
-      const o = d.data() || {};
-      if (String(o.status || "") !== "COMPLETED") continue;
+      ordersScanned = snap.size;
 
-      recargasHoy++;
+      for (const d of snap.docs) {
+        const o = d.data() || {};
+        if (String(o.status || "") !== "COMPLETED") continue;
 
-      const cur = String(o.currency || "EUR").toUpperCase();
-      const amt = Number(o.amount);
-      if (cur === "EUR" && Number.isFinite(amt)) ventasHoyEur += amt;
+        recargasHoy++;
+
+        const cur = String(o.currency || "EUR").toUpperCase();
+        const amt = Number(o.amount);
+        if (cur === "EUR" && Number.isFinite(amt)) ventasHoyEur += amt;
+      }
+    } catch (e) {
+      logger.error("admin_metrics_orders_query_error", {
+        message: String(e?.message || e),
+        stack: String(e?.stack || ""),
+      });
     }
 
     ventasHoyEur = Math.round((ventasHoyEur + Number.EPSILON) * 100) / 100;
 
-    // Total usuarios en Firebase Auth (paginación)
     let usuariosTotal = 0;
+
     try {
       let nextPageToken = undefined;
+      let scanned = 0;
+      const MAX_USERS_SCAN = 5000;
+
       do {
         const r = await admin.auth().listUsers(1000, nextPageToken);
-        usuariosTotal += Array.isArray(r.users) ? r.users.length : 0;
+        const n = Array.isArray(r.users) ? r.users.length : 0;
+        usuariosTotal += n;
+        scanned += n;
         nextPageToken = r.pageToken;
+
+        if (scanned >= MAX_USERS_SCAN) {
+          logger.warn("admin_metrics_users_cap_reached", { MAX_USERS_SCAN });
+          break;
+        }
       } while (nextPageToken);
     } catch (e) {
-      logger.error("getAdminDashboardMetrics listUsers error", { message: String(e?.message || e) });
+      logger.error("admin_metrics_listUsers_error", {
+        message: String(e?.message || e),
+        stack: String(e?.stack || ""),
+      });
       usuariosTotal = 0; // fail-open
     }
+
+    logger.info("admin_metrics_ok", {
+      recargasHoy,
+      ventasHoyEur,
+      usuariosTotal,
+      ordersScanned,
+      ms: Date.now() - t0,
+    });
 
     return {
       ok: true,
@@ -663,10 +700,14 @@ exports.getAdminDashboardMetrics = onCall(async (request) => {
       usuariosTotal,
     };
   } catch (e) {
-    logger.error("getAdminDashboardMetrics error", { message: String(e?.message || e) });
+    logger.error("admin_metrics_fatal", {
+      message: String(e?.message || e),
+      stack: String(e?.stack || ""),
+    });
     return { ok: false, error: "INTERNAL_ERROR" };
   }
 });
+
 
 /**
  * Fase 3 (sandbox): markOrderPaid
