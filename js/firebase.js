@@ -90,6 +90,11 @@ window.firebaseFirestoreServerTimestamp = serverTimestamp;
 window.db = db;
 window.auth = auth;
 
+// Alias esperados por páginas admin (ganancias/ventas/etc)
+window.functions = functions;
+window.httpsCallable = httpsCallable;
+window.onAuthStateChanged = onAuthStateChanged;
+
 // Helpers Firestore para listados (admin/productos.html)
 window.collection = collection;
 window.getDocs = getDocs;
