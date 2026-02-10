@@ -301,9 +301,75 @@
 <script type="module" src="../js/firebase.js?v=r1"></script>
 <script src="admin.js?v=r1" defer></script>
 
-<script>
+<script type="module">
   window.history.scrollRestoration = "manual";
-  window.onload = () => window.scrollTo(0, 0);
+  window.addEventListener("load", () => window.scrollTo(0, 0));
+
+  const fmtEur = (n) => {
+    if (typeof n !== "number" || !isFinite(n)) return "—";
+    return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(n);
+  };
+
+  const setText = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  };
+
+  const waitFor = async (pred, timeoutMs = 8000, stepMs = 50) => {
+    const t0 = Date.now();
+    while (Date.now() - t0 < timeoutMs) {
+      try { if (pred()) return true; } catch (_) {}
+      await new Promise(r => setTimeout(r, stepMs));
+    }
+    return false;
+  };
+
+  const getAuthedUser = async () => {
+    if (!window.auth) return null;
+    if (window.auth.currentUser) return window.auth.currentUser;
+
+    if (typeof window.onAuthStateChanged === "function") {
+      return await new Promise((resolve) => {
+        const unsub = window.onAuthStateChanged(window.auth, (u) => {
+          try { unsub && unsub(); } catch (_) {}
+          resolve(u || null);
+        });
+      });
+    }
+
+    const ok = await waitFor(() => window.auth && window.auth.currentUser, 6000);
+    return ok ? window.auth.currentUser : null;
+  };
+
+  const loadEarnings = async () => {
+    setText("ganancias-hoy", "—");
+    setText("ganancias-mes", "—");
+    setText("ganancias-total", "—");
+
+    const ok = await waitFor(() => window.functions && typeof window.httpsCallable === "function", 8000);
+    if (!ok) return;
+
+    const user = await getAuthedUser();
+    if (!user) return;
+
+    try {
+      const callable = window.httpsCallable(window.functions, "getAdminEarnings");
+      const res = await callable({});
+      const d = (res && res.data) ? res.data : {};
+
+      const today = Number(d.todayEur ?? d.today ?? d.hoy ?? d.profitTodayEur);
+      const month = Number(d.monthEur ?? d.month ?? d.mes ?? d.profitMonthEur);
+      const total = Number(d.totalEur ?? d.total ?? d.historico ?? d.profitTotalEur);
+
+      setText("ganancias-hoy", fmtEur(today));
+      setText("ganancias-mes", fmtEur(month));
+      setText("ganancias-total", fmtEur(total));
+    } catch (err) {
+      console.error("[admin ganancias] getAdminEarnings error:", err);
+    }
+  };
+
+  loadEarnings();
 </script>
 
 </body>

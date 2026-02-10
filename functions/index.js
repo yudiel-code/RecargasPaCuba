@@ -1623,6 +1623,230 @@ exports.getAdminSales = onCall(async (request) => {
   return { ok: true, limit, count: items.length, items };
 });
 
+exports.getAdminEarnings = onCall(async (request) => {
+  const ADMIN_EMAIL = "recargaspacubaapp@gmail.com";
+  const ADMIN_TZ = "Atlantic/Canary";
+
+  // 🔒 Auth obligatorio
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "AUTH_REQUIRED");
+  }
+
+  const email = String(request.auth.token?.email || "").toLowerCase();
+  if (email !== ADMIN_EMAIL) {
+    throw new HttpsError("permission-denied", "NOT_ADMIN");
+  }
+
+  // App Check opcional en admin: ya hay Auth + email admin
+  // (no bloquear si falta request.app)
+
+  const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+  const tzParts = (ms) => {
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone: ADMIN_TZ,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const parts = dtf.formatToParts(new Date(ms));
+    const m = {};
+    for (const p of parts) if (p.type !== "literal") m[p.type] = p.value;
+    return {
+      y: Number(m.year),
+      mo: Number(m.month),
+      d: Number(m.day),
+      hh: Number(m.hour),
+      mm: Number(m.minute),
+      ss: Number(m.second),
+    };
+  };
+
+  const tzOffsetMsAt = (ms) => {
+    const p = tzParts(ms);
+    const asUTC = Date.UTC(p.y, p.mo - 1, p.d, p.hh, p.mm, p.ss);
+    return asUTC - ms;
+  };
+
+  const tzStartOfDayFromYMD = (y, mo, d) => {
+    const baseUTC = Date.UTC(y, mo - 1, d, 0, 0, 0);
+    let guess = baseUTC;
+    for (let i = 0; i < 2; i++) {
+      const off = tzOffsetMsAt(guess);
+      guess = baseUTC - off;
+    }
+    return guess;
+  };
+
+  const nowMs = Date.now();
+  const nowP = tzParts(nowMs);
+
+  const startTodayMs = tzStartOfDayFromYMD(nowP.y, nowP.mo, nowP.d);
+  const tomorrowP = tzParts(startTodayMs + (36 * 60 * 60 * 1000));
+  const startTomorrowMs = tzStartOfDayFromYMD(tomorrowP.y, tomorrowP.mo, tomorrowP.d);
+
+  const startMonthMs = tzStartOfDayFromYMD(nowP.y, nowP.mo, 1);
+  const nextMonthY = (nowP.mo === 12) ? (nowP.y + 1) : nowP.y;
+  const nextMonthM = (nowP.mo === 12) ? 1 : (nowP.mo + 1);
+  const startNextMonthMs = tzStartOfDayFromYMD(nextMonthY, nextMonthM, 1);
+
+  const getAllDocs = async (refs) => {
+    if (!refs.length) return [];
+    if (typeof db.getAll === "function") return await db.getAll(...refs);
+    return await Promise.all(refs.map((r) => r.get()));
+  };
+
+  const sumProfitInRange = async (startMs, endMs) => {
+    const snap = await db.collection("orders")
+      .where("createdAtMs", ">=", startMs)
+      .where("createdAtMs", "<", endMs)
+      .orderBy("createdAtMs", "asc")
+      .select("status", "amount", "currency", "orderId", "createdAtMs")
+      .get();
+
+    const completed = [];
+    for (const doc of snap.docs) {
+      const o = doc.data() || {};
+      const status = String(o.status || "");
+      const currency = String(o.currency || "EUR").toUpperCase();
+      const amount = (o.amount != null ? Number(o.amount) : NaN);
+
+      if (status !== "COMPLETED") continue;
+      if (currency !== "EUR") continue;
+      if (!Number.isFinite(amount)) continue;
+
+      completed.push({
+        docId: doc.id,
+        orderId: String(o.orderId || doc.id),
+        amount,
+      });
+    }
+
+    const privRefs = completed.map((x) => db.collection("orders_private").doc(x.docId));
+    const privDocs = await getAllDocs(privRefs);
+    const privById = new Map(privDocs.map((d) => [d.id, d]));
+
+    let profit = 0;
+    let missingCost = 0;
+
+    for (const o of completed) {
+      let pdoc = privById.get(o.docId) || null;
+
+      // Fallback barato (solo para rangos acotados) si el docId no coincide con orderId
+      if ((!pdoc || !pdoc.exists) && o.orderId && o.orderId !== o.docId) {
+        const alt = await db.collection("orders_private").doc(o.orderId).get();
+        if (alt && alt.exists) pdoc = alt;
+      }
+
+      const pdata = (pdoc && pdoc.exists) ? (pdoc.data() || {}) : null;
+      const cost = pdata && (pdata.costEur != null) ? Number(pdata.costEur) : NaN;
+
+      if (!Number.isFinite(cost)) {
+        missingCost++;
+        continue;
+      }
+
+      profit += (o.amount - cost);
+    }
+
+    return {
+      scanned: snap.size,
+      completed: completed.length,
+      missingCost,
+      profitEur: round2(profit),
+    };
+  };
+
+  const sumProfitTotal = async () => {
+    const PAGE = 500;
+    const MAX_SCAN = 5000; // protección anti-timeout
+    let last = null;
+    let scanned = 0;
+    let profit = 0;
+    let completed = 0;
+    let missingCost = 0;
+    let truncated = false;
+
+    while (true) {
+      let q = db.collection("orders")
+        .orderBy("createdAtMs", "asc")
+        .limit(PAGE)
+        .select("status", "amount", "currency", "orderId", "createdAtMs");
+
+      if (last) q = q.startAfter(last);
+
+      const snap = await q.get();
+      if (snap.empty) break;
+
+      scanned += snap.size;
+
+      const batchCompleted = [];
+      for (const doc of snap.docs) {
+        const o = doc.data() || {};
+        const status = String(o.status || "");
+        const currency = String(o.currency || "EUR").toUpperCase();
+        const amount = (o.amount != null ? Number(o.amount) : NaN);
+
+        if (status !== "COMPLETED") continue;
+        if (currency !== "EUR") continue;
+        if (!Number.isFinite(amount)) continue;
+
+        batchCompleted.push({ docId: doc.id, amount });
+      }
+
+      const privRefs = batchCompleted.map((x) => db.collection("orders_private").doc(x.docId));
+      const privDocs = await getAllDocs(privRefs);
+      const privById = new Map(privDocs.map((d) => [d.id, d]));
+
+      for (const o of batchCompleted) {
+        const pdoc = privById.get(o.docId);
+        const pdata = (pdoc && pdoc.exists) ? (pdoc.data() || {}) : null;
+        const cost = pdata && (pdata.costEur != null) ? Number(pdata.costEur) : NaN;
+
+        if (!Number.isFinite(cost)) {
+          missingCost++;
+          continue;
+        }
+
+        completed++;
+        profit += (o.amount - cost);
+      }
+
+      last = snap.docs[snap.docs.length - 1];
+
+      if (scanned >= MAX_SCAN) {
+        truncated = true;
+        break;
+      }
+    }
+
+    return {
+      scanned,
+      completed,
+      missingCost,
+      truncated,
+      profitEur: round2(profit),
+    };
+  };
+
+  const today = await sumProfitInRange(startTodayMs, startTomorrowMs);
+  const month = await sumProfitInRange(startMonthMs, startNextMonthMs);
+  const total = await sumProfitTotal();
+
+  return {
+    ok: true,
+    tz: ADMIN_TZ,
+    todayEur: today.profitEur,
+    monthEur: month.profitEur,
+    totalEur: total.profitEur,
+    debug: { today, month, total },
+  };
+});
+
 // exports.helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
