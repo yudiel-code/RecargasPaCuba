@@ -1697,9 +1697,7 @@ exports.getAdminEarnings = onCall(async (request) => {
   const nowMs = Date.now();
   const nowP = tzParts(nowMs);
 
-  const startTodayMs = tzStartOfDayFromYMD(nowP.y, nowP.mo, nowP.d);
-  const tomorrowP = tzParts(startTodayMs + (36 * 60 * 60 * 1000));
-  const startTomorrowMs = tzStartOfDayFromYMD(tomorrowP.y, tomorrowP.mo, tomorrowP.d);
+  // "Hoy" se calcula por dayKeyCanary (no por rangos start/end).
 
   const startMonthMs = tzStartOfDayFromYMD(nowP.y, nowP.mo, 1);
   const nextMonthY = (nowP.mo === 12) ? (nowP.y + 1) : nowP.y;
