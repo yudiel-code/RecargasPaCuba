@@ -291,9 +291,9 @@
             <th>Visible</th>
           </tr>
           </thead>
-          <tbody>
+          <tbody id="productsBody">
           <tr>
-            <td colspan="4" class="table-empty">Sin productos aún</td>
+            <td colspan="4" class="table-empty" id="productsStatus">Cargando productos…</td>
           </tr>
           </tbody>
         </table>
@@ -310,6 +310,140 @@
 <script>
   window.history.scrollRestoration = "manual";
   window.onload = () => window.scrollTo(0, 0);
+</script>
+
+<script type="module">
+  const tbody = document.getElementById("productsBody");
+
+  function esc(s) {
+    return String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function isPublished(v) {
+    return v === true || v === "true" || v === 1 || v === "1";
+  }
+
+  function pickId(d) {
+    return String(d?.internalProductId || d?.__id || "").trim() || "—";
+  }
+
+  function pickName(d, fallbackId) {
+    return (
+      String(d?.receiveText || d?.title || d?.name || d?.productName || d?.label || d?.description || "").trim() ||
+      String(fallbackId || "").trim() ||
+      "—"
+    );
+  }
+
+  function pickPrice(d) {
+    const raw =
+      (d?.sellAmountEur != null ? d.sellAmountEur : null) ??
+      (d?.sellAmount != null ? d.sellAmount : null) ??
+      (d?.priceEur != null ? d.priceEur : null) ??
+      (d?.importe != null ? d.importe : null) ??
+      (d?.amount != null ? d.amount : null);
+
+    if (raw == null) return "—";
+
+    const n = (typeof raw === "number") ? raw : Number(String(raw).replace(",", "."));
+    if (Number.isFinite(n)) return `${n.toFixed(2)}€`;
+
+    const s = String(raw).trim();
+    return s ? `${s}€` : "—";
+  }
+
+  function render(items) {
+    if (!items.length) {
+      tbody.innerHTML = `<tr><td colspan="4" class="table-empty">Sin productos visibles (publish=true)</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = items.map((it) => {
+      const id = pickId(it);
+      const name = pickName(it, id);
+      const price = pickPrice(it);
+      return `
+        <tr>
+          <td>${esc(id)}</td>
+          <td>${esc(name)}</td>
+          <td>${esc(price)}</td>
+          <td>Sí</td>
+        </tr>`;
+    }).join("");
+  }
+
+  async function waitForAuthReady(maxMs = 8000) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < maxMs) {
+      try {
+        if (window.auth && window.auth.currentUser) return;
+      } catch (_) {}
+      await new Promise(r => setTimeout(r, 100));
+    }
+  }
+
+  async function getFirestoreBindings() {
+    // 1) Prefer window.* (si firebase.js ya lo expone)
+    if (window.db && typeof window.collection === "function" && typeof window.getDocs === "function") {
+      return { db: window.db, collection: window.collection, getDocs: window.getDocs };
+    }
+
+    // 2) Intentar reusar el mismo módulo firebase.js (misma URL para compartir instancia)
+    try {
+      const mod = await import("../js/firebase.js?v=r1");
+
+      const db = mod.db || window.db;
+      const collection = mod.collection || window.collection;
+      const getDocs = mod.getDocs || window.getDocs;
+
+      if (db && typeof collection === "function" && typeof getDocs === "function") {
+        return { db, collection, getDocs };
+      }
+    } catch (_) {}
+
+    throw new Error("FIRESTORE_BINDINGS_MISSING");
+  }
+
+  async function loadProducts() {
+    await waitForAuthReady();
+
+    const { db, collection, getDocs } = await getFirestoreBindings();
+
+    // Intentar primero Innoverit; si falla por colección inexistente/permisos, fallback a catálogo antiguo.
+    try {
+      const snap = await getDocs(collection(db, "catalog_products_innoverit"));
+      const all = snap.docs.map(doc => ({ __id: doc.id, ...doc.data() }));
+      const visible = all.filter(d => isPublished(d.publish ?? d.published ?? d.visible));
+      visible.sort((a, b) => pickId(a).localeCompare(pickId(b)));
+      return visible;
+    } catch (e1) {
+      const snap = await getDocs(collection(db, "catalog_products"));
+      const all = snap.docs.map(doc => ({ __id: doc.id, ...doc.data() }));
+      const visible = all.filter(d => isPublished(d.publish ?? d.published ?? d.visible));
+      visible.sort((a, b) => pickId(a).localeCompare(pickId(b)));
+      return visible;
+    }
+  }
+
+  try {
+    const items = await loadProducts();
+    render(items);
+  } catch (err) {
+    const msg = (err && err.message) ? err.message : String(err);
+
+    if (msg === "FIRESTORE_BINDINGS_MISSING") {
+      tbody.innerHTML =
+        `<tr><td colspan="4" class="table-empty">Error: Firestore no disponible en /admin (faltan db + collection/getDocs). Si Ventas funciona y aquí no, pégame tu ../js/firebase.js y lo dejamos en 1 ajuste mínimo.</td></tr>`;
+    } else {
+      tbody.innerHTML =
+        `<tr><td colspan="4" class="table-empty">Error cargando productos: ${esc(msg)}</td></tr>`;
+    }
+  }
 </script>
 
 </body>
