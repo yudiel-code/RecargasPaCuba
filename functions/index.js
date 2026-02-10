@@ -1845,7 +1845,86 @@ exports.getAdminEarnings = onCall(async (request) => {
     };
   };
 
-  const today = await sumProfitInRange(startTodayMs, startTomorrowMs);
+  const dayKeyCanary = (ms) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: ADMIN_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date(ms));
+    const m = {};
+    for (const p of parts) if (p.type !== "literal") m[p.type] = p.value;
+    return `${m.year}-${m.month}-${m.day}`; // YYYY-MM-DD
+  };
+
+  const sumProfitTodayCanary = async () => {
+    const todayKey = dayKeyCanary(nowMs);
+    const fromMs = nowMs - (36 * 60 * 60 * 1000); // ventana segura
+
+    const snap = await db.collection("orders")
+      .where("createdAtMs", ">=", fromMs)
+      .orderBy("createdAtMs", "asc")
+      .select("status", "amount", "currency", "orderId", "createdAtMs")
+      .get();
+
+    const completedToday = [];
+    for (const doc of snap.docs) {
+      const o = doc.data() || {};
+      const status = String(o.status || "");
+      const currency = String(o.currency || "EUR").toUpperCase();
+      const amount = (o.amount != null ? Number(o.amount) : NaN);
+      const createdAtMs = Number(o.createdAtMs || 0);
+
+      if (status !== "COMPLETED") continue;
+      if (currency !== "EUR") continue;
+      if (!Number.isFinite(amount)) continue;
+      if (!Number.isFinite(createdAtMs) || createdAtMs <= 0) continue;
+
+      if (dayKeyCanary(createdAtMs) !== todayKey) continue;
+
+      completedToday.push({
+        docId: doc.id,
+        orderId: String(o.orderId || doc.id),
+        amount,
+      });
+    }
+
+    const privRefs = completedToday.map((x) => db.collection("orders_private").doc(x.docId));
+    const privDocs = await getAllDocs(privRefs);
+    const privById = new Map(privDocs.map((d) => [d.id, d]));
+
+    let profit = 0;
+    let missingCost = 0;
+
+    for (const o of completedToday) {
+      let pdoc = privById.get(o.docId) || null;
+
+      // fallback si orders_private usa orderId como docId
+      if ((!pdoc || !pdoc.exists) && o.orderId && o.orderId !== o.docId) {
+        const alt = await db.collection("orders_private").doc(o.orderId).get();
+        if (alt && alt.exists) pdoc = alt;
+      }
+
+      const pdata = (pdoc && pdoc.exists) ? (pdoc.data() || {}) : null;
+      const cost = pdata && (pdata.costEur != null) ? Number(pdata.costEur) : NaN;
+
+      if (!Number.isFinite(cost)) {
+        missingCost++;
+        continue;
+      }
+
+      profit += (o.amount - cost);
+    }
+
+    return {
+      scanned: snap.size,
+      completed: completedToday.length,
+      missingCost,
+      profitEur: round2(profit),
+    };
+  };
+
+  const today = await sumProfitTodayCanary();
   const month = await sumProfitInRange(startMonthMs, startNextMonthMs);
   const total = await sumProfitTotal();
 
