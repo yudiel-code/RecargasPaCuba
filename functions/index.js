@@ -1588,10 +1588,9 @@ exports.getAdminSales = onCall(async (request) => {
     throw new HttpsError("permission-denied", "NOT_ADMIN");
   }
 
-  // ✅ App Check: exigir solo fuera de emulador
-  if (!isRunningInEmulator() && !request.app) {
-    throw new HttpsError("failed-precondition", "APPCHECK_REQUIRED");
-  }
+// App Check opcional en admin: ya hay Auth + email admin
+// (no bloquear si falta request.app)
+
 
   const rawLimit = request.data?.limit;
   let limit = Number(rawLimit);
