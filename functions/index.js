@@ -1646,6 +1646,7 @@ exports.getAdminEarnings = onCall(async (request) => {
     const dtf = new Intl.DateTimeFormat("en-US", {
       timeZone: ADMIN_TZ,
       hour12: false,
+      hourCycle: "h23",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -1683,16 +1684,82 @@ exports.getAdminEarnings = onCall(async (request) => {
   };
 
   const nowMs = Date.now();
-  const nowP = tzParts(nowMs);
 
-  const startTodayMs = tzStartOfDayFromYMD(nowP.y, nowP.mo, nowP.d);
-  const tomorrowP = tzParts(startTodayMs + (36 * 60 * 60 * 1000));
-  const startTomorrowMs = tzStartOfDayFromYMD(tomorrowP.y, tomorrowP.mo, tomorrowP.d);
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const dayKey = (ms) => {
+    const p = tzParts(ms);
+    return `${p.y}-${pad2(p.mo)}-${pad2(p.d)}`; // Canarias
+  };
+  const monthKey = (ms) => {
+    const p = tzParts(ms);
+    return `${p.y}-${pad2(p.mo)}`; // Canarias
+  };
 
-  const startMonthMs = tzStartOfDayFromYMD(nowP.y, nowP.mo, 1);
-  const nextMonthY = (nowP.mo === 12) ? (nowP.y + 1) : nowP.y;
-  const nextMonthM = (nowP.mo === 12) ? 1 : (nowP.mo + 1);
-  const startNextMonthMs = tzStartOfDayFromYMD(nextMonthY, nextMonthM, 1);
+  const todayKey = dayKey(nowMs);
+  const thisMonthKey = monthKey(nowMs);
+
+  // Ventana segura para cubrir "mes actual" sin depender de startOfDay
+  const RECENT_DAYS = 45;
+  const recentFromMs = nowMs - (RECENT_DAYS * 24 * 60 * 60 * 1000);
+
+  const recentSnap = await db.collection("orders")
+    .where("createdAtMs", ">=", recentFromMs)
+    .orderBy("createdAtMs", "asc")
+    .select("status", "amount", "currency", "orderId", "createdAtMs")
+    .get();
+
+  const recentCompleted = [];
+  for (const doc of recentSnap.docs) {
+    const o = doc.data() || {};
+    const status = String(o.status || "");
+    const currency = String(o.currency || "EUR").toUpperCase();
+    const amount = (o.amount != null ? Number(o.amount) : NaN);
+    const createdAtMs = Number(o.createdAtMs || 0);
+
+    if (status !== "COMPLETED") continue;
+    if (currency !== "EUR") continue;
+    if (!Number.isFinite(amount)) continue;
+    if (!Number.isFinite(createdAtMs) || createdAtMs <= 0) continue;
+
+    recentCompleted.push({
+      docId: doc.id,
+      orderId: String(o.orderId || doc.id),
+      amount,
+      createdAtMs,
+      dKey: dayKey(createdAtMs),
+      mKey: monthKey(createdAtMs),
+    });
+  }
+
+  const privRefsRecent = recentCompleted.map((x) => db.collection("orders_private").doc(x.docId));
+  const privDocsRecent = await getAllDocs(privRefsRecent);
+  const privByIdRecent = new Map(privDocsRecent.map((d) => [d.id, d]));
+
+  let profitToday = 0;
+  let profitMonth = 0;
+  let missingCostRecent = 0;
+
+  for (const o of recentCompleted) {
+    let pdoc = privByIdRecent.get(o.docId) || null;
+
+    // Fallback si orders_private usa orderId (por compatibilidad)
+    if ((!pdoc || !pdoc.exists) && o.orderId && o.orderId !== o.docId) {
+      const alt = await db.collection("orders_private").doc(o.orderId).get();
+      if (alt && alt.exists) pdoc = alt;
+    }
+
+    const pdata = (pdoc && pdoc.exists) ? (pdoc.data() || {}) : null;
+    const cost = pdata && (pdata.costEur != null) ? Number(pdata.costEur) : NaN;
+
+    if (!Number.isFinite(cost)) {
+      missingCostRecent++;
+      continue;
+    }
+
+    const p = (o.amount - cost);
+    if (o.dKey === todayKey) profitToday += p;
+    if (o.mKey === thisMonthKey) profitMonth += p;
+  }
 
   const getAllDocs = async (refs) => {
     if (!refs.length) return [];
@@ -1833,8 +1900,19 @@ exports.getAdminEarnings = onCall(async (request) => {
     };
   };
 
-  const today = await sumProfitInRange(startTodayMs, startTomorrowMs);
-  const month = await sumProfitInRange(startMonthMs, startNextMonthMs);
+  const today = {
+    scanned: recentSnap.size,
+    completed: recentCompleted.length,
+    missingCost: missingCostRecent,
+    profitEur: round2(profitToday),
+  };
+
+  const month = {
+    scanned: recentSnap.size,
+    completed: recentCompleted.length,
+    missingCost: missingCostRecent,
+    profitEur: round2(profitMonth),
+  };
   const total = await sumProfitTotal();
 
   return {
