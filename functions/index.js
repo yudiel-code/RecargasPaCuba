@@ -1646,6 +1646,7 @@ exports.getAdminEarnings = onCall(async (request) => {
     const dtf = new Intl.DateTimeFormat("en-US", {
       timeZone: ADMIN_TZ,
       hour12: false,
+      hourCycle: "h23",
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -1656,14 +1657,25 @@ exports.getAdminEarnings = onCall(async (request) => {
     const parts = dtf.formatToParts(new Date(ms));
     const m = {};
     for (const p of parts) if (p.type !== "literal") m[p.type] = p.value;
-    return {
-      y: Number(m.year),
-      mo: Number(m.month),
-      d: Number(m.day),
-      hh: Number(m.hour),
-      mm: Number(m.minute),
-      ss: Number(m.second),
-    };
+
+    let y = Number(m.year);
+    let mo = Number(m.month);
+    let d = Number(m.day);
+    let hh = Number(m.hour);
+    const mm = Number(m.minute);
+    const ss = Number(m.second);
+
+    // Normaliza el caso raro "24:xx" (medianoche) que rompe el cálculo de offset
+    if (hh === 24) {
+      const dt = new Date(Date.UTC(y, mo - 1, d, 0, 0, 0));
+      dt.setUTCDate(dt.getUTCDate() + 1);
+      y = dt.getUTCFullYear();
+      mo = dt.getUTCMonth() + 1;
+      d = dt.getUTCDate();
+      hh = 0;
+    }
+
+    return { y, mo, d, hh, mm, ss };
   };
 
   const tzOffsetMsAt = (ms) => {
