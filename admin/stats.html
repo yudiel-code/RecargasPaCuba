@@ -923,7 +923,97 @@
 
 <script>
   window.history.scrollRestoration = "manual";
-  window.onload = () => window.scrollTo(0, 0);
+
+  function $(id) { return document.getElementById(id); }
+
+  function setKpiLoading() {
+    const ids = ["stats-kpi-completed", "stats-kpi-revenue", "stats-kpi-profit", "stats-kpi-buyers"];
+    for (const id of ids) {
+      const el = $(id);
+      if (el) el.textContent = "…";
+    }
+  }
+
+  function setKpiError() {
+    const ids = ["stats-kpi-completed", "stats-kpi-revenue", "stats-kpi-profit", "stats-kpi-buyers"];
+    for (const id of ids) {
+      const el = $(id);
+      if (el) el.textContent = "—";
+    }
+  }
+
+  function formatEur(n) {
+    const x = Number(n);
+    if (!Number.isFinite(x)) return "—";
+    return x.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
+  }
+
+  async function waitForCallable(timeoutMs) {
+    const t0 = Date.now();
+    while (Date.now() - t0 < timeoutMs) {
+      if (window.functions && typeof window.httpsCallable === "function") return true;
+      await new Promise(r => setTimeout(r, 80));
+    }
+    return false;
+  }
+
+  async function loadOverview(rangePreset) {
+    const ok = await waitForCallable(6000);
+    if (!ok) {
+      console.log("FALTAN window.httpsCallable / window.functions. Revisa ../js/firebase.js");
+      setKpiError();
+      return;
+    }
+
+    setKpiLoading();
+
+    try {
+      const statsFn = window.httpsCallable(window.functions, "getAdminStats");
+      const resp = await statsFn({ module: "overview", rangePreset: String(rangePreset || "30d") });
+      const data = (resp && resp.data) ? resp.data : resp;
+
+      if (!data || data.ok !== true) {
+        console.log("getAdminStats respuesta no-ok:", data);
+        setKpiError();
+        return;
+      }
+
+      const s = (data.summary && typeof data.summary === "object") ? data.summary : data;
+
+      const completed = Number(s.completedCount ?? s.completed ?? 0);
+      const revenueEur = Number(s.revenueEur ?? s.revenue ?? 0);
+      const profitEur = Number(s.profitEur ?? s.profit ?? 0);
+      const buyers = Number(s.buyersCount ?? s.buyers ?? 0);
+
+      const elCompleted = $("stats-kpi-completed");
+      const elRevenue = $("stats-kpi-revenue");
+      const elProfit = $("stats-kpi-profit");
+      const elBuyers = $("stats-kpi-buyers");
+
+      if (elCompleted) elCompleted.textContent = Number.isFinite(completed) ? String(completed) : "—";
+      if (elRevenue) elRevenue.textContent = formatEur(revenueEur);
+      if (elProfit) elProfit.textContent = formatEur(profitEur);
+      if (elBuyers) elBuyers.textContent = Number.isFinite(buyers) ? String(buyers) : "—";
+    } catch (e) {
+      console.error("getAdminStats ERROR:", e);
+      setKpiError();
+    }
+  }
+
+  function wireGlobalRange() {
+    const sel = $("stats-global-range");
+    if (!sel) return;
+
+    const run = () => loadOverview(sel.value || "30d");
+
+    sel.addEventListener("change", run);
+    run(); // carga inicial
+  }
+
+  window.addEventListener("load", () => {
+    window.scrollTo(0, 0);
+    wireGlobalRange();
+  });
 </script>
 
 </body>
