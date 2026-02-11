@@ -1936,6 +1936,220 @@ exports.getAdminEarnings = onCall(async (request) => {
   };
 });
 
+exports.getAdminStats = onCall(async (request) => {
+  const ADMIN_EMAIL = "recargaspacubaapp@gmail.com";
+  const ADMIN_TZ = "Atlantic/Canary";
+
+  // 🔒 Auth obligatorio
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "AUTH_REQUIRED");
+  }
+
+  const email = String(request.auth.token?.email || "").toLowerCase();
+  if (email !== ADMIN_EMAIL) {
+    throw new HttpsError("permission-denied", "NOT_ADMIN");
+  }
+
+  // App Check opcional en admin: ya hay Auth + email admin
+  if (!isRunningInEmulator() && !request.app) {
+    logger.warn("admin_stats_appcheck_missing");
+  }
+
+  const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+
+  // Helpers TZ (Atlantic/Canary) para presets tipo "today"/"month"
+  const tzParts = (ms) => {
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone: ADMIN_TZ,
+      hour12: false,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const parts = dtf.formatToParts(new Date(ms));
+    const m = {};
+    for (const p of parts) if (p.type !== "literal") m[p.type] = p.value;
+
+    let y = Number(m.year);
+    let mo = Number(m.month);
+    let d = Number(m.day);
+    let hh = Number(m.hour);
+    const mm = Number(m.minute);
+    const ss = Number(m.second);
+
+    // Normaliza "24:xx"
+    if (hh === 24) {
+      const dt = new Date(Date.UTC(y, mo - 1, d, 0, 0, 0));
+      dt.setUTCDate(dt.getUTCDate() + 1);
+      y = dt.getUTCFullYear();
+      mo = dt.getUTCMonth() + 1;
+      d = dt.getUTCDate();
+      hh = 0;
+    }
+
+    return { y, mo, d, hh, mm, ss };
+  };
+
+  const tzOffsetMsAt = (ms) => {
+    const p = tzParts(ms);
+    const asUTC = Date.UTC(p.y, p.mo - 1, p.d, p.hh, p.mm, p.ss);
+    return asUTC - ms;
+  };
+
+  const tzStartOfDayFromYMD = (y, mo, d) => {
+    const baseUTC = Date.UTC(y, mo - 1, d, 0, 0, 0);
+    let guess = baseUTC;
+    for (let i = 0; i < 2; i++) {
+      const off = tzOffsetMsAt(guess);
+      guess = baseUTC - off;
+    }
+    return guess;
+  };
+
+  // Validación básica
+  const module = String(request.data?.module || "").trim() || "overview";
+  if (module !== "overview") {
+    throw new HttpsError("invalid-argument", "UNKNOWN_MODULE");
+  }
+
+  const nowMs = Date.now();
+
+  // range puede venir como { preset, startMs, endMs } o vacío (default 30d)
+  const rangeIn = (request.data && typeof request.data.range === "object" && request.data.range) ? request.data.range : {};
+  const presetIn = String(rangeIn.preset || request.data?.preset || "30d").trim().toLowerCase();
+
+  let startMs = Number(rangeIn.startMs);
+  let endMs = Number(rangeIn.endMs);
+
+  const preset = (presetIn === "today" || presetIn === "7d" || presetIn === "30d" || presetIn === "month" || presetIn === "custom")
+    ? presetIn
+    : "30d";
+
+  if (preset === "custom") {
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs <= 0 || endMs <= 0 || endMs <= startMs) {
+      throw new HttpsError("invalid-argument", "INVALID_RANGE");
+    }
+  } else if (preset === "today") {
+    const p = tzParts(nowMs);
+    startMs = tzStartOfDayFromYMD(p.y, p.mo, p.d);
+    endMs = startMs + (24 * 60 * 60 * 1000);
+  } else if (preset === "month") {
+    const p = tzParts(nowMs);
+    startMs = tzStartOfDayFromYMD(p.y, p.mo, 1);
+    const nextY = (p.mo === 12) ? (p.y + 1) : p.y;
+    const nextM = (p.mo === 12) ? 1 : (p.mo + 1);
+    endMs = tzStartOfDayFromYMD(nextY, nextM, 1);
+  } else if (preset === "7d") {
+    endMs = nowMs;
+    startMs = nowMs - (7 * 24 * 60 * 60 * 1000);
+  } else {
+    // 30d default
+    endMs = nowMs;
+    startMs = nowMs - (30 * 24 * 60 * 60 * 1000);
+  }
+
+  // Protección anti-scan
+  const MAX_RANGE_DAYS = 400;
+  const spanDays = (endMs - startMs) / (24 * 60 * 60 * 1000);
+  if (!Number.isFinite(spanDays) || spanDays <= 0 || spanDays > MAX_RANGE_DAYS) {
+    throw new HttpsError("invalid-argument", "RANGE_TOO_LARGE");
+  }
+
+  const getAllDocs = async (refs) => {
+    if (!refs.length) return [];
+    if (typeof db.getAll === "function") return await db.getAll(...refs);
+    return await Promise.all(refs.map((r) => r.get()));
+  };
+
+  // Query principal (solo por createdAtMs para minimizar necesidad de índices)
+  const snap = await db.collection("orders")
+    .where("createdAtMs", ">=", startMs)
+    .where("createdAtMs", "<", endMs)
+    .select("status", "amount", "currency", "uid", "orderId", "createdAtMs")
+    .get();
+
+  const completed = [];
+  let revenue = 0;
+
+  const buyers = new Set();
+
+  for (const doc of snap.docs) {
+    const o = doc.data() || {};
+    const status = String(o.status || "");
+    if (status !== "COMPLETED") continue;
+
+    const cur = String(o.currency || "EUR").toUpperCase();
+    if (cur !== "EUR") continue;
+
+    const amt = (o.amount != null) ? Number(o.amount) : NaN;
+    if (!Number.isFinite(amt)) continue;
+
+    const uid = String(o.uid || "");
+    if (uid) buyers.add(uid);
+
+    revenue += amt;
+
+    completed.push({
+      docId: doc.id,
+      orderId: String(o.orderId || doc.id),
+      amount: amt,
+    });
+  }
+
+  // Profit (amount - costEur) leyendo orders_private (solo backend)
+  const privRefs = completed.map((x) => db.collection("orders_private").doc(x.docId));
+  const privDocs = await getAllDocs(privRefs);
+  const privById = new Map(privDocs.map((d) => [d.id, d]));
+
+  let profit = 0;
+  let missingPriv = 0;
+  let missingCost = 0;
+
+  for (const o of completed) {
+    let pdoc = privById.get(o.docId) || null;
+
+    // Fallback si orders_private usa orderId como docId (casos legacy)
+    if ((!pdoc || !pdoc.exists) && o.orderId && o.orderId !== o.docId) {
+      missingPriv++;
+      const alt = await db.collection("orders_private").doc(o.orderId).get();
+      if (alt && alt.exists) pdoc = alt;
+    }
+
+    const pdata = (pdoc && pdoc.exists) ? (pdoc.data() || {}) : null;
+    const cost = pdata && (pdata.costEur != null) ? Number(pdata.costEur) : NaN;
+
+    if (!Number.isFinite(cost)) {
+      missingCost++;
+      continue;
+    }
+
+    profit += (o.amount - cost);
+  }
+
+  return {
+    ok: true,
+    module: "overview",
+    tz: ADMIN_TZ,
+    range: { preset, startMs, endMs },
+    summary: {
+      completedCount: completed.length,
+      revenueEur: round2(revenue),
+      profitEur: round2(profit),
+      uniqueBuyers: buyers.size,
+    },
+    debug: {
+      scanned: snap.size,
+      completed: completed.length,
+      missingPriv,
+      missingCost,
+    },
+  };
+});
+
 // exports.helloWorld = onRequest((request, response) => {
 //   logger.info("Hello logs!", { structuredData: true });
 //   response.send("Hello from Firebase!");
