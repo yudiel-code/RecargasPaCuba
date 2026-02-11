@@ -957,6 +957,57 @@
     return false;
   }
 
+  async function getAuthedUser(timeoutMs = 12000) {
+    // Compat: algunas páginas usan window.auth, otras window.firebaseAuth
+    const a1 = window.auth || null;
+    if (a1 && a1.currentUser) return a1.currentUser;
+
+    if (a1 && typeof window.onAuthStateChanged === "function") {
+      return await new Promise((resolve) => {
+        const t = setTimeout(() => resolve(null), timeoutMs);
+        const unsub = window.onAuthStateChanged(a1, (u) => {
+          if (!u) return;
+          clearTimeout(t);
+          try { unsub && unsub(); } catch (_) {}
+          resolve(u);
+        });
+      });
+    }
+
+    const a2 = window.firebaseAuth || null;
+    if (a2 && a2.currentUser) return a2.currentUser;
+
+    if (a2 && typeof window.firebaseOnAuthStateChanged === "function") {
+      return await new Promise((resolve) => {
+        let done = false;
+        const t = setTimeout(() => {
+          if (done) return;
+          done = true;
+          try { unsub && unsub(); } catch (_) {}
+          resolve(null);
+        }, timeoutMs);
+
+        const unsub = window.firebaseOnAuthStateChanged(a2, (u) => {
+          if (!u || done) return;
+          done = true;
+          clearTimeout(t);
+          try { unsub && unsub(); } catch (_) {}
+          resolve(u);
+        });
+      });
+    }
+
+    // Fallback: polling
+    const t0 = Date.now();
+    while (Date.now() - t0 < timeoutMs) {
+      const a = window.auth || window.firebaseAuth;
+      const u = a && a.currentUser;
+      if (u) return u;
+      await new Promise(r => setTimeout(r, 120));
+    }
+    return null;
+  }
+
   async function loadOverview(rangePreset) {
     const ok = await waitForCallable(6000);
     if (!ok) {
@@ -965,11 +1016,18 @@
       return;
     }
 
+    const user = await getAuthedUser(12000);
+    if (!user) {
+      console.log("AUTH_REQUIRED: no hay sesión lista aún (stats).");
+      setKpiError();
+      return;
+    }
+
     setKpiLoading();
 
     try {
       const statsFn = window.httpsCallable(window.functions, "getAdminStats");
-      const resp = await statsFn({ module: "overview", rangePreset: String(rangePreset || "30d") });
+      const resp = await statsFn({ module: "overview", preset: String(rangePreset || "30d") });
       const data = (resp && resp.data) ? resp.data : resp;
 
       if (!data || data.ok !== true) {
@@ -983,7 +1041,7 @@
       const completed = Number(s.completedCount ?? s.completed ?? 0);
       const revenueEur = Number(s.revenueEur ?? s.revenue ?? 0);
       const profitEur = Number(s.profitEur ?? s.profit ?? 0);
-      const buyers = Number(s.buyersCount ?? s.buyers ?? 0);
+      const buyers = Number(s.uniqueBuyers ?? s.buyersCount ?? s.buyers ?? 0);
 
       const elCompleted = $("stats-kpi-completed");
       const elRevenue = $("stats-kpi-revenue");
