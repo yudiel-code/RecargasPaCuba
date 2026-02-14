@@ -1155,7 +1155,72 @@
 
   const uidReal = (authUser && authUser.uid) ? (authUser.uid + "") : "";
   const uidEl = document.getElementById("uidUsuario");
-  if (uidEl) uidEl.textContent = uidReal ? ("UID: " + uidReal) : "UID: —";
+  if (uidEl) {
+    const originalText = uidReal ? ("UID: " + uidReal) : "UID: —";
+    uidEl.textContent = originalText;
+
+    if (uidReal) {
+      uidEl.style.cursor = "pointer";
+      uidEl.setAttribute("title", "Clic para copiar el UID");
+      uidEl.setAttribute("role", "button");
+      uidEl.setAttribute("tabindex", "0");
+
+      const copyToClipboard = async (text) => {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch (e) {}
+
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.top = "-1000px";
+          ta.style.left = "-1000px";
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return !!ok;
+        } catch (e) {
+          return false;
+        }
+      };
+
+      const flashCopied = () => {
+        uidEl.textContent = "UID: " + uidReal + " (copiado)";
+        if (uidEl.__rpcCopyT) clearTimeout(uidEl.__rpcCopyT);
+        uidEl.__rpcCopyT = setTimeout(() => {
+          uidEl.textContent = "UID: " + uidReal;
+        }, 1200);
+      };
+
+      if (!uidEl.dataset.rpcCopyBound) {
+        uidEl.dataset.rpcCopyBound = "1";
+
+        const handler = async () => {
+          const ok = await copyToClipboard(uidReal);
+          if (ok) {
+            flashCopied();
+          } else {
+            window.prompt("Copia tu UID:", uidReal);
+          }
+        };
+
+        uidEl.addEventListener("click", handler);
+        uidEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handler();
+          }
+        });
+      }
+    }
+  }
 
     let datosUsuario;
     try {
