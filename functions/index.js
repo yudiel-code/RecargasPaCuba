@@ -1394,9 +1394,46 @@ exports.onOrderCreatedTelegram = onDocumentCreated({ document: "orders/{orderId}
   }
 });
 
-// Notifica COMPLETED a un grupo específico por referrer (valhalla). Dedupe por /events/TELEGRAM_COMPLETED_VALHALLA
-exports.onOrderCompletedTelegramValhalla = onDocumentUpdated(
-  { document: "orders/{orderId}", secrets: ["TELEGRAM_BOT_TOKEN"] },
+// Auto-marca FAILED cuando Innoverit reporte error (providerErrorCode/providerStatus/providerHttpStatus)
+exports.onOrderInnoveritAutoFail = onDocumentUpdated(
+  { document: "orders/{orderId}" },
+  async (event) => {
+    const before = event.data?.before?.data?.() || {};
+    const after  = event.data?.after?.data?.()  || {};
+
+    if (String(after.provider || "") !== "innoverit") return;
+
+    const statusNow = String(after.status || "");
+    if (statusNow === "FAILED") return;
+
+    const errCode = Number(after.providerErrorCode || 0);
+    const httpStatus = Number(after.providerHttpStatus || 0);
+    const provStatus = String(after.providerStatus || "").trim().toLowerCase();
+
+    const shouldFail =
+      (Number.isFinite(errCode) && errCode !== 0) ||
+      (provStatus === "error") ||
+      (Number.isFinite(httpStatus) && httpStatus >= 400);
+
+    if (!shouldFail) return;
+
+    const orderId = String(event.params?.orderId || "");
+    if (!orderId) return;
+
+    // Evita bucles: solo cambia si sigue sin FAILED
+    const orderRef = db.collection("orders").doc(orderId);
+    await orderRef.update({
+      status: "FAILED",
+      failedAt: FieldValue.serverTimestamp(),
+      failedAtMs: Date.now(),
+    });
+  }
+);
+
+// Notifica cambios de estado relevantes al chat principal (RPC_TELEGRAM_CHAT_ID / TELEGRAM_CHAT_ID)
+// Dedupe por /orders/{orderId}/events/TELEGRAM_STATUS_<STATUS>
+exports.onOrderStatusTelegramAlerts = onDocumentUpdated(
+  { document: "orders/{orderId}", secrets: ["TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"] },
   async (event) => {
     const before = event.data?.before?.data?.() || {};
     const after  = event.data?.after?.data?.()  || {};
@@ -1404,22 +1441,22 @@ exports.onOrderCompletedTelegramValhalla = onDocumentUpdated(
     const statusFrom = String(before.status || "");
     const statusTo   = String(after.status  || "");
 
-    // Solo transiciones hacia COMPLETED
-    if (!(statusTo === "COMPLETED" && statusFrom !== "COMPLETED")) return;
-
-    // Solo referrer=valhalla
-    const ref = String(after.referrer || "").trim().toLowerCase();
-    if (ref !== "valhalla") return;
+    // Ajusta aquí si quieres incluir más estados
+    const interesting = new Set(["COMPLETED", "FAILED"]);
+    if (!interesting.has(statusTo) || statusTo === statusFrom) return;
 
     const token = pickTelegramBotToken();
-    const chatId = "-5247604664"; // Órdenes COMPLETED • valhalla
-    if (!token || !chatId) return;
+    const chatId = pickTelegramChatId(); // tu grupo/bot principal (Orden_alerta_bot)
+    if (!token || !chatId) {
+      logger.warn("telegram_config_missing", { hasToken: !!token, hasChatId: !!chatId });
+      return;
+    }
 
     const orderId = String(event.params?.orderId || "");
     if (!orderId) return;
 
     const orderRef = db.collection("orders").doc(orderId);
-    const notifyRef = orderRef.collection("events").doc("TELEGRAM_COMPLETED_VALHALLA");
+    const notifyRef = orderRef.collection("events").doc(`TELEGRAM_STATUS_${statusTo}`);
     const nowMs = Date.now();
 
     let shouldSend = false;
@@ -1432,10 +1469,12 @@ exports.onOrderCompletedTelegramValhalla = onDocumentUpdated(
       tx.set(
         notifyRef,
         {
-          type: "TELEGRAM_COMPLETED_VALHALLA",
+          type: `TELEGRAM_STATUS_${statusTo}`,
           state: "PENDING",
           createdAt: FieldValue.serverTimestamp(),
           createdAtMs: nowMs,
+          statusFrom,
+          statusTo,
         },
         { merge: true }
       );
@@ -1448,13 +1487,21 @@ exports.onOrderCompletedTelegramValhalla = onDocumentUpdated(
     const dest = String(after.destination || "-");
     const destSafe = dest.length > 4 ? `***${dest.slice(-4)}` : dest;
 
-    const text =
-      `✅ COMPLETED (valhalla)\n` +
+    const base =
       `ID: ${orderId}\n` +
       `Producto: ${String(after.productId || "-")}\n` +
       `Destino: ${destSafe}\n` +
       `Importe: ${String(after.amount ?? "-")} ${String(after.currency || "")}\n` +
+      `Pago: ${String(after.paymentMethod || "-")}\n` +
       `Canal: ${String(after.channel || "-")}`;
+
+    const errExtra =
+      statusTo === "FAILED"
+        ? `\nErrorCode: ${String(after.providerErrorCode ?? "-")}\nMensaje: ${String(after.providerMessage || "-")}`
+        : "";
+
+    const header = statusTo === "FAILED" ? "❌ FAILED" : "✅ COMPLETED";
+    const text = `${header}\n${base}${errExtra}`;
 
     try {
       await telegramSendMessage(token, chatId, text);
