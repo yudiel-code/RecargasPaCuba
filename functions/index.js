@@ -1446,7 +1446,7 @@ exports.onOrderStatusTelegramAlerts = onDocumentUpdated(
     if (!interesting.has(statusTo) || statusTo === statusFrom) return;
 
     const token = pickTelegramBotToken();
-    const chatId = pickTelegramChatId(); // tu grupo/bot principal (Orden_alerta_bot)
+    const chatId = "-5180440840"; // Orden_Completed/Failed_bot (COMPLETED/FAILED)
     if (!token || !chatId) {
       logger.warn("telegram_config_missing", { hasToken: !!token, hasChatId: !!chatId });
       return;
