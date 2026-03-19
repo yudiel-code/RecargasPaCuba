@@ -11,9 +11,12 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  signInWithPhoneNumber,
+  RecaptchaVerifier
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-functions.js";
+import { getFirestore, doc, setDoc, serverTimestamp, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 import {
   initializeAppCheck,
   ReCaptchaV3Provider,
@@ -35,6 +38,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const functions = getFunctions(app);
 const callFunction = (name, data) => httpsCallable(functions, name)(data);
+const db = getFirestore(app);
 
 // App Check (reCAPTCHA v3 invisible)
 // Pega aquí tu SITE KEY (pública), NO la secret.
@@ -77,11 +81,31 @@ window.firebaseHttpsCallable = httpsCallable;
 window.firebaseCallFunction = callFunction;
 window.firebaseAppCheck = appCheck;
 
+window.firebaseDb = db;
+window.firebaseFirestoreDoc = doc;
+window.firebaseFirestoreSetDoc = setDoc;
+window.firebaseFirestoreServerTimestamp = serverTimestamp;
+
+// Alias cortos para páginas /admin que usan window.db / window.auth
+window.db = db;
+window.auth = auth;
+
+// Alias esperados por páginas admin (ganancias/ventas/etc)
+window.functions = functions;
+window.httpsCallable = httpsCallable;
+window.onAuthStateChanged = onAuthStateChanged;
+
+// Helpers Firestore para listados (admin/productos.html)
+window.collection = collection;
+window.getDocs = getDocs;
+
 window.firebaseSignIn = signInWithEmailAndPassword;
 window.firebaseSendPasswordResetEmail = sendPasswordResetEmail;
 window.firebaseSendEmailVerification = sendEmailVerification;
 window.firebaseSignOut = signOut;
 window.firebaseOnAuthStateChanged = onAuthStateChanged;
+window.firebaseSignInWithPhoneNumber = signInWithPhoneNumber;
+window.firebaseRecaptchaVerifier = RecaptchaVerifier;
 
 window.firebaseGoogleSignIn = async (authInstance) => {
   const a = authInstance || window.firebaseAuth;
@@ -102,10 +126,18 @@ export {
   sendEmailVerification,
   signOut,
   onAuthStateChanged,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
   createUserWithEmailAndPassword,
   updateProfile,
   functions,
   httpsCallable,
   callFunction,
-  appCheck
+  appCheck,
+  db,
+  doc,
+  setDoc,
+  serverTimestamp,
+  collection,
+  getDocs
 };

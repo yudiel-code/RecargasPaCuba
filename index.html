@@ -12,6 +12,19 @@
   <title>RecargasPaCuba</title>
   <script>
     const __rpcParams = new URLSearchParams(window.location.search || "");
+    // ✅ Captura referrer (first-touch) y persiste para que llegue hasta createOrder
+(function () {
+  try {
+    const raw = (__rpcParams.get("referrer") || __rpcParams.get("ref") || __rpcParams.get("r") || "").trim();
+    const ok = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : "";
+    if (ok) {
+      sessionStorage.setItem("rpc_referrer", ok);
+      localStorage.setItem("rpc_referrer", ok);
+      localStorage.setItem("referrer", ok);
+    }
+  } catch (_) {}
+})();
+
     const __rpcBuild = __rpcParams.get("v") || "prod";
     window.__RPC_BUILD = __rpcBuild;
     try { document.documentElement.dataset.rpcBuild = __rpcBuild; } catch (_) {}
@@ -22,6 +35,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="js/ui.js?v=r1"></script>
   <link rel="icon" type="image/png" href="icon-256.png">
+
+  <!-- Meta Pixel Code -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '913472801277842');
+    fbq('track', 'PageView');
+  </script>
+  <!-- End Meta Pixel Code -->
 </head>
 
 <body>
@@ -34,75 +62,154 @@
         <img src="icon-256.png" alt="RecargasPaCuba logo">
       </div>
 
-      <div class="login-title">Iniciar Sesión</div>
+      <div class="login-title">Iniciar sesi&oacute;n</div>
 
-      <div class="login-sub">
-        ¿Eres nuevo?
-        <a id="link-register" href="registro.html" style="color:#fff7b8;font-weight:800;">
-          Regístrate aquí
-        </a>
-      </div>
-
-      <input id="login-identifier" class="input-pill" placeholder="Email / Usuario" />
-
-      <div class="password-wrap">
-        <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
-        <span
-          id="toggle-pass"
-          class="toggle-pass"
-          role="button"
-          aria-label="Mostrar contraseña"
-          aria-pressed="false"
-        >
-          <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-          </svg>
-          <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
-            <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+      <button
+        id="btn-login-google"
+        class="btn btn-primary btn-lg btn-full btn-google-icon"
+        type="button"
+        aria-label="Continuar con Google"
+        style="position:relative;display:flex;align-items:center;justify-content:center;margin-top:12px;border:0;background:linear-gradient(135deg,#fbbf24,#f97316);color:#1f2933;"
+      >
+        <span aria-hidden="true" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.65);">
+          <svg class="g-svg" viewBox="0 0 48 48" width="22" height="22" aria-hidden="true" style="display:block;">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.6l6.9-6.9C35.98 2.72 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.02 6.22C12.43 13.3 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.22-.43-4.74H24v9.02h12.64c-.55 2.96-2.2 5.47-4.68 7.16l7.16 5.56c4.18-3.86 6.38-9.54 6.38-16z"/>
+            <path fill="#FBBC05" d="M10.58 28.44a14.5 14.5 0 0 1 0-8.88l-8.02-6.22a24 24 0 0 0 0 21.32l8.02-6.22z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.14 15.9-5.8l-7.16-5.56c-2 1.35-4.55 2.16-8.74 2.16-6.26 0-11.57-3.8-13.42-9.44l-8.02 6.22C6.51 42.62 14.62 48 24 48z"/>
           </svg>
         </span>
+
+        <span style="line-height:1;">Continuar con Google</span>
+      </button>
+
+      <button
+        id="btn-login-sms"
+        class="btn btn-primary btn-lg btn-full btn-google-icon"
+        type="button"
+        aria-label="Continuar con teléfono (SMS)"
+        style="position:relative;display:flex;align-items:center;justify-content:center;margin-top:12px;border:0;background:linear-gradient(135deg,#fbbf24,#f97316);color:#1f2933;"
+      >
+        <span aria-hidden="true" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.65);">
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="display:block;fill:#1f2933;">
+            <path d="M6.62 10.79a15.05 15.05 0 0 0 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1C10.07 21 3 13.93 3 5c0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+          </svg>
+        </span>
+
+        <span style="line-height:1;">Continuar con tel&eacute;fono (SMS)</span>
+      </button>
+
+      <button id="btn-login-email" class="btn btn-primary btn-lg btn-full" type="button" style="margin-top:12px;">
+        Continuar con email
+      </button>
+
+      <div id="email-login-box" style="display:none;margin-top:12px;">
+        <input id="login-identifier" class="input-pill" placeholder="Email / Usuario" />
+
+        <div class="password-wrap">
+          <input id="login-password" class="input-pill" placeholder="Contraseña" type="password" />
+          <span
+            id="toggle-pass"
+            class="toggle-pass"
+            role="button"
+            aria-label="Mostrar contraseña"
+            aria-pressed="false"
+          >
+            <svg class="icon-eye" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+              <path d="M12 5c-5 0-9.27 3.11-11 7 1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7Zm0 12a5 5 0 1 1 0-10 5 5 0 0 1 0 10Zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+            </svg>
+            <svg class="icon-eye-off" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" style="display:none;">
+              <path d="M3.28 2.22 2.22 3.28 5.4 6.45C3.46 7.74 2.03 9.64 1 12c1.73 3.89 6 7 11 7 2.13 0 4.13-.5 5.9-1.45l2.82 2.83 1.06-1.06-19.5-17.1Zm6.5 6.5 1.44 1.24a3 3 0 0 0 3.1 3.1l1.24 1.44a5 5 0 0 1-5.78-5.78Zm1.4-4.64A10.6 10.6 0 0 1 12 5c5 0 9.27 3.11 11 7-.53 1.19-1.27 2.26-2.16 3.17l-1.44-1.25A8.6 8.6 0 0 0 20.9 12C19.35 8.46 15.93 6 12 6c-.72 0-1.43.07-2.12.19l-.7-.6Z" />
+            </svg>
+          </span>
+        </div>
+
+        <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
+
+        <button id="btn-forgot" class="link-forgot" type="button">¿Olvidaste tu contraseña?</button>
       </div>
 
-      <button id="btn-login-do" class="btn btn-primary btn-lg btn-full">Continuar</button>
+      <div class="login-sub" style="margin-top:14px;">
+        &iquest;No tienes cuenta?
+        <a id="link-register" href="registro.html" style="color:#fff7b8;font-weight:800;">
+          Crea una con email
+        </a>
+        <div style="margin-top:6px;font-size:12px;opacity:.85;">
+          Google y SMS crean cuenta autom&aacute;ticamente si no existe.
+        </div>
+      </div>
 
-<button id="btn-forgot" class="link-forgot" type="button">¿Olvidaste tu contraseña?</button>
 
-<button
-  id="btn-login-google"
-  class="btn btn-primary btn-lg btn-full btn-google-icon"
-  type="button"
-  aria-label="Continuar con Google"
-  style="position:relative;display:flex;align-items:center;justify-content:center;margin-top:12px;border:0;background:linear-gradient(135deg,#fbbf24,#f97316);color:#1f2933;"
->
-  <span aria-hidden="true" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;background:rgba(255,255,255,.65);">
-    <svg class="g-svg" viewBox="0 0 48 48" width="22" height="22" aria-hidden="true" style="display:block;">
-      <path fill="#EA4335" d="M24 9.5c3.54 0 6.72 1.22 9.23 3.6l6.9-6.9C35.98 2.72 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l8.02 6.22C12.43 13.3 17.74 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.5 24.5c0-1.64-.15-3.22-.43-4.74H24v9.02h12.64c-.55 2.96-2.2 5.47-4.68 7.16l7.16 5.56c4.18-3.86 6.38-9.54 6.38-16z"/>
-      <path fill="#FBBC05" d="M10.58 28.44a14.5 14.5 0 0 1 0-8.88l-8.02-6.22a24 24 0 0 0 0 21.32l8.02-6.22z"/>
-      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.14 15.9-5.8l-7.16-5.56c-2 1.35-4.55 2.16-8.74 2.16-6.26 0-11.57-3.8-13.42-9.44l-8.02 6.22C6.51 42.62 14.62 48 24 48z"/>
-    </svg>
-  </span>
-
-  <span style="line-height:1;">Continuar con Google</span>
-</button>
-
-<script type="module">
-  const btnGoogle = document.getElementById("btn-login-google");
-  if (btnGoogle) {
-    btnGoogle.addEventListener("click", async (e) => {
-      e.preventDefault();
-      try {
-        if (typeof window.firebaseGoogleSignIn !== "function") {
-          console.warn("firebaseGoogleSignIn no está disponible en window.");
-          return;
+      <script type="module">
+        const btnGoogle = document.getElementById("btn-login-google");
+        if (btnGoogle) {
+          btnGoogle.addEventListener("click", async (e) => {
+            e.preventDefault();
+            try {
+              if (typeof window.firebaseGoogleSignIn !== "function") {
+                console.warn("firebaseGoogleSignIn no está disponible en window.");
+                return;
+              }
+              await window.firebaseGoogleSignIn();
+            } catch (err) {
+              console.error("Google Sign-In error:", err);
+            }
+          });
         }
-        await window.firebaseGoogleSignIn();
-      } catch (err) {
-        console.error("Google Sign-In error:", err);
-      }
-    });
-  }
-</script>
+
+        const btnSms = document.getElementById("btn-login-sms");
+        if (btnSms) {
+          btnSms.addEventListener("click", async (e) => {
+            e.preventDefault();
+            try { btnSms.disabled = true; } catch (_) {}
+
+            try {
+              const currentParams = new URLSearchParams(window.location.search || "");
+              let nextParam = String(currentParams.get("next") || "").trim();
+              if (!nextParam) nextParam = "recargar.html";
+
+              let vParam = currentParams.get("v");
+              if (!vParam) {
+                try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+              }
+
+              // sms.html solo preserva v si viene dentro de next
+              if (vParam && !/[?&]v=/.test(nextParam)) {
+                nextParam = nextParam + (nextParam.includes("?") ? "&" : "?") + "v=" + vParam;
+              }
+
+              if (typeof window.showToastSuccess === "function") {
+                window.showToastSuccess("Abriendo inicio con tel&eacute;fono...");
+              }
+
+              const smsUrl = new URL("/js/sms.html", window.location.href);
+              smsUrl.searchParams.set("next", nextParam);
+
+              await new Promise(r => setTimeout(r, 250));
+              window.location.href = smsUrl.toString();
+            } catch (err) {
+              console.error(err);
+              if (typeof window.showToastError === "function") {
+                window.showToastError("No se pudo abrir el inicio con tel&eacute;fono.");
+              }
+              try { btnSms.disabled = false; } catch (_) {}
+            }
+          });
+        }
+
+        const btnEmail = document.getElementById("btn-login-email");
+        const emailBox = document.getElementById("email-login-box");
+        if (btnEmail && emailBox) {
+          btnEmail.addEventListener("click", (e) => {
+            e.preventDefault();
+            emailBox.style.display = "block";
+            try {
+              const el = document.getElementById("login-identifier");
+              if (el) el.focus();
+            } catch (_) {}
+          });
+        }
+      </script>
 
 </div>
 
@@ -132,6 +239,13 @@
          style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);">
         <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;fill:#ffffff;">
           <path d="M16 2c.3 2.6 1.9 4.2 4.5 4.5V9c-1.7 0-3.2-.6-4.5-1.6v7.1c0 3.7-3 6.5-6.7 6.5S2.6 18.2 2.6 14.5 5.6 8 9.3 8c.4 0 .8 0 1.2.1v2.9c-.4-.1-.8-.2-1.2-.2-2.1 0-3.8 1.6-3.8 3.7s1.7 3.7 3.8 3.7 3.8-1.6 3.8-3.7V2h2.9Z"/>
+        </svg>
+      </a>
+
+      <a href="https://t.me/recargaspacuba_promos" aria-label="Telegram" title="Telegram" target="_blank" rel="noopener"
+         style="width:44px;height:44px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(6px);">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" style="display:block;fill:#ffffff;">
+          <path d="M2 21l21-9L2 3v7l15 2-15 2v7Z"/>
         </svg>
       </a>
     </div>
@@ -316,6 +430,9 @@
         localStorage.removeItem("login_intentos");
         localStorage.removeItem("login_bloqueado_hasta");
 
+        const emailLower = (user.email || emailLogin).toLowerCase();
+        const isVerified = (!emailLower) || (user.emailVerified === true);
+
         // Sincronizar usuarioRegistrado SIN contraseña ni forzarCambio
         try {
           const rawPrev = localStorage.getItem("usuarioRegistrado") || "{}";
@@ -329,15 +446,22 @@
           const usuarioMin = {
             ...prev,
             nombre: user.displayName || prev.nombre || "",
-            email: (user.email || emailLogin).toLowerCase(),
-            activo: true
+            email: emailLower,
+            activo: isVerified
           };
           localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
         } catch (e) {
           console.error("Error sincronizando datos locales tras login:", e);
         }
 
-        localStorage.setItem("usuario", (user.email || emailLogin).toLowerCase());
+        // Gate: si NO está verificado, NO redirigir (se queda en login)
+        if (!isVerified) {
+          try { localStorage.setItem("rpc_email_verify_pending", emailLower); } catch (_) {}
+          showToastError("Tu correo aún no está verificado. Abre el enlace del email para continuar (revisa Spam).");
+          return;
+        }
+
+        localStorage.setItem("usuario", emailLower);
         const finalDest = window.resolvePostAuthRedirect();
         if (!window.__authRedirected) {
           window.__authRedirected = true;
@@ -466,14 +590,75 @@
 <!-- ✅ Firebase centralizado en js/firebase.js -->
 <script type="module" src="js/firebase.js?v=r1"></script>
 
+     <script>
+  (function () {
+    const params = new URLSearchParams(window.location.search || "");
+    const toastFlag = (params.get("toast") || "").toLowerCase();
+
+    let msg = "";
+
+    // Prioridad: flag por URL (más fiable en móvil)
+    if (toastFlag === "verify") {
+      msg = "Registro completado. Revisa tu correo para verificar y luego inicia sesion.";
+      // Quitar el param para que no se repita al refrescar
+      try {
+        params.delete("toast");
+        const newQs = params.toString();
+        const newUrl = window.location.pathname + (newQs ? ("?" + newQs) : "") + (window.location.hash || "");
+        window.history.replaceState({}, "", newUrl);
+      } catch (_) {}
+      // Limpiar también el fallback si existiera
+      try { sessionStorage.removeItem("rpc_post_register_toast"); } catch (_) {}
+    } else {
+      // Fallback: sessionStorage
+      try { msg = sessionStorage.getItem("rpc_post_register_toast") || ""; } catch (_) { msg = ""; }
+    }
+
+    if (!msg) return;
+
+    const tryShow = () => {
+      if (typeof window.showToastSuccess === "function") {
+        window.showToastSuccess(msg);
+        // Ahora sí: limpiar tras pintar
+        try { sessionStorage.removeItem("rpc_post_register_toast"); } catch (_) {}
+        return;
+      }
+      setTimeout(tryShow, 50);
+    };
+    tryShow();
+  })();
+</script>
+
 <!-- ✅ B1.3: onAuthStateChanged en login para sincronizar sesión y redirigir -->
 <script type="module">
   import { auth, onAuthStateChanged } from "./js/firebase.js?v=r1";
+  import { signOut } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
 
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (!user) return;
 
     try {
+      // Best-effort: refrescar emailVerified una vez (evita quedar bloqueado tras verificar)
+      if (user.email && user.emailVerified === false && !window.__rpcEmailVerifyReloaded) {
+        window.__rpcEmailVerifyReloaded = true;
+        try { await user.reload(); } catch (_) {}
+      }
+
+      const emailLower = (user.email || "").toLowerCase();
+      const isVerified = (!emailLower) || (user.emailVerified === true);
+
+      // Si venimos de "pendiente verificación" y ahora ya está verificado,
+      // forzamos re-login (signOut) para que tenga que poner email+pass.
+      const pending = (localStorage.getItem("rpc_email_verify_pending") || "").toLowerCase();
+      if (isVerified && pending && pending === emailLower) {
+        try { localStorage.removeItem("rpc_email_verify_pending"); } catch (_) {}
+        if (typeof window.showToastError === "function") {
+          window.showToastError("Correo verificado. Inicia sesión de nuevo con tu email y contraseña.");
+        }
+        try { await signOut(auth); } catch (e) { console.error("Error signOut post-verificación:", e); }
+        return;
+      }
+
       const raw = localStorage.getItem("usuarioRegistrado") || "{}";
       const datos = JSON.parse(raw);
 
@@ -482,14 +667,34 @@
       const nuevo = {
         ...resto,
         nombre: resto.nombre || user.displayName || "",
-        email: (user.email || "").toLowerCase(),
-        activo: true
+        email: emailLower,
+        activo: isVerified
       };
 
       localStorage.setItem("usuarioRegistrado", JSON.stringify(nuevo));
-      localStorage.setItem("usuario", (user.email || "").toLowerCase());
 
-      // Si el usuario ya está autenticado en Firebase, lo mandamos directo a recargar
+      // Gate: si el email NO está verificado, NO redirigir a páginas protegidas
+      if (!isVerified) {
+        try { localStorage.setItem("rpc_email_verify_pending", emailLower); } catch (_) {}
+        if (typeof window.showToastError === "function") {
+          window.showToastError("Tu correo aún no está verificado. Abre el enlace del email para continuar (revisa Spam).");
+        }
+        return;
+      }
+
+      // ✅ Sesión "usuario" consistente para todos los providers:
+      // - Email/Google: usamos email
+      // - SMS: usamos phoneNumber o uid (fallback) para evitar quedarnos sin sesión
+      const sessionKey = (emailLower || (user.phoneNumber || "") || (user.uid || "")).toString().toLowerCase();
+
+      if (!sessionKey) {
+        console.warn("[RPC] No se pudo construir sessionKey (sin email/phone/uid). No redirect.");
+        return;
+      }
+
+      try { localStorage.setItem("usuario", sessionKey); } catch (_) {}
+
+      // Si el usuario ya está autenticado en Firebase, lo mandamos directo a su destino
       const finalDest = window.resolvePostAuthRedirect();
       if (!window.__authRedirected) {
         window.__authRedirected = true;
@@ -505,7 +710,20 @@
   if (linkRegister) {
     linkRegister.addEventListener('click', (event) => {
       event.preventDefault();
-      window.location.href = 'registro.html';
+
+      const currentParams = new URLSearchParams(window.location.search || "");
+      const targetUrl = new URL("registro.html", window.location.href);
+
+      const nextParam = currentParams.get("next");
+      if (nextParam) targetUrl.searchParams.set("next", nextParam);
+
+      let vParam = currentParams.get("v");
+      if (!vParam) {
+        try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
+      }
+      if (vParam) targetUrl.searchParams.set("v", vParam);
+
+      window.location.href = targetUrl.toString();
     });
   }
 </script>

@@ -106,9 +106,9 @@
 
   <div class="wrap">
 
-    <div class="title">Crear cuenta</div>
+    <div class="title">Crear cuenta con email</div>
     <div id="password-guidance" class="sub">
-      Completa tus datos para registrarte (m&iacute;nimo 8 caracteres, 1 may&uacute;scula y 1 n&uacute;mero)
+      Google y tel&eacute;fono se crean desde la pantalla de inicio. (M&iacute;nimo 8 caracteres, 1 may&uacute;scula y 1 n&uacute;mero)
     </div>
 
     <label class="input-label" for="reg-nombre">Nombre completo</label>
@@ -155,9 +155,7 @@
   </span>
 </div>
 
-    <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
-
-    <div id="msg" class="msg" style="display:none;"></div>
+     <button id="btn-register" class="btn btn-accent btn-lg btn-full register-button">Registrarme</button>
 
     <p class="register-login-back">
       <a href="index.html">&larr; Volver al login</a>
@@ -182,6 +180,11 @@
 
     onAuthStateChanged(auth, (user) => {
       if (!user) return;
+
+      // Guard: si estamos registrando, NO redirigir (deja que se muestre el toast)
+      try {
+        if (localStorage.getItem("rpc_register_in_progress") === "1") return;
+      } catch (_) {}
 
       try {
         const data = localStorage.getItem("usuarioRegistrado");
@@ -224,7 +227,9 @@
     }
 
     const btnRegister = document.getElementById("btn-register");
-    btnRegister.addEventListener("click", async () => {
+    btnRegister.addEventListener("click", async (event) => {
+      try { if (event) event.preventDefault(); } catch (_) {}
+      try { localStorage.setItem("rpc_register_in_progress", "1"); } catch (_) {}
       const nombre = (document.getElementById("reg-nombre").value || "").trim();
       const email = (document.getElementById("reg-email").value || "").trim().toLowerCase();
       const pass1 = document.getElementById("new-pass").value.trim();
@@ -281,23 +286,35 @@
         localStorage.setItem("usuarioRegistrado", JSON.stringify(usuarioMin));
         localStorage.setItem("usuario", email);
 
-        showToastSuccess("Registro completado. Revisa tu correo para verificar y luego inicia sesion.");
+        const okMsg = "Registro completado. Revisa tu correo para verificar y luego inicia sesion.";
+        showToastSuccess(okMsg);
+
+        // Persistir mensaje para mostrarlo también en el login tras el redirect
+        try { sessionStorage.setItem("rpc_post_register_toast", okMsg); } catch (_) {}
+
+        // Pequeña pausa para que se vea aquí también
+        await new Promise(r => setTimeout(r, 600));
+
         try {
-  // Preferente: Modular SDK wrapper expuesto en window.firebaseSignOut (signOut)
-  if (typeof window.firebaseSignOut === "function") {
-    await window.firebaseSignOut(auth);
-  } else if (window.firebaseAuth && typeof window.firebaseAuth.signOut === "function") {
-    // Compat SDK: método sin argumentos (mantiene su this)
-    await window.firebaseAuth.signOut();
-  }
-} catch (e) {
-  console.warn("No se pudo cerrar sesiÃ³n tras registro:", e);
-}
+          // Preferente: Modular SDK wrapper expuesto en window.firebaseSignOut (signOut)
+          if (typeof window.firebaseSignOut === "function") {
+            await window.firebaseSignOut(auth);
+          } else if (window.firebaseAuth && typeof window.firebaseAuth.signOut === "function") {
+            // Compat SDK: método sin argumentos (mantiene su this)
+            await window.firebaseAuth.signOut();
+          }
+        } catch (e) {
+          console.warn("No se pudo cerrar sesiÃ³n tras registro:", e);
+        }
 
         localStorage.removeItem("usuario");
         localStorage.removeItem("usuarioRegistrado");
         const currentParams = new URLSearchParams(window.location.search || "");
         const targetUrl = new URL("index.html", window.location.href);
+
+        // Flag para que el login muestre el aviso aunque el toast se pierda por el redirect
+        targetUrl.searchParams.set("toast", "verify");
+
         let vParam = currentParams.get("v");
         if (!vParam) {
           try { vParam = sessionStorage.getItem("rpc_v"); } catch (_) {}
@@ -310,7 +327,9 @@
           targetUrl.searchParams.set("next", nextParam);
         }
         window.location.href = targetUrl.toString();
+
       } catch (error) {
+        try { localStorage.removeItem("rpc_register_in_progress"); } catch (_) {}
 
         console.error("Error en registro:", error);
         let mensaje = "No se pudo completar el registro.";
@@ -324,6 +343,8 @@
         showToastError(mensaje);
       }
     });
+
+    // (Registro por SMS eliminado en registro.html; se gestiona desde index.html)
 
     // Ojito 1
     function wirePassToggle(toggleId, inputId) {

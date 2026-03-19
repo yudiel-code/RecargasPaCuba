@@ -825,7 +825,7 @@
     </header>
 
     <div class="app-scroll">
-      <section class="card card--gradient">
+      <section class="card card--gradient" style="display:none">
         <div class="card-header">
           <div>
             <div class="card-title">Saldo RecargasPaCuba</div>
@@ -857,31 +857,30 @@
           <div class="pill-info">Tarifa sin permanencia</div>
           <div class="pill-info">Registro en España</div>
           <div class="pill-info">Historial accesible al instante</div>
-
-          <a href="https://chatgpt.com/g/g-695e6724b71881918a6446191577c226-recargaspacuba-bot-chat"
-   target="_blank" rel="noopener"
-   aria-label="Abrir guía rápida"
-   class="pill-info"
-   style="margin-left:auto; margin-top:-6px; display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-weight:800; font-size:13px; letter-spacing:.2px; color:inherit;">
-  <span aria-hidden="true" style="width:22px; height:22px; display:block;">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
-      <path d="M7.5 19.5l-1.7 1.1c-.6.4-1.3-.2-1.1-.9l.6-2.1A8.5 8.5 0 1 1 20.5 12c0 4.1-3.6 7.5-8.5 7.5H7.5Z"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <span style="display:block; line-height:1;">Guia Rapida</span>
-</a>
-
         </div>
       </section>
 
       <section class="card card--gradient">
-        <div class="card-header">
+        <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
           <div>
             <div class="card-title">Perfil de usuario</div>
             <div class="card-sub">Gestiona tus datos principales y tu avatar</div>
           </div>
+
+          <a href="https://chatgpt.com/g/g-695e6724b71881918a6446191577c226-recargaspacuba-bot-chat"
+             target="_blank" rel="noopener"
+             aria-label="Abrir guía rápida"
+             class="pill-info"
+             style="display:inline-flex; align-items:center; gap:8px; text-decoration:none; font-weight:800; font-size:13px; letter-spacing:.2px; color:inherit; white-space:nowrap;">
+            <span aria-hidden="true" style="width:22px; height:22px; display:block;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+                <path d="M7.5 19.5l-1.7 1.1c-.6.4-1.3-.2-1.1-.9l.6-2.1A8.5 8.5 0 1 1 20.5 12c0 4.1-3.6 7.5-8.5 7.5H7.5Z"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8.5 12h.01M12 12h.01M15.5 12h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span style="display:block; line-height:1;">Guia Rapida</span>
+          </a>
         </div>
 
         <div class="usuario-box">
@@ -894,8 +893,10 @@
           <div class="usuario-datos">
             <div class="nombre" id="nombreUsuario">Usuario</div>
             <div class="correo" id="correoUsuario">correo@ejemplo.com</div>
+            <div class="correo" id="uidUsuario" style="opacity:.85; font-size:12px; margin-top:2px; word-break:break-all;">UID: —</div>
             <div class="tag">Cuenta creada y gestionada desde España</div>
           </div>
+
           <button class="btn-icon" id="editarCuentaBtn" title="Editar datos de cuenta">
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M4 20h4l10-10-4-4L4 16v4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -942,101 +943,6 @@
             <span>Si detectas un acceso raro, cambia tu contraseña desde la app.</span>
           </li>
         </ul>
-      </section>
-
-      <section class="card card--gradient">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Programa de monedas</div>
-            <div class="card-sub">Gana recompensas con tus recargas recurrentes</div>
-          </div>
-          <svg class="monedas-icon" viewBox="0 0 64 64">
-            <circle cx="22" cy="22" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
-            <circle cx="42" cy="32" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
-            <circle cx="26" cy="42" r="12" stroke="currentColor" stroke-width="2" fill="none"/>
-          </svg>
-        </div>
-
-        <div class="card-main" style="align-items:flex-start;">
-          <div class="monedas-resumen">
-            <div class="monedas-valores">
-              <div class="principal"><span id="monedasActuales">0</span> monedas</div>
-              <div class="secundario">Recarga y acumula hasta llegar a tu recompensa</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="barra-progreso-wrap">
-          <div class="barra-progreso-label">
-            <span>Progreso hacia el canje</span>
-            <span id="monedasProgresoTexto">0 / 999</span>
-          </div>
-          <div class="barra-progreso">
-            <div id="barraProgresoInner" class="barra-progreso-inner"></div>
-          </div>
-        </div>
-
-        <table class="tabla-monedas">
-          <thead>
-            <tr>
-              <th>Recarga</th>
-              <th>Importe</th>
-              <th>Monedas</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Cubacel</td>
-              <td>10 €</td>
-              <td>13</td>
-            </tr>
-            <tr>
-              <td>Cubacel</td>
-              <td>20 €</td>
-              <td>27</td>
-            </tr>
-            <tr>
-              <td>Cubacel</td>
-              <td>30 €</td>
-              <td>41</td>
-            </tr>
-            <tr>
-              <td>Cubacel</td>
-              <td>50 €</td>
-              <td><span class="destacado">69</span></td>
-            </tr>
-            <tr>
-              <td>Nauta</td>
-              <td>Cualquier importe</td>
-              <td>5 (fijo)</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <ul class="card-lista">
-          <li>
-            <span class="bullet"></span>
-            <span>Las monedas se suman automáticamente cada vez que completas una recarga.</span>
-          </li>
-          <li>
-            <span class="bullet"></span>
-            <span>Al llegar a <strong>999 monedas</strong>, podrás solicitar tu <strong>canje de 20 €</strong>.</span>
-          </li>
-          <li>
-            <span class="bullet"></span>
-            <span>Las monedas no son dinero real, son puntos promocionales internos.</span>
-          </li>
-        </ul>
-
-        <div class="canje-wrap">
-          <div class="canje-info">
-            <strong>Canje disponible a partir de 999 monedas.</strong><br>
-            Una vez canjeado, el saldo promocional se sumará a tu balance para futuras recargas.
-          </div>
-          <button id="btnCanje" class="btn-canje">
-            Canjear 999 monedas por 20 €
-          </button>
-        </div>
       </section>
 
       <section class="card card--gradient">
@@ -1243,7 +1149,78 @@
     });
   }
 
-  const usuarioSesion = localStorage.getItem("usuario");
+  const usuarioSesion = (authUser && authUser.uid)
+  ? ((authUser.email || authUser.phoneNumber || authUser.uid) + "")
+  : localStorage.getItem("usuario");
+
+  const uidReal = (authUser && authUser.uid) ? (authUser.uid + "") : "";
+  const uidEl = document.getElementById("uidUsuario");
+  if (uidEl) {
+    const originalText = uidReal ? ("UID: " + uidReal) : "UID: —";
+    uidEl.textContent = originalText;
+
+    if (uidReal) {
+      uidEl.style.cursor = "pointer";
+      uidEl.setAttribute("title", "Clic para copiar el UID");
+      uidEl.setAttribute("role", "button");
+      uidEl.setAttribute("tabindex", "0");
+
+      const copyToClipboard = async (text) => {
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+          }
+        } catch (e) {}
+
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.top = "-1000px";
+          ta.style.left = "-1000px";
+          document.body.appendChild(ta);
+          ta.select();
+          ta.setSelectionRange(0, ta.value.length);
+          const ok = document.execCommand("copy");
+          document.body.removeChild(ta);
+          return !!ok;
+        } catch (e) {
+          return false;
+        }
+      };
+
+      const flashCopied = () => {
+        uidEl.textContent = "UID: " + uidReal + " (copiado)";
+        if (uidEl.__rpcCopyT) clearTimeout(uidEl.__rpcCopyT);
+        uidEl.__rpcCopyT = setTimeout(() => {
+          uidEl.textContent = "UID: " + uidReal;
+        }, 1200);
+      };
+
+      if (!uidEl.dataset.rpcCopyBound) {
+        uidEl.dataset.rpcCopyBound = "1";
+
+        const handler = async () => {
+          const ok = await copyToClipboard(uidReal);
+          if (ok) {
+            flashCopied();
+          } else {
+            window.prompt("Copia tu UID:", uidReal);
+          }
+        };
+
+        uidEl.addEventListener("click", handler);
+        uidEl.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handler();
+          }
+        });
+      }
+    }
+  }
 
     let datosUsuario;
     try {
@@ -1267,15 +1244,22 @@
       const v = new URLSearchParams(location.search || "").get("v");
       if (v) p.set("v", v);
       window.location.replace(`index.html?${p.toString()}`);
+      return;
     }
+    // ✅ Mantener "usuario" consistente para Phone Auth (no depende de email)
+try { localStorage.setItem("usuario", (usuarioSesion || "").toLowerCase()); } catch (_) {}
 
-    const nombreMostrar = datosUsuario.nombre || "Usuario";
-    const nombreUsuarioEl = document.getElementById("nombreUsuario");
-    if (nombreUsuarioEl) nombreUsuarioEl.textContent = nombreMostrar;
+const nombreMostrar = datosUsuario.nombre || (authUser && authUser.displayName) || "Usuario";
+const nombreUsuarioEl = document.getElementById("nombreUsuario");
+if (nombreUsuarioEl) nombreUsuarioEl.textContent = nombreMostrar;
 
-    const correoMostrar = datosUsuario.email || "correo@ejemplo.com";
-    const correoUsuarioEl = document.getElementById("correoUsuario");
-    if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
+const correoMostrar =
+  (datosUsuario.email) ||
+  (authUser && (authUser.email || authUser.phoneNumber)) ||
+  "correo@ejemplo.com";
+const correoUsuarioEl = document.getElementById("correoUsuario");
+if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
+
 
     // ===== Capa de acceso a saldo / historial vía UserData (preparada para backend) =====
     function getSaldo() {
@@ -1718,79 +1702,6 @@
       });
     }
 
-    function obtenerMonedasCubacel(importe) {
-      const packs = [
-        { ref: 10, coins: 13 },
-        { ref: 20, coins: 27 },
-        { ref: 30, coins: 41 },
-        { ref: 50, coins: 69 }
-      ];
-
-      let elegido = packs[0];
-      packs.forEach(function(p) {
-        if (Math.abs(importe - p.ref) < Math.abs(importe - elegido.ref)) {
-          elegido = p;
-        }
-      });
-      return elegido.coins;
-    }
-
-    function actualizarUIConMonedas(totalMonedas) {
-      const monedasActualesEl     = document.getElementById("monedasActuales");
-      const monedasProgresoTexto  = document.getElementById("monedasProgresoTexto");
-      const barraProgresoInner    = document.getElementById("barraProgresoInner");
-
-      if (monedasActualesEl)    monedasActualesEl.textContent = totalMonedas;
-      const objetivo = 999;
-      const progreso = Math.min(100, (totalMonedas / objetivo) * 100);
-
-      if (monedasProgresoTexto) {
-        monedasProgresoTexto.textContent = totalMonedas + " / " + objetivo;
-      }
-      if (barraProgresoInner) {
-        barraProgresoInner.style.width = progreso + "%";
-      }
-
-      const btnCanjeLocal = document.getElementById("btnCanje");
-      if (btnCanjeLocal) {
-        if (totalMonedas >= objetivo) {
-          btnCanjeLocal.classList.add("activo");
-          btnCanjeLocal.textContent = "Canjear ahora 999 monedas por 20 €";
-        } else {
-          btnCanjeLocal.classList.remove("activo");
-          btnCanjeLocal.textContent = "Canjear 999 monedas por 20 €";
-        }
-      }
-    }
-
-    function calcularMonedas() {
-      let totalMonedas = 0;
-
-      if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
-        totalMonedas = window.UserData.recalcularMonedas();
-      } else {
-        const historial = getHistorialSeguro();
-        historial.forEach(function(item) {
-          if (item.tipo === "recarga") {
-            const imp = Number(item.importe) || 0;
-            const operador = item.operador || "";
-
-            if (operador === "Cubacel") {
-              totalMonedas += obtenerMonedasCubacel(imp);
-            } else if (operador === "Nauta") {
-              totalMonedas += 5;
-            } else {
-              if (imp > 0) {
-                totalMonedas += obtenerMonedasCubacel(imp);
-              }
-            }
-          }
-        });
-      }
-
-      actualizarUIConMonedas(totalMonedas);
-    }
-
     const confirmarSaldoBtn = document.getElementById("confirmarSaldoBtn");
     if (confirmarSaldoBtn && inputSaldo) {
       confirmarSaldoBtn.addEventListener("click", function() {
@@ -1905,18 +1816,9 @@
       });
     }
 
-    const btnCanje = document.getElementById("btnCanje");
-    if (btnCanje) {
-      btnCanje.addEventListener("click", function() {
-        if (!btnCanje.classList.contains("activo")) return;
-        showToastSuccess("Canje disponible: aquí podrás reclamar tus 20 € cuando esté conectado al sistema real.");
-      });
-    }
-
     cargarSaldo();
     cargarUltimoMovimiento();
     inicializarAvatar();
-    calcularMonedas();
     marcarMetodoActivo();
     actualizarTextoMetodo();
     };

@@ -59,14 +59,14 @@ export function guardProtectedPage(options = {}) {
     let unsubscribe = null;
     unsubscribe = onAuthStateChanged(auth, (user) => {
       if (settled) return;
+
+      // IMPORTANTE: no redirigir inmediatamente en user=null.
+      // Firebase puede emitir null al inicio mientras restaura la sesión.
+      if (!user) return;
+
       settled = true;
       clearTimeout(timer);
       if (typeof unsubscribe === 'function') unsubscribe();
-
-      if (!user) {
-        redirect();
-        return;
-      }
 
       showPage();
       if (typeof onReady === 'function') {

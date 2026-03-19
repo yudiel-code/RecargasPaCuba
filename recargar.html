@@ -8,7 +8,7 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#28c6db">
   <title>Recargar | RecargasPaCuba</title>
   <link rel="stylesheet" href="styles/base.css?v=r1">
-  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r2">
   <meta name="theme-color" content="#0b5bd3">
 
   <!-- ✅ EmailJS para correo de recarga -->
@@ -60,6 +60,41 @@
       gap: 18px;
       flex: 1;
       width: 100%;
+    }
+
+    /* ✅ Banner superior (Firestore: ui_banners/recargar_top) */
+    .rpc-banner {
+      display: none;
+      border-radius: 18px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(255,255,255,0.10);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 32px rgba(0,0,0,0.28);
+    }
+
+    .rpc-banner--navbar {
+      background: linear-gradient(135deg, #16a34a, #38bdf8);
+      border-color: rgba(187, 247, 208, 0.55);
+    }
+
+    .rpc-banner--promo {
+      border-color: rgba(255, 177, 59, 0.75);
+    }
+
+    .rpc-banner-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      margin-bottom: 4px;
+    }
+
+    .rpc-banner-msg {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.95;
+      white-space: pre-line;
+      line-height: 1.35;
     }
 
     /* Pestañas CUBACEL / NAUTA */
@@ -310,6 +345,46 @@ body.catalog-ready .cards { visibility: visible; }
       box-shadow: 0 8px 18px rgba(0,0,0,0.25);
     }
 
+    /* ✅ MÉTODO DE PAGO (solo UI) */
+    .modal-pay {
+      margin-top: 12px;
+      text-align: left;
+    }
+
+    .modal-pay-titulo {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.9;
+      margin-bottom: 8px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .modal-pay-opciones {
+      display: flex;
+      gap: 8px;
+    }
+
+    .modal-recarga .modal-pay-btn {
+      margin-top: 0;
+      padding: 10px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      flex: 1;
+    }
+
+    .modal-recarga .modal-pay-btn.active {
+      background: #ffffff;
+      color: #0b63d1;
+      border-color: rgba(255,255,255,0.6);
+    }
+
     /* ✅ PREFIJO +53 */
     .input-prefijo {
       display: flex;
@@ -342,11 +417,20 @@ body.catalog-ready .cards { visibility: visible; }
       text-align: left;
     }
 
-    .modal-recientes-titulo {
+    .modal-recientes-titulo,
+    .modal-pay-title,
+    #modal-pay-title,
+    #modal-metodo-pago-titulo,
+    .modal-metodo-pago-titulo,
+    .modal-metodo-titulo {
       font-size: 11px;
       font-weight: 600;
       opacity: 0.9;
       margin-bottom: 6px;
+      text-align: center;
+      width: 100%;
+      padding-left: 0;
+      box-sizing: border-box;
     }
 
     .modal-recientes-lista {
@@ -367,6 +451,26 @@ body.catalog-ready .cards { visibility: visible; }
     }
 
     /* ✅ Barra inferior unificada (verde hoja + azul claro) */
+
+    /* ✅ Alinear títulos (“Últimos números usados” y “Método de pago”) */
+    #modal-bg-recarga .modal-recarga .modal-recientes-titulo,
+    #modal-bg-recarga .modal-recarga .modal-pay-title,
+    #modal-bg-recarga .modal-recarga .modal-metodo-pago-titulo,
+    #modal-bg-recarga .modal-recarga #modal-metodo-pago-titulo {
+      text-align: center;
+      width: 100%;
+      padding-left: 0;
+      box-sizing: border-box;
+    }
+
+    /* ✅ Método de pago seleccionado: mismo gradiente del navbar */
+    #modal-bg-recarga .modal-pay-btn.active {
+      background: linear-gradient(135deg, #16a34a, #38bdf8) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(187, 247, 208, 0.9) !important;
+      box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45) !important;
+      border-radius: 999px !important;
+    }
   </style>
 </head>
 
@@ -374,6 +478,12 @@ body.catalog-ready .cards { visibility: visible; }
 
   <main class="app">
     <div class="app-content">
+
+    <!-- ✅ BANNER OFERTA (controlado por Firestore) -->
+    <section id="rpc-offer-banner" class="rpc-banner" aria-live="polite">
+      <div id="rpc-offer-banner-title" class="rpc-banner-title"></div>
+      <div id="rpc-offer-banner-msg" class="rpc-banner-msg"></div>
+    </section>
 
     <!-- PESTAÑAS -->
     <div class="tabs">
@@ -438,11 +548,52 @@ body.catalog-ready .cards { visibility: visible; }
         </div>
       </div>
 
+      <!-- ✅ MÉTODO DE PAGO (solo UI) -->
+      <div class="modal-pay">
+        <div class="modal-pay-titulo">Método de pago</div>
+        <div class="modal-pay-opciones">
+          <button type="button" class="modal-pay-btn active" data-pay-method="PAYPAL">PayPal</button>
+          <button type="button" class="modal-pay-btn" data-pay-method="REVOLUT">Revolut</button>
+          <button type="button" class="modal-pay-btn" data-pay-method="BIZUM">Bizum</button>
+        </div>
+      </div>
+
       <div class="modal-aviso">
         Verifica el destino, las recargas no se pueden revertir.
       </div>
 
-      <button id="btnRealizarRecarga">Realizar recarga</button>
+      <button id="btnRealizarRecarga">Continuar</button>
+    </div>
+  </div>
+
+  <!-- ✅ MODAL BIZUM (bloqueante; se cierra solo con botón) -->
+  <div id="modal-bg-bizum" class="modal-bg-recarga" style="display:none;">
+    <div class="modal-recarga" style="max-width:92%; width:640px;">
+      <div class="modal-titulo">Pago por Bizum</div>
+      <div class="modal-linea">Abre tu app del banco, entra en Bizum y envía el pago.</div>
+
+      <div id="bizum-importe" class="modal-linea" style="margin-top:8px; font-weight:800;"></div>
+
+      <div class="modal-linea" style="margin-top:8px;">
+        <span style="font-weight:800;">Enviar a:</span>
+        <span id="bizum-destino">—</span>
+      </div>
+
+      <div class="modal-linea" style="margin-top:6px;">
+        <span style="font-weight:800;">Concepto:</span>
+        <span id="bizum-concepto">—</span>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;">
+        <button id="btnBizumCopiarNumero" type="button" style="margin-top:0;">Copiar número</button>
+        <button id="btnBizumCopiarConcepto" type="button" style="margin-top:0;">Copiar concepto</button>
+      </div>
+
+      <div class="modal-aviso" style="margin-top:10px;">
+        Importante: el importe y el concepto deben coincidir. Si no coinciden, la recarga puede retrasarse o no procesarse hasta poder identificar el pago.
+      </div>
+
+      <button id="btnBizumYaEnviado" type="button">Ya envié el Bizum</button>
     </div>
   </div>
 
@@ -479,6 +630,20 @@ body.catalog-ready .cards { visibility: visible; }
     // Anti-flash
     document.documentElement.classList.add("loaded");
 
+    // ✅ Captura referrer (first-touch) ANTES del redirect a login
+    (function () {
+      try {
+        const qp = new URLSearchParams(location.search || "");
+        const raw = (qp.get("referrer") || qp.get("ref") || qp.get("r") || "").trim();
+        const ok = /^[a-zA-Z0-9_-]{1,64}$/.test(raw) ? raw : "";
+        if (ok) {
+          sessionStorage.setItem("rpc_referrer", ok);
+          localStorage.setItem("rpc_referrer", ok);
+          localStorage.setItem("referrer", ok); // compat
+        }
+      } catch (_) {}
+    })();
+
     // ✅ Seguridad inmediata: si no hay sesión real, salir antes de cualquier render
     try {
       const auth = window.firebaseAuth;
@@ -500,7 +665,7 @@ body.catalog-ready .cards { visibility: visible; }
       }
 
       // ✅ FASE 2 (sandbox/emulador): helper para crear orden PENDING en backend
-      async function createOrderSandbox({ uid, productId, destino }) {
+      async function createOrderSandbox({ uid, productId, destino, paymentMethod, referrer }) {
         const isLocal = (location.hostname === "localhost" || location.hostname === "127.0.0.1");
 const url = isLocal
   ? "http://127.0.0.1:5001/recargaspacuba-7aaa8/us-central1/createOrder"
@@ -514,7 +679,7 @@ const token = await user.getIdToken(true);
 const resp = await fetch(url, {
   method: "POST",
   headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-  body: JSON.stringify({ uid, productId, destino })
+  body: JSON.stringify({ uid, productId, destino, paymentMethod, ...(referrer ? { referrer } : {}) })
 });
 
 
@@ -577,6 +742,68 @@ const resp = await fetch(url, {
           tipo: "recarga",
           ...payload
         };
+
+        // ===== Monedas persistentes (SOLO COMPLETED) =====
+        try {
+          const sRaw = (item && item.status != null) ? String(item.status) : "";
+          const eRaw = (item && item.estado != null) ? String(item.estado) : "";
+          let st = (sRaw || eRaw).trim().toUpperCase();
+          if (st === "OK" || st === "SUCCESS") st = "COMPLETED";
+
+          const isCompleted = (st === "COMPLETED");
+
+          if (isCompleted) {
+            const pid = (item && (item.productId || item.productoId || item.productoID) != null)
+              ? String(item.productId || item.productoId || item.productoID).toLowerCase()
+              : "";
+            const destino = (item && (item.numero || item.destino || item.destination) != null)
+              ? String(item.numero || item.destino || item.destination)
+              : "";
+
+            const isNauta = pid.includes("nauta") || destino.includes("@");
+
+            let impRaw = (item && (item.importe ?? item.amount ?? item.price ?? item.precio ?? item.valor));
+            let impNum = NaN;
+            if (impRaw !== undefined && impRaw !== null && impRaw !== "") {
+              impNum = Number(String(impRaw).replace(",", "."));
+            }
+
+            let coins = 0;
+            if (isNauta) {
+              coins = 5;
+            } else if (Number.isFinite(impNum)) {
+              if (impNum >= 10 && impNum < 20) coins = 13;
+              else if (impNum >= 20 && impNum < 30) coins = 27;
+              else if (impNum >= 30 && impNum < 50) coins = 41;
+              else if (impNum >= 50) coins = 69;
+            }
+
+            if (coins > 0) {
+              const idKeyBase =
+                (item && (item.orderId || (item.extra && item.extra.orderId) || item.id || item.idConfirmacion || item.idConfirm || item.orderID))
+                  ? String(item.orderId || (item.extra && item.extra.orderId) || item.id || item.idConfirmacion || item.idConfirm || item.orderID)
+                  : "";
+              const fallbackKey = `${item.fecha}|${destino}|${Number.isFinite(impNum) ? impNum.toFixed(2) : ""}`;
+              const key = (idKeyBase || fallbackKey).trim();
+
+              const rawM = localStorage.getItem("rpc_monedas_v1") || '{"total":0,"seen":{}}';
+              let state = null;
+              try { state = JSON.parse(rawM); } catch (_) { state = null; }
+              if (!state || typeof state !== "object") state = { total: 0, seen: {} };
+              if (!state.seen || typeof state.seen !== "object") state.seen = {};
+
+              if (!state.seen[key]) {
+                state.seen[key] = true;
+                state.total = Number(state.total || 0) + coins;
+                state.updatedAt = new Date().toISOString();
+                localStorage.setItem("rpc_monedas_v1", JSON.stringify(state));
+              }
+
+              // opcional: guarda el detalle en el movimiento
+              item.monedas = coins;
+            }
+          }
+        } catch (_) {}
 
         lista.unshift(item);
         localStorage.setItem("rpc_historial", JSON.stringify(lista));
@@ -716,11 +943,19 @@ const resp = await fetch(url, {
       // Master ID: internalProductId (tu ID). providerProductId queda “en sombra”.
       let rpcCatalogIndex = null; // { [internalProductId]: product }
       const RPC_PROJECT_ID = "recargaspacuba-7aaa8";
-      const RPC_COLLECTION = "catalog_products";
+      // Selector de catálogo (Ding vs Innoverit)
+      // - "ding"     => catalog_products
+      // - "innoverit"=> catalog_products_innoverit
+      const RPC_CATALOG_PROVIDER = "innoverit";
+
+      const RPC_COLLECTION = (RPC_CATALOG_PROVIDER === "ding")
+        ? "catalog_products"
+        : "catalog_products_innoverit";
 
       function rpcIsLocalhost() {
         return location.hostname === "localhost" || location.hostname === "127.0.0.1";
       }
+
 
       function rpcDecodeValue(v) {
         if (!v || typeof v !== "object") return null;
@@ -757,14 +992,13 @@ const resp = await fetch(url, {
         }
       }
 
-      async function rpcFetchCatalog(user) {
+      async function rpcFetchDoc(docPath, user) {
         const base = rpcIsLocalhost()
-          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`
-          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`;
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${docPath}`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${docPath}`;
 
         const headers = { "Content-Type": "application/json" };
         try {
-          // En prod: token ayuda a pasar rules si catalog_products está protegido
           if (user && typeof user.getIdToken === "function") {
             const t = await user.getIdToken();
             if (t) headers["Authorization"] = `Bearer ${t}`;
@@ -779,8 +1013,90 @@ const resp = await fetch(url, {
           throw new Error(code);
         }
 
-        const docs = Array.isArray(data.documents) ? data.documents : [];
-        return docs.map(d => {
+        const name = String(data.name || "");
+        const docId = name.split("/").pop();
+        const fields = rpcDecodeFields(data.fields || {});
+        return { __docId: docId, ...fields };
+      }
+
+      function rpcRenderTopBanner(bannerDoc) {
+        const el = document.getElementById("rpc-offer-banner");
+        const titleEl = document.getElementById("rpc-offer-banner-title");
+        const msgEl = document.getElementById("rpc-offer-banner-msg");
+        if (!el || !titleEl || !msgEl) return;
+
+        const d = (bannerDoc && typeof bannerDoc === "object") ? bannerDoc : null;
+        const enabled = !!(d && d.enabled);
+
+        if (!enabled) {
+          el.style.display = "none";
+          titleEl.textContent = "";
+          msgEl.textContent = "";
+          el.classList.remove("rpc-banner--navbar", "rpc-banner--promo");
+          return;
+        }
+
+        const title = (typeof d.title === "string") ? d.title.trim() : "";
+        const msg = (typeof d.message === "string") ? d.message.trim() : "";
+        const variant = (typeof d.variant === "string") ? d.variant.trim().toLowerCase() : "";
+        const bg = (typeof d.bg === "string") ? d.bg.trim().toLowerCase() : "";
+
+        titleEl.textContent = title || "Información";
+        msgEl.textContent = msg || "";
+
+        el.classList.toggle("rpc-banner--navbar", bg === "navbar");
+        el.classList.toggle("rpc-banner--promo", variant === "promo");
+
+        el.style.display = "block";
+      }
+
+      async function rpcLoadTopBanner(user) {
+        try {
+          const d = await rpcFetchDoc("ui_banners/recargar_top", user);
+          rpcRenderTopBanner(d);
+        } catch (e) {
+          rpcRenderTopBanner(null);
+        }
+      }
+
+      async function rpcFetchCatalog(user) {
+        const base = rpcIsLocalhost()
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`;
+
+        const headers = { "Content-Type": "application/json" };
+        try {
+          // En prod: token ayuda a pasar rules si catalog_products está protegido
+          if (user && typeof user.getIdToken === "function") {
+            const t = await user.getIdToken();
+            if (t) headers["Authorization"] = `Bearer ${t}`;
+          }
+        } catch (_) {}
+
+        const allDocs = [];
+        let pageToken = "";
+
+        while (true) {
+          const url = new URL(base);
+          url.searchParams.set("pageSize", "1000");
+          if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+          const resp = await fetch(url.toString(), { method: "GET", headers });
+          const data = await resp.json().catch(() => null);
+
+          if (!resp.ok || !data) {
+            const code = (data && data.error && data.error.message) ? data.error.message : ("HTTP_" + resp.status);
+            throw new Error(code);
+          }
+
+          const docs = Array.isArray(data.documents) ? data.documents : [];
+          allDocs.push(...docs);
+
+          pageToken = (data && data.nextPageToken) ? String(data.nextPageToken) : "";
+          if (!pageToken) break;
+        }
+
+        return allDocs.map(d => {
           const name = String(d.name || "");
           const docId = name.split("/").pop();
           const fields = rpcDecodeFields(d.fields || {});
@@ -788,7 +1104,7 @@ const resp = await fetch(url, {
         });
       }
 
-      function rpcToEsOfferText(input) {
+        function rpcToEsOfferText(input) {
         let t = String(input || "").replace(/\s+/g, " ").trim();
         if (!t) return "";
 
@@ -827,18 +1143,116 @@ const resp = await fetch(url, {
         return t;
       }
 
+      function rpcResolveReceiveText(p) {
+        const prod = (p && typeof p === "object") ? p : {};
+
+        // 1) Preferente: receiveText (traducible o texto libre)
+        const receiveTextRaw = (typeof prod.receiveText === "string") ? prod.receiveText.trim() : "";
+        const internalId = (typeof prod.internalProductId === "string") ? prod.internalProductId.trim() : "";
+
+        if (receiveTextRaw) {
+          // Si es texto libre (no es el ID), úsalo
+          if (receiveTextRaw !== internalId) {
+            const translated = rpcToEsOfferText(receiveTextRaw);
+            return translated || receiveTextRaw;
+          }
+
+          // Si viene igual que el ID, intenta derivar un texto limpio (sin enseñar el ID)
+          const id = internalId.toLowerCase();
+
+          let m = id.match(/^cubacel-cup-(\d+)$/);
+          if (m) return `${m[1]} CUP`;
+
+          m = id.match(/^cubacel-bundle-(\d+)gb-(\d+)d$/);
+          if (m) return `${m[1]} GB · ${m[2]} días`;
+
+          // Si no se puede derivar, al menos no lo dejes vacío (evita "—")
+          return receiveTextRaw;
+        }
+
+        // Helpers deterministas (solo leen campos existentes)
+        function pickStr(key) {
+          const v = prod[key];
+          return (typeof v === "string" && v.trim()) ? v.trim() : "";
+        }
+        function toNum(v) {
+          const n = (typeof v === "number") ? v : Number(v);
+          return Number.isFinite(n) ? n : null;
+        }
+
+        // 2) Fallback por campos explícitos de “receive/benefit” (sin transformar)
+        const str =
+          pickStr("receiveAmountText") ||
+          pickStr("receiveAmountRaw") ||
+          pickStr("receiveRaw") ||
+          pickStr("receive") ||
+          pickStr("benefitText") ||
+          pickStr("benefit") ||
+          pickStr("benefitRaw");
+        if (str) return str;
+
+        // 3) Fallback por objeto receive { text | amount+currency/unit }
+        if (prod.receive && typeof prod.receive === "object") {
+          const r = prod.receive;
+
+          const rt = (typeof r.text === "string" && r.text.trim()) ? r.text.trim() : "";
+          if (rt) return rt;
+
+          const amt = toNum(r.amount ?? r.value ?? r.qty);
+          if (amt != null) {
+            const cur = (typeof r.currency === "string" && r.currency.trim()) ? r.currency.trim() : "";
+            const unit = (typeof r.unit === "string" && r.unit.trim()) ? r.unit.trim() : "";
+            if (cur) return `${amt} ${cur}`;
+            if (unit) return `${amt} ${unit}`;
+            return String(amt);
+          }
+        }
+
+        // 4) Fallback por receiveAmount + (receiveCurrency/receiveUnit) si existen
+        const amt2 = toNum(prod.receiveAmount ?? prod.receiveValue ?? prod.receiveQty);
+        if (amt2 != null) {
+          const cur2 =
+            ((typeof prod.receiveCurrency === "string" && prod.receiveCurrency.trim()) ? prod.receiveCurrency.trim() : "") ||
+            ((typeof prod.receiveUnit === "string" && prod.receiveUnit.trim()) ? prod.receiveUnit.trim() : "") ||
+            ((typeof prod.receiveAmountCurrency === "string" && prod.receiveAmountCurrency.trim()) ? prod.receiveAmountCurrency.trim() : "");
+          return cur2 ? `${amt2} ${cur2}` : String(amt2);
+        }
+
+        // 5) No hay datos suficientes
+        return "";
+      }
+
+
       function rpcBuildCard(p) {
         const internalId = String(p.internalProductId || "").trim();
+        const cardKey = String(p.__docId || "").trim() || internalId; // ✅ key único por doc (evita colisiones)
         const category = String(p.category || "").toUpperCase();
         const isPromo = !!p.isPromo;
         const variablePromo = !!p.variablePromo;
-        const baseEur = Number(p.sendAmountEur);
-const sellEur = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : NaN;
-const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
-        const receiveTxt = rpcToEsOfferText(p.receiveText);
+        const sellRaw = (p.sellAmountEur != null) ? p.sellAmountEur : null;
+        const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
+        const hasValidSell = (Number.isFinite(sellNum) && sellNum > 0);
+        const sellEur = hasValidSell ? sellNum : NaN;
+        const priceTxt = hasValidSell ? rpcFormatEur(Math.round(sellEur * 100) / 100) : "—";
+        const ctaTxt = hasValidSell ? "Entrar para comprar" : "No disponible";
+        const ctaAttr = hasValidSell ? "" : ' disabled aria-disabled="true"';
+        const receiveTxt = rpcResolveReceiveText(p);
+        const promoNoteRaw = String(p.promoNote || "").trim();
+        const promoNoteTxt = promoNoteRaw
+          ? promoNoteRaw
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;")
+          : "";
 
         const badgeClass = isPromo ? "badge promo" : "badge";
-        const badgeTxt = isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal";
+        const typeTxt = String(p.productType || p.type || "").trim().toLowerCase();
+        const isBundle = (typeTxt === "bundle") || internalId.toLowerCase().includes("bundle");
+        const badgeTxt = isBundle
+          ? "Paquete"
+          : (isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal");
         const operatorTxt = `${category || "RECARGA"} · ${String(p.country || "Cuba")}`;
 
         const article = document.createElement("article");
@@ -857,6 +1271,7 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
             <div class="receive-block">
               <div class="receive-label">Recibe</div>
               <div class="receive-main">${receiveTxt || "—"}</div>
+              ${promoNoteTxt ? `<div class="receive-note">${promoNoteTxt}</div>` : ""}
             </div>
           </div>
 
@@ -867,7 +1282,7 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
 
           <div class="card-footer">
             <div class="fees">Tasas e impuestos incluidos.</div>
-            <button class="cta" data-product-id="${internalId}" data-category="${category}">Entrar para comprar</button>
+            <button class="cta" data-product-id="${cardKey}" data-category="${category}"${ctaAttr}>${ctaTxt}</button>
           </div>
         `;
         return article;
@@ -888,6 +1303,45 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
         // Solo reemplazamos si hay algo que renderizar (evita dejar la página vacía si falla).
         if (!cub.length && !nau.length) return false;
 
+        const rpcGroupRank = (p) => {
+          const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
+          const docId = String((p && p.__docId) || "").trim().toLowerCase();
+          const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
+
+          const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
+          const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
+
+          if (isPromoVar) return 0;
+          if (isBundle) return 1;
+          return 2;
+        };
+
+        const rpcSortEur = (p) => {
+          const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
+          const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
+          return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
+        };
+
+        const rpcSortInPlace = (arr) => {
+          arr.sort((a, b) => {
+            const ga = rpcGroupRank(a);
+            const gb = rpcGroupRank(b);
+            if (ga !== gb) return ga - gb;
+
+            const pa = rpcSortEur(a);
+            const pb = rpcSortEur(b);
+            if (pa !== pb) return pa - pb;
+
+            const ka = String((a && (a.__docId || a.internalProductId)) || "");
+            const kb = String((b && (b.__docId || b.internalProductId)) || "");
+            return ka.localeCompare(kb, "es");
+          });
+        };
+
+        // ✅ Orden correcto dentro de cada categoría visible
+        rpcSortInPlace(cub);
+        rpcSortInPlace(nau);
+
         cubacel.innerHTML = "";
         nauta.innerHTML = "";
 
@@ -897,15 +1351,76 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
         return true;
       }
 
+      // ✅ Banner superior (Firestore)
+      rpcLoadTopBanner(authUser);
+
       (async function rpcLoadAndRenderCatalog() {
         try {
           const all = await rpcFetchCatalog(authUser);
           const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
           if (!visible.length) return;
+          // Orden: 1) Promo variable 2) Paquete 3) Normal; dentro de cada grupo: precio (menor -> mayor)
+    const rpcGroupRank = (p) => {
+      const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
+      const docId = String((p && p.__docId) || "").trim().toLowerCase();
+      const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
+
+      const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
+      const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
+
+      if (isPromoVar) return 0;
+      if (isBundle) return 1;
+      return 2;
+    };
+
+    const rpcSortEur = (p) => {
+      const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
+      const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
+      return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
+    };
+
+    visible.sort((a, b) => {
+      const ga = rpcGroupRank(a);
+      const gb = rpcGroupRank(b);
+      if (ga !== gb) return ga - gb;
+
+      const pa = rpcSortEur(a);
+      const pb = rpcSortEur(b);
+      if (pa !== pb) return pa - pb;
+
+      const ka = String((a && (a.__docId || a.internalProductId)) || "");
+      const kb = String((b && (b.__docId || b.internalProductId)) || "");
+      return ka.localeCompare(kb, "es");
+    });
 
           rpcCatalogIndex = {};
-          visible.forEach(p => { rpcCatalogIndex[String(p.internalProductId).trim()] = p; });
+          visible.forEach(p => {
+            const k = String(p.__docId || "").trim() || String(p.internalProductId || "").trim();
+            if (k) rpcCatalogIndex[k] = p;
+          });
           window.__rpcCatalogIndex = rpcCatalogIndex; // debug rápido
+
+          // ✅ Guard anti-colisión: en Innoverit hay internalProductId duplicados (ej. nauta-internet).
+          // La clave del índice DEBE ser única (preferimos __docId).
+          try {
+            const keys = Object.keys(rpcCatalogIndex || {});
+            if (keys.length && keys.some(k => !k || String(k).trim() === "")) {
+              console.warn("rpcCatalogIndex: found empty key");
+            }
+            const byInternal = {};
+            keys.forEach(k => {
+              const p = rpcCatalogIndex[k];
+              const id = String(p && p.internalProductId || "").trim();
+              if (!id) return;
+              byInternal[id] = (byInternal[id] || 0) + 1;
+            });
+            const dup = Object.entries(byInternal).filter(([,n]) => n > 1);
+            if (dup.length) {
+              // expected for Innoverit NAUTA; just log top few
+              dup.sort((a,b)=>b[1]-a[1]);
+              console.log("rpcCatalogIndex dup internalProductId (expected):", dup.slice(0,5));
+            }
+          } catch (_) {}
 
           rpcRenderCatalog(visible);
         } catch (e) {
@@ -917,7 +1432,7 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
       })();
 
 
-      // Modal Recarga
+            // Modal Recarga
       const modalBg = document.getElementById("modal-bg-recarga");
       const modalCobro = document.getElementById("modal-detalle-cobro");
       const modalRecibe = document.getElementById("modal-detalle-recibe");
@@ -932,6 +1447,184 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
       const modalDlg = modalBg ? modalBg.querySelector(".modal-recarga") : null;
       let lastFocusedElement = null;
       let tipoDestinoActual = "msisdn"; // "msisdn" | "nauta"
+
+      // ✅ Bizum (variable central)
+      const BIZUM_NUMERO = "+34687795568";
+      const BIZUM_CONCEPTO = "RPC";
+
+      // ✅ Modal Bizum (bloqueante)
+      const modalBizumBg = document.getElementById("modal-bg-bizum");
+      const bizumImporteEl = document.getElementById("bizum-importe");
+      const bizumDestinoEl = document.getElementById("bizum-destino");
+      const bizumConceptoEl = document.getElementById("bizum-concepto");
+      const btnBizumCopiarNumero = document.getElementById("btnBizumCopiarNumero");
+      const btnBizumCopiarConcepto = document.getElementById("btnBizumCopiarConcepto");
+      const btnBizumYaEnviado = document.getElementById("btnBizumYaEnviado");
+
+      const BIZUM_NUMERO_FINAL = "+34661539465";
+      const BIZUM_BENEFICIARIO_FINAL = "RecargasPaCuba";
+
+      function rpcReadPendingCheckout() {
+        if (window.__rpcPendingCheckout && typeof window.__rpcPendingCheckout === "object") {
+          return window.__rpcPendingCheckout;
+        }
+        try { return JSON.parse(localStorage.getItem("rpc_pending_checkout") || "null"); } catch (_) { return null; }
+      }
+
+      function rpcWritePendingCheckout(p) {
+        try {
+          window.__rpcPendingCheckout = p;
+          localStorage.setItem("rpc_pending_checkout", JSON.stringify(p));
+        } catch (_) {}
+      }
+
+      function rpcEnsureClientId(pending) {
+        const p = (pending && typeof pending === "object") ? pending : {};
+        if (p.clientId && String(p.clientId).trim()) return p;
+
+        const id = "MB-" + String(Date.now()) + "-" + Math.random().toString(36).slice(2, 8).toUpperCase();
+        p.clientId = id;
+        rpcWritePendingCheckout(p);
+        return p;
+      }
+
+      async function rpcCopyText(txt) {
+        const t = String(txt || "");
+        if (!t) return false;
+
+        try {
+          if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+            await navigator.clipboard.writeText(t);
+            return true;
+          }
+        } catch (_) {}
+
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = t;
+          ta.setAttribute("readonly", "");
+          ta.style.position = "fixed";
+          ta.style.opacity = "0";
+          ta.style.left = "-9999px";
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          document.body.removeChild(ta);
+          return true;
+        } catch (_) {}
+
+        return false;
+      }
+
+      function abrirModalRecarga() {
+        if (!modalBg) return;
+        lastFocusedElement = document.activeElement;
+        modalBg.style.display = "flex";
+        setTimeout(() => {
+          if (modalDlg && typeof modalDlg.focus === "function") {
+            modalDlg.focus();
+          }
+        }, 0);
+      }
+
+      function cerrarModalRecarga() {
+        if (modalBg) modalBg.style.display = "none";
+        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+          lastFocusedElement.focus();
+        }
+      }
+
+      function abrirModalBizum() {
+        if (!modalBizumBg) return;
+
+        const pending0 = rpcReadPendingCheckout();
+        const pending = rpcEnsureClientId(pending0);
+        const id = String(pending.clientId || "").trim(); // ✅ tu ID (concepto)
+
+        const importeNum = Number(pending.importe);
+        const importeTxt = Number.isFinite(importeNum) ? rpcFormatEur(importeNum) : "";
+
+        if (bizumImporteEl) bizumImporteEl.textContent = importeTxt ? `Importe exacto: ${importeTxt}` : "";
+        if (bizumDestinoEl) bizumDestinoEl.textContent = `${BIZUM_NUMERO_FINAL} (${BIZUM_BENEFICIARIO_FINAL})`;
+        if (bizumConceptoEl) bizumConceptoEl.textContent = id || "—";
+
+        modalBizumBg.style.display = "flex";
+      }
+
+      function cerrarModalBizum() {
+        if (modalBizumBg) modalBizumBg.style.display = "none";
+      }
+
+      if (btnBizumCopiarNumero) {
+        btnBizumCopiarNumero.addEventListener("click", async () => {
+          const ok = await rpcCopyText(BIZUM_NUMERO_FINAL);
+          if (ok) {
+            if (typeof showToastSuccess === "function") showToastSuccess("Copiado");
+          } else {
+            if (typeof showToastError === "function") showToastError("No se pudo copiar");
+          }
+        });
+      }
+
+      if (btnBizumCopiarConcepto) {
+        btnBizumCopiarConcepto.addEventListener("click", async () => {
+          const pending0 = rpcReadPendingCheckout();
+          const pending = rpcEnsureClientId(pending0);
+          const id = String(pending.clientId || "").trim();
+
+          const ok = await rpcCopyText(id);
+          if (ok) {
+            if (typeof showToastSuccess === "function") showToastSuccess("Copiado");
+          } else {
+            if (typeof showToastError === "function") showToastError("No se pudo copiar");
+          }
+        });
+      }
+
+      if (btnBizumYaEnviado) {
+        btnBizumYaEnviado.addEventListener("click", () => {
+          const pending0 = rpcReadPendingCheckout();
+          const pending = rpcEnsureClientId(pending0);
+          const id = String(pending.clientId || "").trim();
+
+          cerrarModalBizum();
+
+          if (typeof showToastSuccess === "function") {
+            showToastSuccess(id
+              ? `Pedido registrado ${id} en verificacion`
+              : "Pedido registrado en verificacion"
+            );
+          }
+        });
+      }
+
+
+      
+
+      // ✅ Método de pago (solo wiring mínimo; sin lógica de pago / sin redirects)
+      let selectedPayMethod = "PAYPAL"; // "PAYPAL" | "REVOLUT" | "BIZUM"
+      const payBtns = document.querySelectorAll(".modal-pay-btn[data-pay-method]");
+
+      function setSelectedPayMethod(method) {
+        const m = String(method || "").toUpperCase();
+        if (m !== "PAYPAL" && m !== "REVOLUT" && m !== "BIZUM") return;
+        selectedPayMethod = m;
+
+        if (!payBtns || !payBtns.length) return;
+        payBtns.forEach((b) => {
+          const bm = String(b.getAttribute("data-pay-method") || "").toUpperCase();
+          if (bm === selectedPayMethod) b.classList.add("active");
+          else b.classList.remove("active");
+        });
+      }
+
+      if (payBtns && payBtns.length) {
+        payBtns.forEach((b) => {
+          b.addEventListener("click", () => {
+            setSelectedPayMethod(b.getAttribute("data-pay-method"));
+          });
+        });
+      }
 
       function abrirModalRecarga() {
         if (!modalBg) return;
@@ -992,9 +1685,27 @@ const priceTxt = Number.isFinite(sellEur) ? rpcFormatEur(sellEur) : "—";
           const catProd = (productId && window.__rpcCatalogIndex) ? window.__rpcCatalogIndex[String(productId).trim()] : null;
 
           if (catProd) {
-            productoActual = { id: String(catProd.internalProductId).trim(), ...catProd };
-            const baseEur = Number(catProd.sendAmountEur);
-precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 : 0;
+          const internalPid = String(catProd.internalProductId || "").trim();
+          const providerPid = String(catProd.providerProductId || catProd.productId || "").trim();
+          const docPid = String(catProd.__docId || "").trim();
+
+          const isNauta = (String(catProd.category || "").toUpperCase() === "NAUTA") || (typeof categoryBtn !== "undefined" && categoryBtn === "NAUTA");
+          const backendPid = isNauta
+          ? (docPid || providerPid || internalPid)
+          : internalPid;
+
+            productoActual = { id: backendPid, ...catProd };
+
+            const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
+            const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
+
+            // ✅ Regla: SOLO sellAmountEur; si falta o es inválido -> no permitir compra
+            if (!(Number.isFinite(sellNum) && sellNum > 0)) {
+              showToastError("Oferta no disponible: precio no configurado.");
+              return;
+            }
+
+            precioActual = Math.round(sellNum * 100) / 100;
             beneficioActual = String(catProd.receiveText || "").trim();
             operadorActual = String(catProd.category || "").toUpperCase();
 
@@ -1039,17 +1750,8 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
           }
         });
 
-        // Botón Realizar recarga (UserData + Email + recientes + VALIDACIÓN)
+        // Botón Continuar (solo UI + wiring mínimo; sin pago, sin createOrder, sin saldo/historial)
         btnRealizar.addEventListener("click", async () => {
-          if (navigator.onLine === false) {
-            if (typeof showToastError === 'function') {
-              showToastError('No tienes conexión, no puedes realizar recargas ahora.');
-            } else {
-              alert('No tienes conexión, no puedes realizar recargas ahora.');
-            }
-            return;
-          }
-
           const isNauta = (tipoDestinoActual === "nauta");
           const n1 = inputNum1.value || "";
           const n2 = inputNum2.value || "";
@@ -1087,7 +1789,7 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
           }
 
           if (!precioActual || isNaN(precioActual)) {
-            showToastError("No se pudo leer el precio de la recarga.");
+            showToastError("No se pudo leer el precio del pedido.");
             return;
           }
 
@@ -1096,80 +1798,169 @@ precioActual = Number.isFinite(baseEur) ? Math.round((baseEur + 1) * 100) / 100 
             : null;
 
           const productoId = productoActual ? productoActual.id : null;
-
-          // ✅ FASE 2 (sandbox/emulador): crear ORDEN PENDING en backend (Cloud Function createOrder)
-          let orderResp = null;
-          let orderId = null;
-
-          try {
-            const auth = window.firebaseAuth;
-            const user = auth && auth.currentUser;
-            if (!user) throw new Error("firebase-no-auth");
-            if (!productoId) throw new Error("missing-productId");
-
-            const destinoForOrder = String(
-              destinoFinal ||
-                (isNauta
-                  ? (e1 || "").trim()
-                  : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
-            );
-
-            orderResp = await createOrderSandbox({
-              uid: user.uid,
-              productId: String(productoId),
-              destino: destinoForOrder
-            });
-
-            orderId = orderResp && orderResp.orderId ? String(orderResp.orderId) : null;
-          } catch (e) {
-            console.error("createOrderSandbox failed:", e);
-            showToastError("No se pudo crear la orden. Inténtalo de nuevo.");
+          if (!productoId) {
+            showToastError("No se pudo leer el producto seleccionado.");
             return;
           }
 
-const resultado = await procesarRecarga({
-            numero: destinoFinal || (isNauta ? (e1 || "").trim() : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, ""))),
-            importe: precioActual,
-            beneficio: beneficioActual,
-            operador: operadorActual || "",
-            productoId,
-            orderId
-          });
-
-
-          if (!resultado || !resultado.success) {
-            const msg = resultado && resultado.message
-              ? resultado.message
-              : "No se pudo procesar la recarga. Inténtalo de nuevo.";
-            showToastError(msg);
-            return;
-          }
-
-          const { idConfirmacion, movimiento } = resultado;
-
-          // ? Guardar número reciente
+          // ✅ Guardar número reciente (solo Cubacel)
           if (!isNauta && destinoFinal) {
             guardarNumeroReciente(String(destinoFinal).replace(/^\+?53/, ""));
           }
 
-          // ? Correo al cliente (EmailJS)
-          if (datosUsuario && datosUsuario.email && typeof emailjs !== "undefined") {
-            try {
-              await emailjs.send("service_ryvafj3", "template_k5t8asf", {
-                to_email: datosUsuario.email,
-                numero: (destinoFinal || (movimiento && movimiento.numero) || ""),
-                importe: Number(movimiento.importe || precioActual).toFixed(2) + " €",
-                beneficio: movimiento.beneficio || beneficioActual,
-                fecha: movimiento.fecha || new Date().toLocaleString(),
-                                id_confirmacion: (orderId || idConfirmacion)
+          // ✅ Crear /orders en backend (cola oficial) y usar orderId como ID maestro (concepto)
+          try {
+            const destinoNormalized = String(
+              destinoFinal ||
+                (isNauta
+                  ? (e1 || "").trim()
+                  : ("+53" + (n1 || "").replace(/\s+/g, "").replace(/^\+?53/, "")))
+            ).trim();
 
-              });
-            } catch (err) {
-              console.error("Error enviando correo de recarga:", err);
-            }
+            const auth = window.firebaseAuth;
+            const user = auth && auth.currentUser ? auth.currentUser : null;
+            if (!user || !user.uid) throw new Error("firebase-no-auth");
+
+            const referrer = (function () {
+              try {
+                const qp = new URLSearchParams(location.search);
+                const raw = String(
+                  (qp.get("referrer") || qp.get("ref") || qp.get("r") || "") ||
+                  sessionStorage.getItem("rpc_referrer") ||
+                  sessionStorage.getItem("rpc_ref") ||
+                  localStorage.getItem("rpc_referrer") ||
+                  localStorage.getItem("rpc_ref") ||
+                  localStorage.getItem("rpc_ref_first_touch") ||
+                  localStorage.getItem("referrer") ||
+                  ""
+                ).trim();
+                return (/^[a-zA-Z0-9_-]{1,64}$/.test(raw)) ? raw : "";
+              } catch (_) { return ""; }
+            })();
+
+            const resp = await createOrderSandbox({
+              uid: String(user.uid),
+              productId: String(productoId),
+              destino: destinoNormalized,
+              paymentMethod: String(selectedPayMethod || "PAYPAL"),
+              referrer
+            });
+
+            const orderId = (resp && resp.orderId) ? String(resp.orderId) : "";
+
+            // ✅ El precio mostrado/cobrado viene del catálogo (sellAmountEur -> precioActual) 
+            const amount = Number(precioActual);
+
+            if (!orderId) throw new Error("order-missing-id");
+
+            const pending = {
+              clientId: orderId, // ✅ este es tu ID (se usa en Concepto)
+              orderId: orderId,
+              productId: String(productoId),
+              operador: String(operadorActual || ""),
+              beneficio: String(beneficioActual || ""),
+              // Precio final (cliente)
+              importe: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : 0,
+              // Precio (catálogo) explícito
+              sellAmountEur: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : null,   
+              metodoPago: String(selectedPayMethod || "PAYPAL"),
+              destino: destinoNormalized,
+              createdAt: new Date().toISOString()
+            };
+
+
+            window.__rpcPendingCheckout = pending;
+            localStorage.setItem("rpc_pending_checkout", JSON.stringify(pending));
+          } catch (e) {
+            console.warn("orders CREATE failed:", e && e.message ? e.message : e);
+            const msg = "No se pudo registrar el pedido. Inténtalo de nuevo.";
+            if (typeof showToastError === "function") showToastError(msg);
+            else alert(msg);
+            return;
           }
 
-          showToastSuccess("¡ Recarga registrada correctamente\nID: " + (orderId || idConfirmacion));
+
+          const pm = String(selectedPayMethod || "PAYPAL").toUpperCase();
+
+          if (pm === "BIZUM") {
+            cerrarModalRecarga();
+            abrirModalBizum();
+            return;
+          }
+
+          if (pm === "PAYPAL" || pm === "REVOLUT") {
+            // ✅ Migrado a catálogo (Innoverit): el link se lee del producto (Firestore) para que lo rellenes manualmente.
+            // Acepta varios nombres de campo para no depender de un único esquema.
+            function rpcResolvePayUrl(product, method) {
+              const p = (product && typeof product === "object") ? product : {};
+              const m = String(method || "").toUpperCase();
+
+              // 1) Mapas tipo { PAYPAL: "...", REVOLUT: "..." } (case-insensitive)
+              const maps = [
+                p.paymentLinks,
+                p.payment_links,
+                p.payLinks,
+                p.pay_links,
+                p.linksPago,
+                p.links_pago
+              ];
+              for (const mp of maps) {
+                if (!mp || typeof mp !== "object") continue;
+                const v =
+                  mp[m] ||
+                  mp[m.toLowerCase()] ||
+                  mp[(m === "PAYPAL") ? "paypal" : "revolut"] ||
+                  mp[(m === "PAYPAL") ? "PayPal" : "Revolut"];
+                if (typeof v === "string" && v.trim()) return v.trim();
+              }
+
+              // 2) Campos directos por método
+              const keys = (m === "PAYPAL")
+                ? ["paypalLink", "paypalUrl", "paypalURL", "paymentLinkPayPal", "paymentLinkPaypal", "linkPayPal", "linkPaypal", "paypal"]
+                : ["revolutLink", "revolutUrl", "revolutURL", "paymentLinkRevolut", "linkRevolut", "revolut"];
+
+              for (const k of keys) {
+                const v = p[k];
+                if (typeof v === "string" && v.trim()) return v.trim();
+              }
+
+              return "";
+            }
+
+            const prod = (productoActual && typeof productoActual === "object") ? productoActual : null;
+
+            const url = (pm === "PAYPAL")
+              ? String(rpcResolvePayUrl(prod, "PAYPAL") || window.RPC_PAYPAL_URL || "")
+              : String(rpcResolvePayUrl(prod, "REVOLUT") || window.RPC_REVOLUT_URL || "");
+
+            if (!url) {
+              const msg = (pm === "PAYPAL")
+                ? "PayPal no está configurado todavía en api-ready."
+                : "Revolut no está configurado todavía en api-ready.";
+
+              if (typeof showToastError === "function") {
+                showToastError(msg);
+              } else {
+                alert(msg);
+              }
+              return; // deja el modal abierto para cambiar método
+            }
+
+            if (window.__rpcPayRedirecting) return;
+            window.__rpcPayRedirecting = true;
+
+            try { btnRealizar.disabled = true; } catch (_) {}
+
+            // ✅ Abrir en otra pestaña y dejar la web intacta
+            window.open(url, "_blank", "noopener,noreferrer");
+            cerrarModalRecarga();
+            return;
+          }
+
+          if (typeof showToastSuccess === "function") {
+            showToastSuccess("Pedido listo.");
+          }
+
           cerrarModalRecarga();
         });
       }

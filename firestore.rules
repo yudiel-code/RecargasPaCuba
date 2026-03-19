@@ -1,9 +1,27 @@
 rules_version = "2";
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == "recargaspacubaapp@gmail.com";
+    }
+
+    match /catalog_private/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /catalog_private_innoverit/{docId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /orders_private/{orderId} {
+      allow read, write: if isAdmin();
+    }
+
     match /users/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
+
     match /recargas/{docId} {
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid
@@ -11,6 +29,7 @@ service cloud.firestore {
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
       allow update, delete: if false;
     }
+
     match /orders/{orderId} {
       // Permite LIST/GET solo al dueño (por uid del doc)
       allow read: if request.auth != null && resource.data.uid == request.auth.uid;
@@ -22,14 +41,36 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    match /catalog_products/{productId} {
-  allow read: if true;
-  allow write: if false;
-}
+    match /mb_orders/{orderId} {
+      // Manual-beta: el cliente crea su pedido, pero solo para sí mismo y en estado REQUESTED
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == "REQUESTED";
 
+      // Lectura solo por el dueño
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+
+      // Nada de updates/deletes desde cliente (control operativo)
+      allow update, delete: if false;
+    }
+
+    match /catalog_products/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /catalog_products_innoverit/{productId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /ui_banners/{docId} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
 
     match /{document=**} {
       allow read, write: if false;
     }
   }
-}
+ }
