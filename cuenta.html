@@ -1018,7 +1018,65 @@
     overflow-wrap: anywhere;
   }
   .correo { margin-top: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.55; overflow-wrap: anywhere; }
-  #uidUsuario { white-space: normal !important; overflow-wrap: anywhere; word-break: break-word; }
+  .uid-field {
+    display: grid;
+    grid-template-columns: auto minmax(0,1fr) auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+    min-width: 0;
+  }
+  .uid-field-label {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    white-space: nowrap;
+  }
+  .uid-field-input {
+    width: 100%;
+    min-width: 0;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(15,23,42,0.08);
+    background: rgba(255,255,255,0.92);
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 36px;
+    outline: none;
+  }
+  .uid-field-input[readonly] {
+    cursor: text;
+  }
+  .uid-copy-btn {
+    height: 36px;
+    min-width: 36px;
+    padding: 0 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(15,23,42,0.08);
+    background: rgba(255,255,255,0.92);
+    color: var(--brand-primary);
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.06);
+    white-space: nowrap;
+  }
+  .uid-copy-btn:disabled {
+    opacity: .45;
+    cursor: default;
+  }
+  .uid-copy-btn svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+  }
   .tag {
     display: inline-flex;
     width: fit-content;
@@ -1383,7 +1441,17 @@
             </div>
 
             <div class="correo" id="correoUsuario">correo@ejemplo.com</div>
-            <div class="correo" id="uidUsuario" style="opacity:.85; font-size:12px; margin-top:2px; word-break:break-all;">UID: —</div>
+            <div class="uid-field">
+              <div class="uid-field-label" id="uidUsuarioLabel">UID:</div>
+              <input class="uid-field-input" id="uidUsuarioInput" type="text" value="—" readonly aria-label="UID de usuario">
+              <button class="uid-copy-btn" id="uidCopyBtn" type="button" aria-label="Copiar UID" title="Copiar UID">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 9h9v11H9z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M6 15H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Copiar</span>
+              </button>
+            </div>
             <div class="tag">Cuenta creada y gestionada desde España</div>
           </div>
         </div>
@@ -1631,71 +1699,72 @@
   : localStorage.getItem("usuario");
 
   const uidReal = (authUser && authUser.uid) ? (authUser.uid + "") : "";
-  const uidEl = document.getElementById("uidUsuario");
-  if (uidEl) {
-    const originalText = uidReal ? ("UID: " + uidReal) : "UID: —";
-    uidEl.textContent = originalText;
+  const uidLabelEl = document.getElementById("uidUsuarioLabel");
+  const uidInputEl = document.getElementById("uidUsuarioInput");
+  const uidCopyBtn = document.getElementById("uidCopyBtn");
 
-    if (uidReal) {
-      uidEl.style.cursor = "pointer";
-      uidEl.setAttribute("title", "Clic para copiar el UID");
-      uidEl.setAttribute("role", "button");
-      uidEl.setAttribute("tabindex", "0");
+  if (uidLabelEl) {
+    uidLabelEl.textContent = "UID:";
+  }
 
-      const copyToClipboard = async (text) => {
-        try {
-          if (navigator.clipboard && window.isSecureContext) {
-            await navigator.clipboard.writeText(text);
-            return true;
-          }
-        } catch (e) {}
+  const copyToClipboard = async (text) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (e) {}
 
-        try {
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          ta.setAttribute("readonly", "");
-          ta.style.position = "fixed";
-          ta.style.top = "-1000px";
-          ta.style.left = "-1000px";
-          document.body.appendChild(ta);
-          ta.select();
-          ta.setSelectionRange(0, ta.value.length);
-          const ok = document.execCommand("copy");
-          document.body.removeChild(ta);
-          return !!ok;
-        } catch (e) {
-          return false;
-        }
-      };
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.top = "-1000px";
+      ta.style.left = "-1000px";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return !!ok;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  if (uidInputEl) {
+    uidInputEl.value = uidReal || "—";
+    uidInputEl.setAttribute("title", uidReal || "Sin UID disponible");
+  }
+
+  if (uidCopyBtn) {
+    const uidCopyBtnText = uidCopyBtn.querySelector("span");
+
+    if (!uidReal) {
+      uidCopyBtn.disabled = true;
+    } else if (!uidCopyBtn.dataset.rpcCopyBound) {
+      uidCopyBtn.dataset.rpcCopyBound = "1";
 
       const flashCopied = () => {
-        uidEl.textContent = "UID: " + uidReal + " (copiado)";
-        if (uidEl.__rpcCopyT) clearTimeout(uidEl.__rpcCopyT);
-        uidEl.__rpcCopyT = setTimeout(() => {
-          uidEl.textContent = "UID: " + uidReal;
+        if (!uidCopyBtnText) return;
+        uidCopyBtnText.textContent = "Copiado";
+        if (uidCopyBtn.__rpcCopyT) clearTimeout(uidCopyBtn.__rpcCopyT);
+        uidCopyBtn.__rpcCopyT = setTimeout(() => {
+          uidCopyBtnText.textContent = "Copiar";
         }, 1200);
       };
 
-      if (!uidEl.dataset.rpcCopyBound) {
-        uidEl.dataset.rpcCopyBound = "1";
+      const handler = async () => {
+        const ok = await copyToClipboard(uidReal);
+        if (ok) {
+          flashCopied();
+        } else {
+          window.prompt("Copia tu UID:", uidReal);
+        }
+      };
 
-        const handler = async () => {
-          const ok = await copyToClipboard(uidReal);
-          if (ok) {
-            flashCopied();
-          } else {
-            window.prompt("Copia tu UID:", uidReal);
-          }
-        };
-
-        uidEl.addEventListener("click", handler);
-        uidEl.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handler();
-          }
-        });
-      }
+      uidCopyBtn.addEventListener("click", handler);
     }
   }
 
