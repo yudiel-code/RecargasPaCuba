@@ -10,7 +10,44 @@
   <script src="js/validators.js?v=r1"></script>
 
   <style>
-.wrap { max-width: 460px; }
+.wrap {
+  max-width: 460px;
+  padding: 22px 20px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, rgba(226,234,246,0.96), rgba(218,228,242,0.92));
+  border: 1px solid rgba(15,91,215,0.10);
+  box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 16px 34px rgba(15,23,42,0.05);
+  overflow: hidden;
+}
+.page-register .auth-side {
+  padding: 22px 20px;
+  border-radius: 30px;
+  background: linear-gradient(160deg, rgba(15,91,215,0.14), rgba(15,118,110,0.10));
+  border: 1px solid rgba(15,91,215,0.10);
+  box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 16px 34px rgba(15,23,42,0.05);
+  overflow: hidden;
+}
+.page-register .auth-side .auth-points {
+  margin-top: 18px;
+}
+.page-register .auth-side .auth-points li {
+  background: rgba(255,255,255,0.80);
+  border: 1px solid rgba(255,255,255,0.58);
+  box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+}
+.page-register .auth-side .auth-points li strong {
+  color: var(--text-primary);
+}
+.page-register .auth-side .auth-points li div:last-child {
+  color: var(--text-secondary);
+}
+.page-register .input-pill {
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 8px 18px rgba(15,23,42,0.04);
+}
+.page-register .btn.btn-accent {
+  box-shadow: 0 14px 28px rgba(240,138,63,0.16);
+}
 .auth-note-grid { display: grid; gap: 10px; margin: 18px 0 0; }
 .auth-note-grid .note { padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,0.7); border: 1px solid rgba(15,23,42,0.06); font-size: 13px; color: var(--text-secondary); }
 .register-button { margin-top: 18px; }

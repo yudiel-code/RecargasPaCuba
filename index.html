@@ -61,8 +61,38 @@
   font-weight: 800;
   text-align: center;
 }
+
+.page-login .auth-side {
+  padding: 22px 20px;
+  border-radius: 30px;
+  background: linear-gradient(160deg, rgba(15,91,215,0.14), rgba(15,118,110,0.10));
+  border: 1px solid rgba(15,91,215,0.10);
+  box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 16px 34px rgba(15,23,42,0.05);
+  overflow: hidden;
+}
+.page-login .auth-side .auth-points {
+  margin-top: 18px;
+}
+.page-login .auth-side .auth-points li {
+  background: rgba(255,255,255,0.80);
+  border: 1px solid rgba(255,255,255,0.58);
+  box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+}
+.page-login .auth-side .auth-points li strong {
+  color: var(--text-primary);
+}
+.page-login .auth-side .auth-points li div:last-child {
+  color: var(--text-secondary);
+}
+
 .page-login .login-wrap {
   text-align: center;
+  padding: 22px 20px;
+  border-radius: 30px;
+  background: linear-gradient(180deg, rgba(226,234,246,0.96), rgba(218,228,242,0.92));
+  border: 1px solid rgba(15,91,215,0.10);
+  box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 16px 34px rgba(15,23,42,0.05);
+  overflow: hidden;
 }
 .page-login .logo-big {
   width: 116px;
@@ -91,6 +121,25 @@
   margin-right: auto;
   text-align: center;
 }
+.page-login .login-btn-social,
+.page-login .btn.btn-primary,
+.page-login .input-pill {
+  box-shadow: 0 8px 18px rgba(15,23,42,0.04);
+}
+.page-login .login-btn-social,
+.page-login .input-pill {
+  background: rgba(255,255,255,0.90);
+}
+.page-login .login-divider {
+  color: var(--text-tertiary);
+}
+.page-login .link-forgot {
+  margin-top: 14px;
+}
+.page-login #btn-login-do {
+  margin-top: 14px;
+}
+
 .social-row {
   display: flex;
   justify-content: center;
@@ -100,10 +149,18 @@
   margin-top: 20px;
 }
 .social-circle {
-  width: 42px; height: 42px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.86); border: 1px solid rgba(15,23,42,0.08); box-shadow: 0 10px 18px rgba(15,23,42,0.04);
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(15,23,42,0.08);
+  box-shadow: 0 10px 18px rgba(15,23,42,0.04);
 }
 .login-footer-text { margin-top: 14px; font-size: 12px; color: var(--text-tertiary); text-align: center; }
+
 @media (min-width:920px){
   #screen-home{
     align-items:start;
