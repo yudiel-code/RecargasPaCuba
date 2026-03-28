@@ -104,7 +104,63 @@
   background: rgba(255,255,255,0.86); border: 1px solid rgba(15,23,42,0.08); box-shadow: 0 10px 18px rgba(15,23,42,0.04);
 }
 .login-footer-text { margin-top: 14px; font-size: 12px; color: var(--text-tertiary); text-align: center; }
-@media (min-width:920px){ .login-wrap{ order:2; } .auth-side{ order:1; } }
+@media (min-width:920px){
+  #screen-home{
+    align-items:start;
+    padding-top:28px;
+  }
+  .auth-layout{
+    grid-template-columns:minmax(0, 460px);
+    justify-content:center;
+    align-items:start;
+    row-gap:18px;
+  }
+  .auth-side,
+  .login-wrap{
+    grid-column:1;
+    width:100%;
+    max-width:460px;
+    margin:0 auto;
+  }
+  .auth-side{
+    order:1;
+  }
+  .login-wrap{
+    order:2;
+    align-self:start;
+  }
+  .social-row{
+    order:3;
+    grid-column:1;
+    justify-content:center;
+    margin-top:4px;
+  }
+  .legal-links{
+    order:4;
+    grid-column:1;
+    text-align:center !important;
+    margin-top:2px !important;
+  }
+  .legal-links small{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:10px 16px;
+  }
+  .login-footer-text{
+    order:5;
+    grid-column:1;
+    text-align:center;
+    margin-top:0;
+  }
+  #rpc-build-indicator{
+    order:6;
+    grid-column:1;
+    margin:0 auto;
+    width:max-content;
+    text-align:center;
+  }
+}
   </style>
 </head>
 
