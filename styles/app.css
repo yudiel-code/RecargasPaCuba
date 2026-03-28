@@ -1,628 +1,135 @@
-/* ===== APP: Pantalla de inicio de sesión ===== */
 
-#screen-home {
+/* ===== RecargasPaCuba — Premium App Shell ===== */
+body.page-auth {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #2fb8d6 0%, #2ba6d0 35%, #1aa0c3 70%);
-  padding: 42px 16px 90px;
-  box-sizing: border-box;
-  gap: 16px;
-}
-
-.login-wrap {
-  width: 100%;
-  max-width: 420px;
-  text-align: center;
-  color: #ffffff;
-  padding: 18px;
-}
-
-.logo-big {
-  width: 220px;
-  height: 220px;
-  margin: 0 auto 8px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  padding: 20px 16px 32px;
 }
-
-.logo-big img {
-  width: 90%;
-  height: auto;
-  border-radius: 50%;
-}
-
-.login-title {
-  font-size: 40px;
-  font-weight: 800;
-  margin-top: 8px;
-  color: #ffffff;
-}
-
-.login-sub {
-  color: #e7f7fb;
-  margin-top: 8px;
-  font-size: 16px;
-}
-
-.input-pill {
-  width: 100%;
-  border-radius: 999px;
-  padding: 14px 18px;
-  border: none;
-  margin-top: 18px;
-  font-size: 15px;
-  outline: none;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.22);
-  color: #0f172a;
-}
-
-.password-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.password-wrap .input-pill {
-  padding-right: 46px;
-}
-
-.toggle-pass {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  font-size: 18px;
-  color: #0f172a;
-  user-select: none;
-}
-
-.login-wrap .btn-primary.btn-lg {
-  margin-top: 12px;
-}
-
-.register-wrap .btn-accent.btn-lg {
-  margin-top: 10px;
-}
-
-.link-forgot {
-  background: none;
-  border: none;
-  color: #fff7b8;
-  font-size: 13px;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  margin-top: 12px;
-}
-
-.modal-bg-recuperar {
+body.page-auth::before {
+  content: "";
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  z-index: 3000;
-
-  /* Scroll/padding del overlay (antes estaba duplicado en el bloque global de modales) */
-  overflow-y: auto;
-  padding: 24px 16px;
-  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 14% 10%, rgba(15, 91, 215, 0.12), transparent 30%),
+    radial-gradient(circle at 82% 18%, rgba(240, 138, 63, 0.10), transparent 24%),
+    linear-gradient(180deg, rgba(255,255,255,0.6), transparent 55%);
+  pointer-events: none;
+  z-index: -1;
 }
-
-.modal-recuperar {
-  background: rgba(11, 76, 129, 0.96);
+#screen-home,
+.auth-shell { width: 100%; max-width: 1024px; margin: 0 auto; }
+#screen-home { min-height: calc(100vh - 52px); display: grid; align-items: center; padding: 16px 0 12px; }
+.auth-layout { display: grid; gap: 18px; }
+.auth-side {
+  background: linear-gradient(160deg, rgba(15, 91, 215, 0.12), rgba(15, 118, 110, 0.08));
+  border: 1px solid rgba(15, 91, 215, 0.10);
+  border-radius: 28px;
   padding: 22px 20px;
-  border-radius: 20px;
-  width: 360px;
-  max-width: calc(100vw - 32px);
-  text-align: center;
-  color: #ffffff;
-
-  /* Scroll del contenido (antes estaba duplicado en el bloque global de modales) */
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
-  box-sizing: border-box;
+  box-shadow: var(--shadow-md);
 }
-
-/* Separación entre píldoras dentro del modal Recuperar */
-.modal-recuperar .input-pill {
-  margin-bottom: 12px;
-}
-
-/* Fix: SOLO el botón Cancelar del modal Recuperar (no toca “Copiar y usar”) */
-#btn-cerrar-recuperar {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-
-  /* proporcional al texto, pero en su propia línea */
-  display: block;
-  width: fit-content;
-  margin: 10px auto 0;
-
-  color: rgba(255, 255, 255, 0.92) !important;
-  font-weight: 600;
-  text-decoration: none;
-  line-height: 1.2;
-
-  cursor: pointer;
-  -webkit-appearance: none;
-  appearance: none;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-}
-
-#btn-cerrar-recuperar:hover {
-  text-decoration: underline;
-}
-
-#btn-cerrar-recuperar:focus,
-#btn-cerrar-recuperar:focus-visible {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.temp-pass-box {
-  margin-top: 12px;
-  background: #0f345a;
-  padding: 10px;
-  border-radius: 12px;
-  font-size: 14px;
-  display: none;
-  word-break: break-all;
-}
-
-/* ===== Variantes de tarjetas ===== */
-.card--gradient {
-  background: linear-gradient(135deg, rgba(15, 35, 90, 0.98), rgba(9, 146, 197, 0.96));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: none;
+.auth-side h1,
+.auth-side h2 { margin-top: 14px; font-family: var(--font-display); font-size: clamp(1.7rem, 5.5vw, 2.45rem); line-height: 1.02; letter-spacing: -0.04em; }
+.auth-side p { margin-top: 12px; color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.6; max-width: 40ch; }
+.auth-points { display: grid; gap: 10px; margin-top: 20px; }
+.auth-points li { list-style: none; display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,0.64); border: 1px solid rgba(255,255,255,0.5); color: var(--text-secondary); font-size: 13px; }
+.auth-points strong { display: block; color: var(--text-primary); font-size: 14px; margin-bottom: 2px; }
+.auth-card,
+.login-wrap,
+.wrap {
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  padding: 28px 22px 24px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 30px;
+  box-shadow: var(--shadow-xl);
+  text-align: left;
   position: relative;
   overflow: hidden;
-  padding: 16px 16px 14px;
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
-
-.card--gradient::before {
+.auth-card::before,
+.login-wrap::before,
+.wrap::before {
   content: "";
   position: absolute;
-  inset: -40px;
-  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.22), transparent 55%);
-  opacity: 0.6;
+  inset: 0 0 auto 0;
+  height: 110px;
+  background: linear-gradient(180deg, rgba(15, 91, 215, 0.06), transparent);
   pointer-events: none;
 }
-
-/* ===== Layouts por página ===== */
-body.page-auth {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.logo-big { width: 88px; height: 88px; margin: 0 0 18px; padding: 10px; border-radius: 26px; background: linear-gradient(145deg, #fff, #f4f7fc); border: 1px solid rgba(15, 23, 42, 0.08); box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08); }
+.logo-big img { width: 100%; height: auto; border-radius: 20px; }
+.login-title,
+.wrap .title { font-family: var(--font-display); font-size: clamp(1.7rem, 5vw, 2.2rem); font-weight: 800; line-height: 1.06; letter-spacing: -0.04em; color: var(--text-primary); margin-bottom: 10px; }
+.login-sub,
+.wrap .sub { color: var(--text-secondary); font-size: var(--text-sm); line-height: 1.6; }
+.login-btn-social {
+  position: relative; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 54px; margin-top: 12px; padding: 0 18px;
+  border: 1px solid var(--border-default); border-radius: 18px; background: #ffffff; color: var(--text-primary); font-size: 15px; font-weight: 700;
+  box-shadow: 0 10px 18px rgba(15, 23, 42, 0.04);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out);
 }
-
-body.page-recargar {
-  display: flex;
-  justify-content: center;
-  padding: 18px 16px 140px;
-  font-family: "Poppins", system-ui, sans-serif;
-  color: #ffffff;
-}
-
-body.page-historial {
-  padding-bottom: 90px;
-  font-family: "Poppins", system-ui, sans-serif;
-  color: #ffffff;
-}
-
-.historial-container {
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* ===== HISTORIAL (SISTEMA UNIFICADO) =====
-   Objetivo: todas las tarjetas mismo tamaño (fijo), chip arriba-derecha,
-   y contenido clamp (2 líneas) sin parches por tarjeta.
-   Nota: EXCLUYE el card de monedas (.card-monedas) para que no herede el layout en fila. */
-.historial-container .card--gradient:not(.card-monedas) {
-  width: 100%;
-  box-sizing: border-box;
-
-  /* Layout estable */
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: 12px;
-
-  /* Tamaño uniforme */
-  height: 112px;
-  max-height: 112px;
-
-  /* Reservar columna visual para el chip (evita que pise texto) */
-  padding-right: 132px;
-
-  /* Todo dentro del card */
-  overflow: hidden;
-}
-
-/* Icono (izquierda): no encoger */
-.historial-container .card--gradient:not(.card-monedas) > :first-child {
-  flex: 0 0 auto;
-}
-
-/* Contenido (centro): puede encogerse y partir */
-.historial-container .card--gradient:not(.card-monedas) > :nth-child(2) {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-/* Chip (derecha): siempre arriba-derecha, no encoge */
-.historial-container .card--gradient:not(.card-monedas) > :last-child {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  flex: 0 0 auto;
-  white-space: nowrap;
-
-  /* Evitar que un chip largo (p.ej. “Sin movimientos registrados”) invada todo */
-  max-width: 52%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Título: 1 línea */
-.historial-container .card--gradient:not(.card-monedas) > :nth-child(2) > :first-child {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
-  overflow: hidden;
-}
-
-/* Textos intermedios: 2 líneas (opción A) */
-.historial-container .card--gradient:not(.card-monedas) > :nth-child(2) > :not(.fecha):not(:first-child) {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* Fecha: reservar espacio fijo (evita saltos) */
-.historial-container .card--gradient:not(.card-monedas) .fecha {
-  min-height: 14px;
-  line-height: 14px;
-}
-
-/* Mantener el brillo controlado dentro del tamaño fijo */
-.historial-container .card--gradient:not(.card-monedas)::before {
-  inset: -10px;
-}
-
-body.page-cuenta {
-  padding: 12px 14px 110px;
-  font-family: "Poppins", system-ui, sans-serif;
-  color: #ffffff;
-}
-
-body.page-legal {
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 24px 18px 90px;
-  color: var(--text-main);
-  line-height: 1.6;
-}
-
-body.page-legal h1,
-body.page-legal h2 {
-  margin: 0 0 14px;
-}
-
-body.page-legal p,
-body.page-legal li {
-  margin-bottom: 12px;
-}
-
-.page-recargar .app {
-  width: 100%;
-  max-width: 520px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  margin: 0 auto;
-}
-
-.page-cuenta .app {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  max-width: 480px;
-  margin: 0 auto;
-  padding: 12px 14px 110px;
-}
-
-/* ===== FIX ModalSaldo: input importe igual que metodo + € dentro + sin spinner ===== */
-
-/* Igualar altura del “método seleccionado” con el input */
-#modalSaldo .metodo-resumen{
-  box-sizing: border-box;
-  min-height: 38px;
-}
-
-/* Campo importe: no flex (el € no debe robar ancho) */
-#modalSaldo .campo-saldo{
-  margin-top: 6px;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-  display: block;
-}
-
-/* Input: mismo tamaño/bordes que metodo-resumen */
-#modalSaldo #inputSaldo{
-  width: 100%;
-  box-sizing: border-box;
-
-  border: 1px solid rgba(148, 163, 184, 0.7);
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.85);
-  color: #e5e7eb;
-
-  padding: 8px 36px 8px 10px; /* espacio para € dentro */
-  min-height: 38px;
-  font-size: 12px;
-  line-height: 1.2;
-
-  outline: none;
-}
-
-/* Focus consistente (sin bordes raros al pinchar) */
-#modalSaldo #inputSaldo:focus,
-#modalSaldo #inputSaldo:focus-visible{
-  border-color: #fbbf24;
-  outline: 2px solid #fbbf24;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
-}
-
-/* € dentro del input */
-#modalSaldo .campo-saldo > span{
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  opacity: 0.8;
-  font-size: 12px;
-}
-
-/* Quitar spinner del number SOLO aquí */
-#modalSaldo #inputSaldo::-webkit-outer-spin-button,
-#modalSaldo #inputSaldo::-webkit-inner-spin-button{
-  -webkit-appearance: none;
-  margin: 0;
-}
-#modalSaldo #inputSaldo{
-  -moz-appearance: textfield;
-  appearance: textfield;
-}
-
-/* ===== Modales: scroll para ver todas las notificaciones ===== */
+.login-btn-social:hover { border-color: rgba(15, 91, 215, 0.14); box-shadow: 0 16px 30px rgba(15, 23, 42, 0.07); }
+.login-btn-social .social-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: var(--bg-subtle); }
+.login-divider { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--text-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; }
+.login-divider::before,
+.login-divider::after { content: ""; flex: 1; height: 1px; background: rgba(15, 23, 42, 0.08); }
+.password-wrap { position: relative; margin-top: 12px; }
+.password-wrap .input-pill { margin-top: 0; padding-right: 58px; }
+.toggle-pass { position: absolute; top: 50%; right: 16px; transform: translateY(-50%); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.link-forgot,
+.auth-link-inline { display: inline-flex; margin-top: 14px; color: var(--brand-primary); font-size: 13px; font-weight: 700; background: transparent; border: 0; cursor: pointer; }
+.auth-meta,
+.login-sub.auth-footnote { margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(15, 23, 42, 0.08); font-size: 13px; }
+.auth-meta small { display: block; margin-top: 6px; color: var(--text-tertiary); line-height: 1.6; }
+body.page-legal { max-width: 1040px; margin: 0 auto; padding: 24px 16px 120px; }
+body.page-legal .wrap { max-width: 100%; padding: 0; box-shadow: none; border: 0; background: transparent; }
+body.page-legal .wrap::before { display: none; }
 .modal-bg,
-.modal-overlay {
-  overflow-y: auto;
-  padding: 24px 16px;
+.modal-overlay,
+.modal-bg-recarga,
+.modal-bg-recuperar {
+  position: fixed; inset: 0; display: none; align-items: flex-end; justify-content: center; padding: 18px 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  background: rgba(15, 23, 42, 0.44); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 3000;
 }
-
 .modal,
 .modal-content,
-.modal-card {
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
+.modal-card,
+.modal-recuperar,
+.modal-recarga {
+  width: min(640px, 100%); max-height: min(86vh, 760px); overflow: auto; border-radius: 30px; border: 1px solid rgba(15, 23, 42, 0.08); background: rgba(255,255,255,0.98); box-shadow: var(--shadow-xl);
 }
-
-/* ===== Toasts ===== */
-.toast-container {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  pointer-events: none;
+.modal,
+.modal-content,
+.modal-card,
+.modal-recarga { padding: 22px 20px; }
+.modal-close { width: 40px; height: 40px; border-radius: 14px; border: 1px solid var(--border-default); background: #fff; color: var(--text-secondary); cursor: pointer; }
+.app-nav { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom, 0px) + 12px); transform: translateX(-50%); width: min(460px, calc(100% - 24px)); z-index: 1200; }
+.nav-inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 8px; border-radius: 24px; background: rgba(255,255,255,0.48); border: 1px solid rgba(15, 23, 42, 0.08); box-shadow: var(--shadow-nav); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+.nav-btn { display: grid; place-items: center; gap: 4px; min-height: 60px; padding: 10px 8px; border-radius: 18px; color: var(--text-tertiary); font-size: 11px; font-weight: 800; letter-spacing: 0.02em; transition: transform var(--dur-fast) var(--ease-out), background var(--dur-base) var(--ease-out), color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out); }
+.nav-btn span { font-size: 19px; line-height: 1; }
+.nav-btn.active { color: var(--brand-primary); background: linear-gradient(180deg, rgba(15, 91, 215, 0.12), rgba(15, 91, 215, 0.06)); box-shadow: inset 0 0 0 1px rgba(15, 91, 215, 0.12); }
+.nav-btn div { font-weight: 800; }
+.legal-links { margin-top: 16px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 16px; color: var(--text-secondary); font-size: 12px; }
+.legal-links a { color: var(--text-secondary); font-weight: 700; }
+#modalSaldo .metodo-resumen,
+.metodo-resumen { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 0; padding: 14px 16px; border-radius: 18px; background: var(--bg-subtle); border: 1px solid rgba(15, 23, 42, 0.06); }
+#modalSaldo .campo-saldo,
+.campo-saldo { position: relative; margin-top: 14px; }
+#modalSaldo #inputSaldo,
+#inputSaldo { width: 100%; min-height: 62px; padding: 16px 56px 16px 18px; border-radius: 20px; border: 1px solid var(--border-default); background: #fff; font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
+#modalSaldo .campo-saldo > span,
+.campo-saldo > span { position: absolute; top: 50%; right: 18px; transform: translateY(-50%); font-size: 1.05rem; font-weight: 800; color: var(--text-secondary); }
+@media (min-width: 920px) {
+  .auth-layout { grid-template-columns: minmax(0, 1fr) 460px; align-items: center; }
+  body.page-auth { padding-top: 28px; padding-bottom: 36px; }
 }
-
-.toast {
-  min-width: 260px;
-  max-width: 360px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: auto;
-  opacity: 0;
-  transform: translateY(-8px);
-  transition: opacity 0.2s ease, transform 0.2s ease;
+@media (max-width: 640px) {
+  body.page-auth { padding-inline: 12px; }
+  .auth-card, .login-wrap, .wrap { padding: 24px 18px 22px; border-radius: 26px; }
+  .app-nav { width: calc(100% - 20px); }
+  .nav-inner { gap: 6px; padding: 7px; }
+  .modal, .modal-content, .modal-card, .modal-recarga { border-radius: 26px; padding: 20px 16px; }
 }
-
-.toast.show {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.toast-success {
-  background: #25c48b;
-  color: #ffffff;
-}
-
-.toast-error {
-  background: #ff4b5c;
-  color: #ffffff;
-}
-
-/* ===== Barra de navegación inferior compartida ===== */
-.app-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(100vw, 480px);
-  max-width: 480px;
-  padding: 8px 14px 14px;
-  box-sizing: border-box;
-  z-index: 50;
-}
-
-
-.nav-inner {
-  background: linear-gradient(135deg, #16a34a, #38bdf8);
-  border-radius: 999px;
-  padding: 8px 10px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
-  box-shadow: 0 18px 35px rgba(0, 0, 0, 0.45);
-  border: 1px solid rgba(187, 247, 208, 0.9);
-
-  /* Normaliza altura entre páginas (Cuenta incluida) */
-  min-height: 64px;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.nav-btn {
-  border: none;
-  background: transparent;
-  color: #ecfdf5;
-  font-size: 11px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 0;
-  border-radius: 999px;
-  text-decoration: none;
-
-  /* Normaliza altura del botón (evita que en Cuenta se vea más fino) */
-  min-height: 48px;
-  box-sizing: border-box;
-
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  touch-action: manipulation;
-}
-
-
-/* FIX móvil: cuando tocas, que el feedback sea pill (no rectángulo nativo) */
-.nav-btn:active {
-  background: rgba(15, 23, 42, 0.25);
-  border-radius: 999px;
-}
-
-.nav-btn span {
-  font-size: 16px;
-}
-
-.nav-icon {
-  font-family: "Poppins", "Inter", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif;
-}
-
-.nav-btn.active {
-  background: rgba(15, 23, 42, 0.25);
-  color: #f9fafb;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.45);
-}
-
-.nav-btn.active span {
-  transform: translateY(-1px);
-}
-
-.nav-btn div {
-  font-weight: 600;
-}
-
-/* Accessibility: focus-visible */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-.cta:focus-visible,
-.tab:focus-visible,
-.nav-btn:focus-visible,
-.modal-close:focus-visible {
-  outline: 2px solid #fbbf24;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
-}
-
-/* --- Legal links: unified separator --- */
-.legal-links {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0; /* el separador lo ponemos con ::before */
-}
-
-.legal-links a + a::before {
-  content: " · ";
-  opacity: 0.8;
-}
-
-.legal-links a {
-  text-decoration: underline;
-}
-
-/* Recibe: permitir salto de linea en textos largos */
-.receive-block .receive-main {
-  white-space: normal;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-
-/* Recibe: wrap real en textos largos (override) */
-.card .receive-block { min-width: 0; }
-.card .receive-block .receive-main{
-  min-width: 0;
-  white-space: normal !important;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-/* FIX: permitir que "Recibe" encoja y envuelva texto largo */
-.card .card-main .receive-block{
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.card .card-main .receive-block .receive-main{
-  min-width: 0;
-  white-space: normal !important;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-}
-

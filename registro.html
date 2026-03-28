@@ -4,107 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Crear cuenta | RecargasPaCuba</title>
-  <link rel="stylesheet" href="styles/base.css?v=r1">
-  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <link rel="stylesheet" href="styles/base.css?v=r2">
+  <link rel="stylesheet" href="styles/app.css?v=r2">
   <script src="js/ui.js?v=r1"></script>
   <script src="js/validators.js?v=r1"></script>
 
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    .wrap{
-      width:100%;
-      max-width:420px;
-      text-align:center;
-      padding:18px;
-    }
-
-    .title{
-      font-size:30px;
-      font-weight:800;
-      margin-bottom:10px;
-    }
-
-    .sub{
-      color:#e7f7fb;
-      margin-bottom:20px;
-      font-size:14px;
-    }
-
-    .input-pill{
-      width:100%;
-      border-radius:999px;
-      padding:14px 18px;
-      border:none;
-      margin-top:14px;
-      font-size:15px;
-      outline:none;
-      box-shadow:0 10px 26px rgba(0,0,0,0.25);
-      color:#0b1924;
-    }
-
-    .input-label {
-      display:block;
-      text-align:left;
-      margin-top:12px;
-      font-weight:700;
-      color:#e7f7fb;
-    }
-
-    .password-wrap {
-      position: relative;
-      width: 100%;
-    }
-
-    .password-wrap .input-pill {
-      padding-right: 46px;
-    }
-
-    .toggle-pass {
-      position: absolute;
-      right: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      font-size: 18px;
-      color: #0b1924;
-      user-select: none;
-      background: transparent;
-      border: none;
-      padding: 6px;
-    }
-
-    .toggle-pass:focus-visible {
-      outline: 2px solid #0b1924;
-      outline-offset: 2px;
-    }
-
-    .msg{
-      margin-top:14px;
-      font-size:13px;
-    }
-
-    .register-button {
-      margin-top:16px;
-    }
-
-    .register-login-back {
-      margin-top:14px;
-      font-size:14px;
-      text-align:center;
-      color:#e7f7fb;
-    }
-
-    .register-login-back a {
-      color:#ffffff;
-      font-weight:700;
-      text-decoration:underline;
-    }
+.wrap { max-width: 460px; }
+.auth-note-grid { display: grid; gap: 10px; margin: 18px 0 0; }
+.auth-note-grid .note { padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,0.7); border: 1px solid rgba(15,23,42,0.06); font-size: 13px; color: var(--text-secondary); }
+.msg { margin-top: 14px; font-size: 13px; }
   </style>
 </head>
 
-<body class="page-auth">
+<body class="page-auth page-register">
 
-  <div class="wrap">
+  <div class="auth-shell"><div class="auth-layout"><aside class="auth-side"><span class="eyebrow">Crear cuenta</span><h2>Abre tu acceso y deja lista la app para recargar.</h2><p>Registro limpio, validación clara y menos fricción. La lógica sigue intacta; la experiencia ya no parece de plantilla vieja.</p><ul class="auth-points"><li><div>✍️</div><div><strong>Datos mínimos</strong>Solo lo necesario para crear tu cuenta con email.</div></li><li><div>🛡️</div><div><strong>Contraseña fuerte</strong>El formulario te obliga a una clave seria, no decorativa.</div></li><li><div>📩</div><div><strong>Confirmación ordenada</strong>Soporte y recuperación siguen dentro del mismo sistema.</div></li></ul></aside><div class="wrap">
 
     <div class="title">Crear cuenta con email</div>
     <div id="password-guidance" class="sub">
@@ -162,14 +77,17 @@
     </p>
 
   </div>
+  </div>
 
   <div class="legal-links" style="text-align:center;margin-top:12px;">
+
     <small>
       <a href="terminos.html">Términos</a>
       <a href="privacidad.html">Privacidad</a>
       <a href="reembolsos.html">Reembolsos</a>
       <a href="mailto:recargaspacubaapp@gmail.com">Soporte</a>
     </small>
+  </div>
   </div>
 
   <script type="module" src="js/firebase.js?v=r1"></script>

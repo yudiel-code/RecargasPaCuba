@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -7,8 +7,8 @@
 
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#28c6db">
-  <link rel="stylesheet" href="styles/base.css?v=r1">
-  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <link rel="stylesheet" href="styles/base.css?v=r2">
+  <link rel="stylesheet" href="styles/app.css?v=r2">
   <script src="js/ui.js?v=r1"></script>
   <script type="module">
   import { guardProtectedPage } from "./js/guard.js?v=r1";
@@ -18,375 +18,82 @@
   window.onAuthStateChanged = onAuthStateChanged;
 </script>
   <style>
-    /* Tipografía como Cuenta/Recargar */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
-    /* Anti-flash align with recargar */
-    html { visibility: hidden; }
-    html.loaded { visibility: visible; }
-
-    /* Anti-flash (Historial): no muestres las cards hasta data-ready */
-    html:not(.rpc-ready) .historial-container { opacity: 0 !important; pointer-events: none; }
-    html.rpc-ready .historial-container { opacity: 1 !important; }
-
-    :root{
-      --left:#0b63d1;
-      --right:#19c6c3;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      margin: 0;
-      font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      color: white;
-      padding-bottom: 90px;
-    }
-
-    .historial-container {
-      flex: 1;
-      padding: 20px 16px 10px;
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    .icono {
-      min-width: 46px;
-      min-height: 46px;
-      border-radius: 16px;
-      background: rgba(15, 23, 42, 0.75);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      box-shadow: 0 12px 26px rgba(0,0,0,0.45);
-      position: relative;
-      z-index: 1;
-    }
-
-    .contenido {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      position: relative;
-      z-index: 1;
-    }
-
-    .titulo {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .descripcion {
-      font-size: 13px;
-      opacity: 0.92;
-      margin-top: 2px;
-    }
-
-    .fecha {
-      font-size: 12px;
-      opacity: 0.78;
-      margin-top: 4px;
-    }
-
-    .estado {
-      font-size: 12px;
-      font-weight: 700;
-      padding: 7px 12px;
-      border-radius: 999px;
-      white-space: nowrap;
-      border: 1px solid rgba(15,23,42,0.28);
-      box-shadow: 0 10px 22px rgba(0,0,0,0.40);
-      position: relative;
-      z-index: 1;
-    }
-
-    .verde    { background: #3ddc97; color: #022c22; }
-    .azul     { background: #4bbcff; color: #082f49; }
-    .rojo     { background: #ff6b6b; color: #450a0a; }
-    .amarillo { background: #ffd966; color:#422006; }
-
-    /* MODAL */
-    .modal-bg {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-      backdrop-filter: blur(6px);
-      padding: 20px 14px;
-    }
-
-    .modal {
-      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.16), transparent 55%),
-                  rgba(15, 23, 42, 0.96);
-      padding: 20px 18px 18px;
-      border-radius: 20px;
-      max-width: 420px;
-      width: 100%;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      box-shadow: 0 18px 35px rgba(0,0,0,0.55);
-      color: #fff;
-    }
-
-    .modal h3 {
-      margin: 0 0 12px;
-      text-align: center;
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .modal-item {
-      font-size: 13px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(148,163,184,0.45);
-    }
-
-    .modal-item:last-child {
-      border-bottom: none;
-    }
-
-    .cerrar {
-      margin-top: 14px;
-      width: 100%;
-      padding: 10px;
-      border-radius: 12px;
-      border: none;
-      font-weight: 700;
-      background: #ffb13b;
-      color: #2c1200;
-      cursor: pointer;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.40);
-      font-size: 14px;
-    }
-
-    .card-titulo-monedas {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .card-descripcion-monedas {
-      font-size: 11px;
-      opacity: 0.9;
-      margin-bottom: 10px;
-    }
-
-    .monedas-resumen {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 10px;
-    }
-
-    .monedas-valores {
-      font-size: 13px;
-    }
-
-    .monedas-valores .principal {
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .monedas-valores .secundario {
-      font-size: 11px;
-      opacity: 0.85;
-      margin-top: 2px;
-    }
-
-    .monedas-badge {
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      background: rgba(30, 64, 175, 0.85);
-      border: 1px solid rgba(191, 219, 254, 0.7);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .barra-progreso-wrap {
-      margin-bottom: 10px;
-    }
-
-    .barra-progreso-label {
-      font-size: 11px;
-      opacity: 0.9;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .barra-progreso {
-      width: 100%;
-      height: 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.7);
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-    }
-
-    .barra-progreso-inner {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #22c55e, #a3e635);
-      width: 0%;
-      transition: width 0.4s ease-out;
-    }
-
-    .tabla-monedas {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      margin-top: 4px;
-    }
-
-    .tabla-monedas th,
-    .tabla-monedas td {
-      padding: 4px 3px;
-      text-align: left;
-    }
-
-    .tabla-monedas th {
-      font-weight: 600;
-      opacity: 0.9;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
-    }
-
-    .tabla-monedas td {
-      opacity: 0.95;
-      border-bottom: 1px dashed rgba(51, 65, 85, 0.7);
-    }
-
-    .tabla-monedas tr:last-child td {
-      border-bottom: none;
-    }
-
-    .tabla-monedas td span.destacado {
-      color: #facc15;
-      font-weight: 600;
-    }
-
-    .canje-wrap {
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .canje-info {
-      font-size: 11px;
-      opacity: 0.9;
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .canje-info strong {
-      color: #bef264;
-    }
-
-    .btn-canje {
-      padding: 9px 16px;
-      border-radius: 999px;
-      border: none;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      background: rgba(15, 23, 42, 0.7);
-      color: rgba(148, 163, 184, 0.9);
-      border: 1px dashed rgba(148, 163, 184, 0.7);
-    }
-
-    .btn-canje.activo {
-      background: linear-gradient(135deg, #22c55e, #a3e635);
-      color: #052e16;
-      border-style: solid;
-    }
-
-    .card-lista {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      font-size: 11px;
-      opacity: 0.95;
-    }
-
-    .card-lista li {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
-
-    .bullet {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(248, 250, 252, 0.85);
-    }
-
-    .monedas-icon {
-      width: 50px;
-      height: 50px;
-      fill: #fff;
-    }
-
-    /* FIX layout: el card base es flex (fila). Este debe ser columna. */
-    .card.card-monedas{
-      display:flex !important;
-      flex-direction:column !important;
-      align-items:stretch !important;
-      justify-content:flex-start !important;
-      gap:12px;
-    }
-
-    .card.card-monedas > *{
-      width:100% !important;
-      min-width:0 !important;
-    }
-
-    .card-monedas .card-header{
-      display:flex !important;
-      align-items:flex-start !important;
-      justify-content:space-between !important;
-      gap:12px !important;
-    }
-
-    .card-monedas .card-title{
-      font-size:15px;
-      font-weight:700;
-      margin-bottom:6px;
-    }
-
-    .card-monedas .card-sub{
-      font-size:11px;
-      opacity:0.9;
-    }
-
-    .card-monedas .card-main{
-      display:flex !important;
-      align-items:flex-start !important;
-      justify-content:flex-start !important;
-      gap:14px !important;
-    }
+html { visibility: hidden; }
+html.loaded { visibility: visible; }
+html:not(.rpc-ready) .historial-container { opacity: 0 !important; pointer-events: none; }
+html.rpc-ready .historial-container { opacity: 1 !important; }
+body.page-historial { padding: 20px 14px 110px; }
+.historial-container { max-width: 520px; margin: 0 auto; display: grid; gap: 14px; }
+.history-hero { padding: 22px 20px; border-radius: 30px; background: linear-gradient(160deg, rgba(15,91,215,0.14), rgba(240,138,63,0.08)); border: 1px solid rgba(15,91,215,0.10); box-shadow: var(--shadow-md); }
+.history-hero h1 { margin-top: 12px; font-family: var(--font-display); font-size: clamp(1.7rem, 6vw, 2.2rem); line-height: 1.02; letter-spacing: -0.04em; }
+.history-hero p { margin-top: 12px; font-size: 13px; line-height: 1.6; color: var(--text-secondary); }
+.history-hero-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-top: 18px; }
+.history-hero-grid div { padding: 12px; border-radius: 18px; background: rgba(255,255,255,0.72); border: 1px solid rgba(255,255,255,0.5); }
+.history-hero-grid strong { display:block; font-size: 14px; }
+.history-hero-grid span { display:block; margin-top: 2px; font-size: 12px; color: var(--text-secondary); }
+.historial-container > .card.card--gradient:not(.card-monedas) { display: grid; grid-template-columns: 52px minmax(0,1fr) auto; gap: 14px; align-items: start; padding: 18px; border-radius: 28px; box-shadow: var(--shadow-sm); cursor: pointer; }
+.icono { width: 52px; height: 52px; border-radius: 18px; display: grid; place-items: center; background: rgba(15,91,215,0.08); border: 1px solid rgba(15,91,215,0.10); font-size: 20px; }
+.contenido { display: grid; gap: 4px; min-width: 0; }
+.titulo { font-family: var(--font-display); font-size: 1rem; font-weight: 800; line-height: 1.2; }
+.descripcion { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.fecha { color: var(--text-tertiary); font-size: 12px; }
+.estado { align-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 7px 12px; border-radius: 999px; border: 1px solid rgba(15,23,42,0.08); background: #fff; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.estado.verde { color: var(--success); background: rgba(19,135,95,0.08); border-color: rgba(19,135,95,0.12); }
+.estado.azul { color: var(--brand-primary); background: rgba(15,91,215,0.08); border-color: rgba(15,91,215,0.12); }
+.estado.amarillo { color: var(--warning); background: rgba(182,118,22,0.10); border-color: rgba(182,118,22,0.14); }
+.estado.rojo { color: var(--danger); background: rgba(194,65,67,0.08); border-color: rgba(194,65,67,0.12); }
+.card-monedas { padding: 20px; border-radius: 30px; box-shadow: var(--shadow-md); }
+.card-monedas .card-header, .card-monedas .card-main { position: relative; z-index: 1; }
+.monedas-icon { width: 54px; height: 54px; }
+.monedas-valores .principal { font-family: var(--font-display); font-size: 1.9rem; line-height: 1; font-weight: 800; letter-spacing: -0.04em; }
+.monedas-valores .secundario { margin-top: 8px; color: var(--text-secondary); font-size: 13px; line-height: 1.55; }
+.barra-progreso-wrap { position: relative; z-index: 1; margin-top: 16px; }
+.barra-progreso-label { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+.barra-progreso { height: 12px; border-radius: 999px; background: rgba(15,23,42,0.08); overflow: hidden; }
+.barra-progreso-inner { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--brand-primary), var(--brand-accent)); }
+.tabla-monedas { position: relative; z-index: 1; width: 100%; margin-top: 16px; border-collapse: collapse; border-radius: 20px; overflow: hidden; background: rgba(255,255,255,0.74); }
+.tabla-monedas th, .tabla-monedas td { padding: 12px; border-bottom: 1px solid rgba(15,23,42,0.06); text-align: left; font-size: 12px; }
+.tabla-monedas th { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-tertiary); }
+.card-lista { position: relative; z-index: 1; display: grid; gap: 10px; margin-top: 16px; }
+.card-lista li { list-style: none; display: flex; gap: 10px; align-items: flex-start; color: var(--text-secondary); font-size: 13px; }
+.bullet { width: 8px; height: 8px; margin-top: 7px; border-radius: 999px; background: var(--brand-primary); flex: 0 0 auto; }
+.canje-wrap { position: relative; z-index: 1; margin-top: 18px; padding: 16px; border-radius: 22px; background: rgba(255,255,255,0.76); border: 1px solid rgba(15,23,42,0.06); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.canje-info { color: var(--text-secondary); font-size: 13px; line-height: 1.55; }
+.btn-canje { min-height: 46px; padding: 0 16px; border-radius: 16px; border: 0; background: linear-gradient(135deg, var(--brand-accent), #f3a450); color: var(--text-primary); font-weight: 800; }
+.modal { padding: 22px 18px; }
+#modal-titulo { font-family: var(--font-display); font-size: 1.35rem; line-height: 1.05; letter-spacing: -0.03em; }
+#modal-lista { display: grid; gap: 10px; margin-top: 16px; }
+.modal-item { padding: 16px; border-radius: 22px; border: 1px solid rgba(15,23,42,0.06); background: var(--bg-subtle); }
+.modal-item-empty { color: var(--text-secondary); font-size: 13px; }
+.modal-entry-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.modal-entry-title { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+.modal-entry-amount { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; white-space: nowrap; }
+.modal-entry-amount.is-plus { color: var(--success); }
+.modal-entry-amount.is-minus { color: var(--text-primary); }
+.modal-entry-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.modal-chip { display: inline-flex; align-items: center; min-height: 30px; padding: 6px 10px; border-radius: 999px; background: #fff; border: 1px solid rgba(15,23,42,0.06); color: var(--text-secondary); font-size: 12px; font-weight: 700; }
+.modal-chip.status-completed { color: var(--success); }
+.modal-chip.status-pending { color: var(--warning); }
+.modal-chip.status-failed { color: var(--danger); }
+.modal-chip.status-cancelled, .modal-chip.status-refunded { color: var(--brand-primary); }
+.cerrar { margin-top: 18px; min-height: 46px; padding: 0 16px; border-radius: 16px; border: 1px solid rgba(15,23,42,0.08); background: #fff; font-weight: 800; color: var(--text-primary); }
+@media (max-width: 420px){ .history-hero-grid { grid-template-columns: 1fr; } .historial-container > .card.card--gradient:not(.card-monedas) { grid-template-columns: 52px minmax(0,1fr); } .estado { grid-column: 2; justify-self: start; } .canje-wrap { flex-direction: column; align-items: stretch; } }
   </style>
 </head>
 
-<body>
+<body class="page-historial">
 
   <div class="historial-container" style="opacity:0; pointer-events:none;">
+
+    <section class="history-hero">
+      <span class="eyebrow">Tu actividad</span>
+      <h1>Consulta movimientos, estado y recompensas.</h1>
+      <div class="history-hero-grid">
+        <div><strong>Recargas</strong><span>Resumen claro y apertura rápida de detalles.</span></div>
+        <div><strong>Saldo</strong><span>Separación real entre movimientos útiles y secundarios.</span></div>
+        <div><strong>Monedas</strong><span>Programa visible y explicado de manera facil.</span></div>
+      </div>
+    </section>
 
     <div class="card card--gradient" id="card-recarga" role="button" tabindex="0" aria-label="Ver historial de recargas">
       <div class="icono">⚡</div>
@@ -1255,6 +962,43 @@ if (correoTituloEl) {
         const modalDlg   = modalBg ? modalBg.querySelector(".modal") : null;
         let lastFocusedElement = null;
 
+
+function rpcEsc(v) {
+  return String(v == null ? "" : v)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function rpcStatusMeta(statusValue) {
+  const up = String(statusValue || "").trim().toUpperCase();
+  if (up === "COMPLETED") return { label: "Completada", cls: "status-completed" };
+  if (up === "PENDING") return { label: "En proceso", cls: "status-pending" };
+  if (up === "FAILED") return { label: "Fallida", cls: "status-failed" };
+  if (up === "CANCELLED" || up === "CANCELED") return { label: "Cancelada", cls: "status-cancelled" };
+  if (up === "REFUNDED") return { label: "Reembolsada", cls: "status-refunded" };
+  return { label: up || "Sin estado", cls: "" };
+}
+
+function rpcBuildModalEntry({ title, amountText, amountKind, chips }) {
+  const safeTitle = rpcEsc(title || "Movimiento");
+  const safeAmount = rpcEsc(amountText || "");
+  const amountCls = amountKind === "plus" ? "is-plus" : "is-minus";
+  const chipHtml = (Array.isArray(chips) ? chips : [])
+    .filter(Boolean)
+    .map((chip) => `<span class="modal-chip ${rpcEsc(chip.cls || "")}">${rpcEsc(chip.label || "")}</span>`)
+    .join("");
+  return `
+    <div class="modal-entry-head">
+      <div class="modal-entry-title">${safeTitle}</div>
+      ${safeAmount ? `<div class="modal-entry-amount ${amountCls}">${safeAmount}</div>` : ""}
+    </div>
+    <div class="modal-entry-meta">${chipHtml}</div>
+  `;
+}
+
         function abrirModalAccesible() {
           if (!modalBg) return;
           lastFocusedElement = document.activeElement;
@@ -1288,7 +1032,7 @@ if (correoTituloEl) {
           datos.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
 
           if (!datos.length) {
-            modalLista.innerHTML = '<div class="modal-item">Sin movimientos registrados</div>';
+            modalLista.innerHTML = '<div class="modal-item modal-item-empty">Sin movimientos registrados</div>';
           } else {
             datos.forEach(m => {
               const importe = Number(m.importe);
@@ -1314,7 +1058,8 @@ if (correoTituloEl) {
               }
 
               const fila = document.createElement("div");
-              fila.className = "modal-item";
+              
+fila.className = "modal-item";
 
               const partsEs = (Array.isArray(parts) ? parts : []).map((p) => {
                 const s = (p == null) ? "" : String(p);
@@ -1327,18 +1072,25 @@ if (correoTituloEl) {
                 return s;
               });
 
-              fila.textContent = partsEs.join(" | ");
-              // Traduce estados a ES si vienen como tokens canónicos
-              try {
-                const txt = (fila.textContent || "").toString();
-                fila.textContent = txt
-                  .replace(/\bCOMPLETED\b/g, "Completada")
-                  .replace(/\bPENDING\b/g, "En proceso")
-                  .replace(/\bFAILED\b/g, "Fallida")
-                  .replace(/\bCANCELLED\b/g, "Cancelada")
-                  .replace(/\bCANCELED\b/g, "Cancelada")
-                  .replace(/\bREFUNDED\b/g, "Reembolsada");
-              } catch (_) {}
+              const statusInfo = rpcStatusMeta(statusUp);
+              const titleText =
+                tipo === "recarga"
+                  ? (m.numero || m.destino || m.productId || "Recarga")
+                  : (tipo === "saldo"
+                      ? `Saldo añadido${m.metodoPago ? ` · ${m.metodoPago}` : ""}`
+                      : "Movimiento");
+
+              fila.innerHTML = rpcBuildModalEntry({
+                title: titleText,
+                amountText: impTxt,
+                amountKind: tipo === "saldo" ? "plus" : "minus",
+                chips: [
+                  ft ? { label: ft } : null,
+                  tipo === "recarga" && statusUp ? { label: statusInfo.label, cls: statusInfo.cls } : null,
+                  m.productId ? { label: m.productId } : null,
+                  m.orderId ? { label: `ID ${m.orderId}` } : null
+                ]
+              });
 
               modalLista.appendChild(fila);
             });
@@ -1357,7 +1109,7 @@ if (correoTituloEl) {
           recargasLocal.sort((a, b) => (sortKeyMovimiento(b) - sortKeyMovimiento(a)));
 
           if (!recargasLocal.length) {
-            modalLista.innerHTML = '<div class="modal-item">No hay correos enviados</div>';
+            modalLista.innerHTML = '<div class="modal-item modal-item-empty">No hay correos enviados</div>';
           } else {
             recargasLocal.forEach(m => {
               const idTxt      = m.id || "Sin ID";
@@ -1369,10 +1121,21 @@ if (correoTituloEl) {
 
               const payMethodTxt = rpcResolvePaymentLabelForMovimiento(m, lista);
 
-              const fila = document.createElement("div");
+              
+const fila = document.createElement("div");
               fila.className = "modal-item";
-              fila.textContent =
-                `${normalizeFechaText(m) || ""} | ${emailTxt} | ${importeTxt} | ${m.numero || ""} | ${estadoTxt} | Pago: ${payMethodTxt} | ID: ${idTxt}`;
+              fila.innerHTML = rpcBuildModalEntry({
+                title: m.numero || emailTxt || "Correo enviado",
+                amountText: importeTxt,
+                amountKind: "minus",
+                chips: [
+                  normalizeFechaText(m) ? { label: normalizeFechaText(m) } : null,
+                  emailTxt ? { label: emailTxt } : null,
+                  { label: estadoTxt, cls: estadoTxt === "Entregada" ? "status-completed" : "status-pending" },
+                  payMethodTxt ? { label: `Pago ${payMethodTxt}` } : null,
+                  idTxt ? { label: `ID ${idTxt}` } : null
+                ]
+              });
               modalLista.appendChild(fila);
             });
           }
