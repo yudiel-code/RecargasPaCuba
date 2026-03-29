@@ -114,14 +114,6 @@ body.page-legal .wrap::before { display: none; }
 .nav-btn div { font-weight: 800; }
 .legal-links { margin-top: 16px; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px 16px; color: var(--text-secondary); font-size: 12px; }
 .legal-links a { color: var(--text-secondary); font-weight: 700; }
-#modalSaldo .metodo-resumen,
-.metodo-resumen { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 0; padding: 14px 16px; border-radius: 18px; background: var(--bg-subtle); border: 1px solid rgba(15, 23, 42, 0.06); }
-#modalSaldo .campo-saldo,
-.campo-saldo { position: relative; margin-top: 14px; }
-#modalSaldo #inputSaldo,
-#inputSaldo { width: 100%; min-height: 62px; padding: 16px 56px 16px 18px; border-radius: 20px; border: 1px solid var(--border-default); background: #fff; font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; }
-#modalSaldo .campo-saldo > span,
-.campo-saldo > span { position: absolute; top: 50%; right: 18px; transform: translateY(-50%); font-size: 1.05rem; font-weight: 800; color: var(--text-secondary); }
 @media (min-width: 920px) {
   .auth-layout { grid-template-columns: minmax(0, 1fr) 460px; align-items: center; }
   body.page-auth { padding-top: 28px; padding-bottom: 36px; }

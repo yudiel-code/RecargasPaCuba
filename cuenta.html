@@ -40,20 +40,7 @@
       gap: 12px;
       margin-bottom: 4px;
     }
-
-    .back-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 999px;
-      border: none;
-      background: rgba(9, 53, 118, 0.8);
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-
+ 
     .header-title {
       flex: 1;
       font-size: 20px;
@@ -83,9 +70,44 @@
 
     .app-scroll {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
       overflow-y: auto;
       padding-top: 10px;
-      padding-bottom: 20px;
+      padding-bottom: 24px;
+    }
+
+    .app-scroll > .card.card--gradient {
+      box-shadow: none;
+      color: #0f172a;
+    }
+
+    .app-scroll > .card.card--gradient .card-title,
+    .app-scroll > .card.card--gradient .usuario-datos .nombre,
+    .app-scroll > .card.card--gradient .link-text-main,
+    .app-scroll > .card.card--gradient #uidUsuario,
+    .app-scroll > .card.card--gradient .link-chevron {
+      color: #0f172a;
+      opacity: 1;
+    }
+
+    .app-scroll > .card.card--gradient .card-sub,
+    .app-scroll > .card.card--gradient .usuario-datos .correo,
+    .app-scroll > .card.card--gradient .usuario-datos .tag,
+    .app-scroll > .card.card--gradient .link-text-sub,
+    .app-scroll > .card.card--gradient .seguridad-lista,
+    .app-scroll > .card.card--gradient .seguridad-lista li span:last-child {
+      color: rgba(15, 23, 42, 0.72);
+      opacity: 1;
+    }
+
+    .sub-card,
+    .sub-card span.label,
+    .sub-card span.valor,
+    .sub-card .cta {
+      color: #f8fafc;
+      opacity: 1;
     }
 
     .card-header {
@@ -106,51 +128,6 @@
       opacity: 0.85;
     }
 
-    .card-tag {
-      padding: 5px 10px;
-      border-radius: 999px;
-      background: rgba(34, 211, 238, 0.16);
-      border: 1px solid rgba(125, 211, 252, 0.8);
-      font-size: 11px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .card-tag span.dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background-color: #22c55e;
-    }
-
-    .card-main {
-      margin-top: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-      z-index: 1;
-    }
-
-    .mini-label {
-      font-size: 11px;
-      opacity: 0.8;
-    }
-
-    .saldo-valor {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
-
-    .ultima-linea {
-      margin-top: 6px;
-      font-size: 12px;
-      opacity: 0.9;
-    }
-
     .btn-small {
       padding: 9px 14px;
       border-radius: 999px;
@@ -163,11 +140,6 @@
       gap: 6px;
     }
 
-    .btn-small.primary {
-      background: linear-gradient(135deg, #fbbf24, #f97316);
-      color: #1f2933;
-    }
-
     .btn-small.secondary {
       background: rgba(15, 118, 178, 0.92);
       color: #e0f2fe;
@@ -176,18 +148,6 @@
     .btn-small svg {
       width: 15px;
       height: 15px;
-    }
-
-    .card-footer {
-      margin-top: 10px;
-      display: flex;
-      justify-content: flex-start;
-      gap: 10px;
-      flex-wrap: wrap;
-      font-size: 11px;
-      opacity: 0.9;
-      position: relative;
-      z-index: 1;
     }
 
     .pill-info {
@@ -327,165 +287,6 @@
       color: #fbbf24;
     }
 
-    .card-titulo-monedas {
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .card-descripcion-monedas {
-      font-size: 11px;
-      opacity: 0.9;
-      margin-bottom: 10px;
-    }
-
-    .monedas-resumen {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-      margin-bottom: 10px;
-    }
-
-    .monedas-valores {
-      font-size: 13px;
-    }
-
-    .monedas-valores .principal {
-      font-size: 20px;
-      font-weight: 800;
-    }
-
-    .monedas-valores .secundario {
-      font-size: 11px;
-      opacity: 0.85;
-      margin-top: 2px;
-    }
-
-    .monedas-badge {
-      padding: 4px 8px;
-      border-radius: 999px;
-      font-size: 10px;
-      background: rgba(30, 64, 175, 0.85);
-      border: 1px solid rgba(191, 219, 254, 0.7);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .barra-progreso-wrap {
-      margin-bottom: 10px;
-    }
-
-    .barra-progreso-label {
-      font-size: 11px;
-      opacity: 0.9;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .barra-progreso {
-      width: 100%;
-      height: 9px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.7);
-      overflow: hidden;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-    }
-
-    .barra-progreso-inner {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #22c55e, #a3e635);
-      width: 0%;
-      transition: width 0.4s ease-out;
-    }
-
-    .tabla-monedas {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 11px;
-      margin-top: 4px;
-    }
-
-    .tabla-monedas th,
-    .tabla-monedas td {
-      padding: 4px 3px;
-      text-align: left;
-    }
-
-    .tabla-monedas th {
-      font-weight: 600;
-      opacity: 0.9;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.5);
-    }
-
-    .tabla-monedas td {
-      opacity: 0.95;
-      border-bottom: 1px dashed rgba(51, 65, 85, 0.7);
-    }
-
-    .tabla-monedas tr:last-child td {
-      border-bottom: none;
-    }
-
-    .tabla-monedas td span.destacado {
-      color: #facc15;
-      font-weight: 600;
-    }
-
-    .canje-wrap {
-      margin-top: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .canje-info {
-      font-size: 11px;
-      opacity: 0.9;
-      flex: 1;
-      min-width: 160px;
-    }
-
-    .canje-info strong {
-      color: #bef264;
-    }
-
-    .btn-canje {
-      padding: 9px 16px;
-      border-radius: 999px;
-      border: none;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      background: rgba(15, 23, 42, 0.7);
-      color: rgba(148, 163, 184, 0.9);
-      border: 1px dashed rgba(148, 163, 184, 0.7);
-    }
-
-    .btn-canje.activo {
-      background: linear-gradient(135deg, #22c55e, #a3e635);
-      color: #052e16;
-      border-style: solid;
-    }
-
-    .card-lista {
-      list-style: none;
-      padding: 0;
-      margin: 10px 0 0;
-      font-size: 11px;
-      opacity: 0.95;
-    }
-
-    .card-lista li {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 4px;
-    }
 
     .bullet {
       width: 6px;
@@ -545,43 +346,7 @@
       font-size: 13px;
       opacity: 0.95;
     }
-
-    .selector-banco {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-    }
-
-    .banco-pill {
-      flex: 1;
-      min-width: 110px;
-      padding: 9px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: rgba(15, 23, 42, 0.95);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      cursor: pointer;
-      font-size: 12px;
-    }
-
-    .banco-pill span.nombre {
-      font-weight: 600;
-    }
-
-    .banco-pill span.tag {
-      font-size: 10px;
-      opacity: 0.85;
-    }
-
-    .banco-pill.active {
-      border-color: rgba(56, 189, 248, 0.9);
-      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.16), rgba(15, 23, 42, 0.96));
-    }
-
+ 
     .modal-footer {
       margin-top: 12px;
       display: flex;
@@ -611,34 +376,7 @@
       cursor: pointer;
       font-weight: 600;
     }
-
-    .metodo-resumen {
-      margin-top: 10px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-    }
-
-    .metodo-resumen strong {
-      color: #e5e7eb;
-    }
-
-    .metodo-cambiar {
-      border: none;
-      background: transparent;
-      color: #38bdf8;
-      font-size: 11px;
-      cursor: pointer;
-      text-decoration: underline;
-      padding: 4px 6px;
-      border-radius: 999px;
-    }
-
+ 
     .link-list {
       list-style: none;
       padding: 0;
@@ -795,20 +533,14 @@
       border-radius: 999px;
       background: rgba(190, 242, 100, 0.9);
     }
-
-    .monedas-icon {
-      width: 50px;
-      height: 50px;
-      fill: #fff;
-    }
-
-    #avatarBox:focus-visible,
-    .metodo-opcion:focus-visible,
+ 
+     #avatarBox:focus-visible,
     .link-list li:focus-visible {
       outline: 2px solid #fbbf24;
       outline-offset: 3px;
       box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.35);
     }
+
   </style>
 </head>
 
@@ -825,40 +557,7 @@
     </header>
 
     <div class="app-scroll">
-      <section class="card card--gradient" style="display:none">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Saldo RecargasPaCuba</div>
-            <div class="card-sub">Controla tu saldo disponible y tus últimos movimientos</div>
-          </div>
-          <div class="card-tag">
-            <span class="dot"></span>
-            <span>Seguro y en España</span>
-          </div>
-        </div>
 
-        <div class="card-main">
-          <div>
-            <div class="mini-label">Saldo disponible</div>
-            <div id="saldo" class="saldo-valor">0,00 €</div>
-            <div id="ultimoMovimiento" class="ultima-linea">Último movimiento: Aún no tienes movimientos</div>
-          </div>
-          <div style="margin-left:auto; display:flex; flex-direction:column; align-items:flex-end; gap:16px;">
-            <button id="addSaldoBtn" class="btn-small primary">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              Añadir saldo
-            </button>
-          </div>
-        </div>
-
-        <div class="card-footer" style="display:flex; flex-wrap:wrap; align-items:center; gap:10px;">
-          <div class="pill-info">Tarifa sin permanencia</div>
-          <div class="pill-info">Registro en España</div>
-          <div class="pill-info">Historial accesible al instante</div>
-        </div>
-      </section>
 
       <section class="card card--gradient">
         <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
@@ -949,7 +648,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Centro legal</div>
-            <div class="card-sub">Información legal y documentación de tu cuenta y la app</div>
+            <div class="card-sub">Información legal, documentación de tu cuenta y la web</div>
           </div>
         </div>
 
@@ -1006,87 +705,7 @@
         <div>Cuenta</div>
       </a>
     </div>
-  </nav>
-
-  <div id="modalMetodo" class="modal-bg">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalMetodoTitle" tabindex="-1">
-      <div class="modal-header">
-        <div class="modal-title" id="modalMetodoTitle">Seleccionar método de pago</div>
-        <button class="modal-close" data-close="metodo" type="button" aria-label="Cerrar">×</button>
-      </div>
-      <div class="modal-body">
-        <p>Elige cómo quieres añadir saldo a tu monedero RecargasPaCuba.</p>
-        <div class="selector-banco">
-          <div class="banco-pill metodo-opcion" data-metodo="bizum" role="button" tabindex="0" aria-label="Seleccionar Bizum">
-            <div>
-              <span class="nombre">Bizum</span><br>
-              <span class="tag">En segundos</span>
-            </div>
-            <div>📲</div>
-          </div>
-          <div class="banco-pill metodo-opcion" data-metodo="transferencia" role="button" tabindex="0" aria-label="Seleccionar transferencia">
-            <div>
-              <span class="nombre">Transferencia</span><br>
-              <span class="tag">24-48 horas</span>
-            </div>
-            <div>🏦</div>
-          </div>
-          <div class="banco-pill metodo-opcion" data-metodo="paypal" role="button" tabindex="0" aria-label="Seleccionar PayPal">
-            <div>
-              <span class="nombre">PayPal</span><br>
-              <span class="tag">Pago online</span>
-            </div>
-            <div>🅿️</div>
-          </div>
-          <div class="banco-pill metodo-opcion" data-metodo="tarjeta" role="button" tabindex="0" aria-label="Seleccionar tarjeta">
-            <div>
-              <span class="nombre">Visa &amp; Mastercard</span><br>
-              <span class="tag">Tarjeta bancaria</span>
-            </div>
-            <div>💳</div>
-          </div>
-        </div>
-        <p style="font-size:11px;opacity:0.85;">
-          Por ahora este panel es informativo. Más adelante, al activarlo, verás los datos
-          reales (Bizum, transferencia, PayPal o tarjeta) y las confirmaciones de pago dentro de la app.
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" data-close="metodo">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modalSaldo" class="modal-bg">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalSaldoTitle" tabindex="-1">
-      <div class="modal-header">
-        <div class="modal-title" id="modalSaldoTitle">Añadir saldo manual</div>
-        <button class="modal-close" data-close="saldo" type="button" aria-label="Cerrar">×</button>
-      </div>
-      <div class="modal-body">
-        <p>Introduce el importe que quieres añadir a tu saldo una vez confirmado el pago. <strong>Saldo máximo permitido: 100 €</strong> (si intentas añadir más, solo se añadirá hasta alcanzar el límite).</p>
-        <div id="metodoResumen" class="metodo-resumen" style="display:none;">
-          <span>Método seleccionado: <strong id="metodoSeleccionadoTexto"></strong></span>
-          <button id="cambiarMetodoBtn" type="button" class="metodo-cambiar">Cambiar</button>
-        </div>
-        <div class="campo-saldo">
-          <input id="inputSaldo" type="number" min="0" step="1" placeholder="Ej: 20">
-          <span>€</span>
-        </div>
-        <p style="font-size:11px;opacity:0.85;margin-top:8px;">
-          Este panel está pensado para uso interno. Úsalo solo cuando hayas confirmado el pago
-          (Bizum, transferencia, PayPal o tarjeta).
-        </p>
-      </div>
-      <div class="modal-footer">
-        <span class="alerta">
-          Recuerda registrar los movimientos de saldo también en tu control interno.
-        </span>
-        <button class="btn-secondary" data-close="saldo" type="button">Cancelar</button>
-        <button id="confirmarSaldoBtn" class="btn-primary">Guardar saldo</button>
-      </div>
-    </div>
-  </div>
+ </nav>
 
   <div id="modalCuenta" class="modal-bg">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalCuentaTitle" tabindex="-1">
@@ -1261,178 +880,11 @@ const correoUsuarioEl = document.getElementById("correoUsuario");
 if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
 
 
-    // ===== Capa de acceso a saldo / historial vía UserData (preparada para backend) =====
-    function getSaldo() {
-      if (window.UserData && typeof window.UserData.getSaldo === "function") {
-        return window.UserData.getSaldo();
-      }
-      console.warn("UserData.getSaldo no disponible; devolviendo 0.");
-      return 0;
-    }
-
-    function setSaldo(nuevoSaldo) {
-      if (window.UserData && typeof window.UserData.setSaldo === "function") {
-        window.UserData.setSaldo(nuevoSaldo);
-        return;
-      }
-      console.warn("UserData.setSaldo no disponible; saldo no persistido.");
-    }
-
-    function getHistorialSeguro() {
-      if (window.UserData && typeof window.UserData.getHistorial === "function") {
-        const lista = window.UserData.getHistorial();
-        return Array.isArray(lista) ? lista : [];
-      }
-      console.warn("UserData.getHistorial no disponible; usando lista vacía.");
-      return [];
-    }
-
-    function guardarMovimientoSaldo(importe, metodo) {
-      if (window.UserData && typeof window.UserData.addMovimientoSaldo === "function") {
-        window.UserData.addMovimientoSaldo(importe, metodo || "manual");
-        if (window.UserData && typeof window.UserData.recalcularMonedas === "function") {
-          window.UserData.recalcularMonedas();
-        }
-        return;
-      }
-      console.warn("UserData.addMovimientoSaldo no disponible; movimiento no guardado.");
-    }
-
-    function cargarSaldo() {
-      const saldo = getSaldo();
-      const saldoEl = document.getElementById("saldo");
-      if (saldoEl) {
-        saldoEl.textContent = saldo.toFixed(2) + " €";
-      }
-    }
-
-    function cargarUltimoMovimiento() {
-      const cont = document.getElementById("ultimoMovimiento");
-      if (!cont) return;
-
-      const historial = getHistorialSeguro();
-
-      if (!historial.length) {
-        cont.textContent = "Último movimiento: sin actividad";
-        return;
-      }
-
-      const ultimo = historial[0];
-
-      if (ultimo.tipo === "recarga") {
-        cont.textContent =
-          "Último movimiento: Recarga de " +
-          Number(ultimo.importe || 0).toFixed(2) + " € a " + (ultimo.numero || "");
-      } else if (ultimo.tipo === "saldo") {
-        cont.textContent =
-          "Último movimiento: Saldo añadido de " +
-          Number(ultimo.importe || 0).toFixed(2) + " €";
-      } else {
-        cont.textContent = "Último movimiento: " + (ultimo.descripcion || "sin descripción");
-      }
-    }
-
-    function getMetodoPagoActual() {
-      return localStorage.getItem("rpc_metodo_pago") || "";
-    }
-
-    function setMetodoPagoActual(metodo) {
-      localStorage.setItem("rpc_metodo_pago", metodo);
-      marcarMetodoActivo();
-      actualizarTextoMetodo();
-    }
-
-    const modalMetodo = document.getElementById("modalMetodo");
-    const modalSaldo  = document.getElementById("modalSaldo");
-    const modalCuenta = document.getElementById("modalCuenta");
-    const inputSaldo  = document.getElementById("inputSaldo");
-    const modalMetodoDlg = modalMetodo ? modalMetodo.querySelector(".modal") : null;
-    const modalSaldoDlg  = modalSaldo ? modalSaldo.querySelector(".modal") : null;
+   const modalCuenta = document.getElementById("modalCuenta");
     const modalCuentaDlg = modalCuenta ? modalCuenta.querySelector(".modal") : null;
-    const modalMetodoClose = modalMetodo ? modalMetodo.querySelector(".modal-close") : null;
     let lastFocusedElement = null;
     let openModalId = "";
-
-    function obtenerNombreMetodo(metodo) {
-      switch (metodo) {
-        case "bizum": return "Bizum";
-        case "transferencia": return "Transferencia";
-        case "paypal": return "PayPal";
-        case "tarjeta": return "Visa & Mastercard";
-        default: return "";
-      }
-    }
-
-    function actualizarTextoMetodo() {
-      const metodo = getMetodoPagoActual();
-      const contenedor = document.getElementById("metodoResumen");
-      const texto = document.getElementById("metodoSeleccionadoTexto");
-      if (!contenedor || !texto) return;
-
-      const nombre = obtenerNombreMetodo(metodo);
-      if (nombre) {
-        texto.textContent = nombre;
-        contenedor.style.display = "flex";
-      } else {
-        contenedor.style.display = "none";
-      }
-    }
-
-    function marcarMetodoActivo() {
-      const actual = getMetodoPagoActual();
-      document.querySelectorAll(".metodo-opcion").forEach(function(op) {
-        const metodo = op.getAttribute("data-metodo");
-        if (metodo === actual) {
-          op.classList.add("active");
-        } else {
-          op.classList.remove("active");
-        }
-      });
-    }
-
-    function abrirModalMetodo() {
-      if (modalMetodo) {
-        lastFocusedElement = document.activeElement;
-        openModalId = "metodo";
-        marcarMetodoActivo();
-        modalMetodo.style.display = "flex";
-        const foco = modalMetodoClose || modalMetodoDlg;
-        if (foco && typeof foco.focus === "function") {
-          setTimeout(() => foco.focus(), 0);
-        }
-      }
-    }
-
-    function cerrarModalMetodo() {
-      if (modalMetodo) modalMetodo.style.display = "none";
-      if (openModalId === "metodo") openModalId = "";
-      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
-        lastFocusedElement.focus();
-      }
-    }
-
-    function abrirModalSaldo() {
-      if (modalSaldo) {
-        lastFocusedElement = document.activeElement;
-        openModalId = "saldo";
-        actualizarTextoMetodo();
-        modalSaldo.style.display = "flex";
-        const foco = inputSaldo || modalSaldoDlg;
-        if (foco && typeof foco.focus === "function") {
-          setTimeout(() => foco.focus(), 0);
-        }
-      }
-    }
-
-    function cerrarModalSaldo() {
-      if (modalSaldo) modalSaldo.style.display = "none";
-      if (openModalId === "saldo") openModalId = "";
-      if (inputSaldo) inputSaldo.value = "";
-      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
-        lastFocusedElement.focus();
-      }
-    }
-
+ 
     function abrirModalCuenta() {
       if (!modalCuenta) return;
       lastFocusedElement = document.activeElement;
@@ -1461,11 +913,7 @@ if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
 
     document.addEventListener("keydown", function(e) {
       if (e.key !== "Escape") return;
-      if (openModalId === "metodo") {
-        cerrarModalMetodo();
-      } else if (openModalId === "saldo") {
-        cerrarModalSaldo();
-      } else if (openModalId === "cuenta") {
+      if (openModalId === "cuenta") {
         cerrarModalCuenta();
       }
     });
@@ -1473,23 +921,15 @@ if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
     document.querySelectorAll(".modal-close").forEach(function(btn) {
       btn.addEventListener("click", function() {
         const tipo = btn.getAttribute("data-close");
-        if (tipo === "metodo") cerrarModalMetodo();
-        if (tipo === "saldo") cerrarModalSaldo();
-        if (tipo === "cuenta") cerrarModalCuenta();
+         if (tipo === "cuenta") cerrarModalCuenta();
       });
     });
 
     document.querySelectorAll(".modal-bg").forEach(function(bg) {
       bg.addEventListener("click", function(e) {
         if (e.target !== bg) return;
-        if (bg.id === "modalMetodo") {
-          cerrarModalMetodo();
-        } else if (bg.id === "modalSaldo") {
-          cerrarModalSaldo();
-        } else if (bg.id === "modalCuenta") {
+        if (bg.id === "modalCuenta") {
           cerrarModalCuenta();
-        } else {
-          bg.style.display = "none";
         }
       });
     });
@@ -1570,11 +1010,7 @@ if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
         }
       });
     }
-
-    document.querySelectorAll(".link-list li").forEach(function(li) {
-      li.style.cursor = "pointer";
-    });
-
+ 
     document.querySelectorAll(".link-list li").forEach(function(li, idx) {
       li.addEventListener("click", function() {
         if (idx === 0) {
@@ -1702,125 +1138,7 @@ if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
       });
     }
 
-    const confirmarSaldoBtn = document.getElementById("confirmarSaldoBtn");
-    if (confirmarSaldoBtn && inputSaldo) {
-      confirmarSaldoBtn.addEventListener("click", function() {
-        const valor = parseFloat(inputSaldo.value);
-        if (isNaN(valor)) {
-          showToastError("Introduce un importe válido.");
-          return;
-        }
-
-        if (valor < 10) {
-          showToastError("El importe mínimo para agregar saldo es de 10 €.");
-          return;
-        }
-
-        const metodoActual = getMetodoPagoActual() || "manual";
-
-        // Camino único recomendado: UserData.addSaldo (cap + movimiento + meta)
-        if (window.UserData && typeof window.UserData.addSaldo === "function") {
-          window.UserData.addSaldo(valor, metodoActual);
-
-          const meta = window.__rpc_last_add_saldo;
-
-          if (!meta || !meta.ok) {
-            if (meta && meta.reason === "MAX_REACHED") {
-              showToastError("Límite de saldo alcanzado (100.00 €).");
-            } else if (meta && meta.reason === "MIN_AMOUNT") {
-              showToastError("El importe mínimo para agregar saldo es de 10 €.");
-            } else {
-              showToastError("No se pudo añadir saldo.");
-            }
-            // No cerramos el modal si falló
-            cargarSaldo();
-            cargarUltimoMovimiento();
-            calcularMonedas();
-            return;
-          }
-
-          // OK
-          if (meta.reason === "CAPPED") {
-            showToastSuccess(`Se añadieron ${Number(meta.applied || 0).toFixed(2)} € (límite 100.00 €).`);
-          } else {
-            showToastSuccess("Saldo actualizado correctamente.");
-          }
-
-          cargarSaldo();
-          cargarUltimoMovimiento();
-          calcularMonedas();
-          cerrarModalSaldo();
-          return;
-        }
-
-        // Fallback (si UserData.addSaldo no existiera): mover movimiento ANTES del setSaldo
-        const saldoActual = getSaldo();
-        const headroom = Math.max(0, 100 - saldoActual);
-        const aplicado = Math.min(valor, headroom);
-
-        if (aplicado <= 0) {
-          showToastError("Límite de saldo alcanzado (100.00 €).");
-          return;
-        }
-
-        guardarMovimientoSaldo(aplicado, metodoActual);
-        setSaldo(saldoActual + aplicado);
-
-        cargarSaldo();
-        cargarUltimoMovimiento();
-        calcularMonedas();
-
-        if (aplicado < valor) {
-          showToastSuccess(`Se añadieron ${Number(aplicado).toFixed(2)} € (límite 100.00 €).`);
-        } else {
-          showToastSuccess("Saldo actualizado correctamente.");
-        }
-
-        cerrarModalSaldo();
-      });
-    }
-
-    document.querySelectorAll(".metodo-opcion").forEach(function(op) {
-      op.addEventListener("click", function() {
-        const metodo = op.getAttribute("data-metodo");
-        if (!metodo) return;
-        setMetodoPagoActual(metodo);
-        cerrarModalMetodo();
-        abrirModalSaldo();
-      });
-      op.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" || e.key === " ") {
-          if (e.key === " ") e.preventDefault();
-          op.click();
-        }
-      });
-    });
-
-    const addSaldoBtn = document.getElementById("addSaldoBtn");
-    if (addSaldoBtn) {
-      addSaldoBtn.addEventListener("click", function() {
-        const metodo = getMetodoPagoActual();
-        if (!metodo) {
-          abrirModalMetodo();
-        } else {
-          abrirModalSaldo();
-        }
-      });
-    }
-
-    const cambiarMetodoBtn = document.getElementById("cambiarMetodoBtn");
-    if (cambiarMetodoBtn) {
-      cambiarMetodoBtn.addEventListener("click", function() {
-        cerrarModalSaldo();
-        abrirModalMetodo();
-      });
-    }
-
-    cargarSaldo();
-    cargarUltimoMovimiento();
     inicializarAvatar();
-    marcarMetodoActivo();
-    actualizarTextoMetodo();
     };
   </script>
 
