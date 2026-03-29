@@ -204,9 +204,11 @@ body.page-historial { padding: 20px 14px 110px; overflow-x: clip; }
   border-collapse: collapse;
   border-radius: 22px;
   overflow: hidden;
-  background: rgba(255,255,255,0.84);
-  border: 1px solid rgba(15,23,42,0.06);
-  box-shadow: 0 8px 20px rgba(15,23,42,0.04);
+  background: rgba(255,255,255,0.52);
+  border: 1px solid rgba(255,255,255,0.34);
+  box-shadow: 0 8px 20px rgba(15,23,42,0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .tabla-monedas th,
 .tabla-monedas td {
@@ -255,9 +257,11 @@ body.page-historial { padding: 20px 14px 110px; overflow-x: clip; }
   margin-top: 18px;
   padding: 16px;
   border-radius: 24px;
-  background: rgba(255,255,255,0.84);
-  border: 1px solid rgba(15,23,42,0.06);
-  box-shadow: 0 10px 22px rgba(15,23,42,0.04);
+  background: rgba(255,255,255,0.52);
+  border: 1px solid rgba(255,255,255,0.34);
+  box-shadow: 0 10px 22px rgba(15,23,42,0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -296,9 +300,9 @@ body.page-historial { padding: 20px 14px 110px; overflow-x: clip; }
 .modal-item {
   padding: 16px;
   border-radius: 22px;
-  border: 1px solid rgba(15,23,42,0.06);
-  background: rgba(255,255,255,0.92);
-  box-shadow: 0 8px 18px rgba(15,23,42,0.04);
+  border: 1px solid rgba(15,91,215,0.10);
+  background: linear-gradient(180deg, rgba(226,234,246,0.96), rgba(218,228,242,0.92));
+  box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 14px 30px rgba(15,23,42,0.05);
 }
 .modal-item-empty {
   color: var(--text-secondary);
@@ -335,11 +339,13 @@ body.page-historial { padding: 20px 14px 110px; overflow-x: clip; }
   min-height: 30px;
   padding: 6px 10px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid rgba(15,23,42,0.06);
+  background: rgba(255,255,255,0.50);
+  border: 1px solid rgba(255,255,255,0.34);
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .modal-chip.status-completed { color: var(--success); }
 .modal-chip.status-pending { color: var(--warning); }
