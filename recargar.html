@@ -1188,12 +1188,21 @@ const resp = await fetch(url, {
               .replace(/'/g, "&#39;")
           : "";
 
-        const badgeClass = isPromo ? "badge promo" : "badge";
         const typeTxt = String(p.productType || p.type || "").trim().toLowerCase();
         const isBundle = (typeTxt === "bundle") || internalId.toLowerCase().includes("bundle");
-        const badgeTxt = isBundle
+
+        const cardBadgeRaw = String(p.cardBadge || "").trim().toLowerCase();
+        const legacyBadge = isBundle
+          ? "paquete"
+          : (isPromo ? "promo_activa" : "recarga_normal");
+
+        const cardBadge = cardBadgeRaw || legacyBadge;
+
+        const badgeTxt = cardBadge === "paquete"
           ? "Paquete"
-          : (isPromo ? (variablePromo ? "Promo variable" : "Promo fija") : "Recarga normal");
+          : (cardBadge === "promo_activa" ? "Promo activa" : "Recarga normal");
+
+        const badgeClass = (cardBadge === "promo_activa") ? "badge promo" : "badge";
         const operatorTxt = `${category || "RECARGA"} · ${String(p.country || "Cuba")}`;
 
         const article = document.createElement("article");
@@ -1203,7 +1212,6 @@ article.className = "card card--gradient offer-card";
           <div class="card-header">
             <div class="offer-badges">
               <span class="${badgeClass}">${badgeTxt}</span>
-              <span class="offer-mini">${variablePromo ? "Promo activa" : "Compra segura"}</span>
             </div>
           </div>
 
@@ -1216,12 +1224,12 @@ article.className = "card card--gradient offer-card";
             <div class="receive-block">
               <div class="receive-label">Recibe</div>
               <div class="receive-main">${receiveTxt || "—"}</div>
-              <div class="receive-note">${promoNoteTxt || (isPromo ? "Oferta vigente del operador" : "Confirmado antes de pagar")}</div>
+              <div class="receive-note">${promoNoteTxt || (cardBadge === "promo_activa" ? "Oferta vigente del operador" : "Confirmado antes de pagar")}</div>
             </div>
           </div>
 
           <div class="card-footer">
-            <div class="fees">${variablePromo ? "La promo puede variar según la ventana activa." : "Sin cargos ocultos."}</div>
+            <div class="fees">${cardBadge === "promo_activa" ? "La promo puede variar según la ventana activa." : "Sin cargos ocultos."}</div>
             <button class="cta" data-product-id="${cardKey}" data-category="${category}"${ctaAttr}>${ctaTxt}</button>
           </div>
         `;
@@ -1250,10 +1258,16 @@ article.className = "card card--gradient offer-card";
           const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
 
           const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
-          const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
 
-          if (isPromoVar) return 0;
-          if (isBundle) return 1;
+          const cardBadgeRaw = String((p && p.cardBadge) || "").trim().toLowerCase();
+          const legacyBadge = isBundle
+            ? "paquete"
+            : (!!(p && p.isPromo) ? "promo_activa" : "recarga_normal");
+
+          const cardBadge = cardBadgeRaw || legacyBadge;
+
+          if (cardBadge === "promo_activa") return 0;
+          if (cardBadge === "paquete") return 1;
           return 2;
         };
 
@@ -1307,10 +1321,16 @@ article.className = "card card--gradient offer-card";
       const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
 
       const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
-      const isPromoVar = !!(p && p.isPromo) && !!(p && p.variablePromo);
 
-      if (isPromoVar) return 0;
-      if (isBundle) return 1;
+      const cardBadgeRaw = String((p && p.cardBadge) || "").trim().toLowerCase();
+      const legacyBadge = isBundle
+        ? "paquete"
+        : (!!(p && p.isPromo) ? "promo_activa" : "recarga_normal");
+
+      const cardBadge = cardBadgeRaw || legacyBadge;
+
+      if (cardBadge === "promo_activa") return 0;
+      if (cardBadge === "paquete") return 1;
       return 2;
     };
 
