@@ -884,14 +884,12 @@ const resp = await fetch(url, {
       // Master ID: internalProductId (tu ID). providerProductId queda “en sombra”.
       let rpcCatalogIndex = null; // { [internalProductId]: product }
       const RPC_PROJECT_ID = "recargaspacuba-7aaa8";
-      // Selector de catálogo (Ding vs Innoverit)
-      // - "ding"     => catalog_products
-      // - "innoverit"=> catalog_products_innoverit
-      const RPC_CATALOG_PROVIDER = "innoverit";
-
-      const RPC_COLLECTION = (RPC_CATALOG_PROVIDER === "ding")
-        ? "catalog_products"
-        : "catalog_products_innoverit";
+      // Catálogo:
+      // - localhost/emulador: probar Ding primero y, si no hay visibles, caer a Innoverit
+      // - producción: mantener Innoverit hasta migrar backend
+      const RPC_COLLECTIONS = rpcIsLocalhost()
+        ? ["catalog_products_ding", "catalog_products_innoverit"]
+        : ["catalog_products_innoverit"];
 
       function rpcIsLocalhost() {
         return location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -940,7 +938,7 @@ const resp = await fetch(url, {
 
         const headers = { "Content-Type": "application/json" };
         try {
-          if (user && typeof user.getIdToken === "function") {
+          if (!rpcIsLocalhost() && user && typeof user.getIdToken === "function") {
             const t = await user.getIdToken();
             if (t) headers["Authorization"] = `Bearer ${t}`;
           }
@@ -1000,15 +998,14 @@ const resp = await fetch(url, {
         }
       }
 
-      async function rpcFetchCatalog(user) {
+      async function rpcFetchCatalog(user, collectionName) {
         const base = rpcIsLocalhost()
-          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`
-          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${RPC_COLLECTION}`;
+          ? `http://127.0.0.1:8080/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${collectionName}`
+          : `https://firestore.googleapis.com/v1/projects/${RPC_PROJECT_ID}/databases/(default)/documents/${collectionName}`;
 
         const headers = { "Content-Type": "application/json" };
         try {
-          // En prod: token ayuda a pasar rules si catalog_products está protegido
-          if (user && typeof user.getIdToken === "function") {
+          if (!rpcIsLocalhost() && user && typeof user.getIdToken === "function") {
             const t = await user.getIdToken();
             if (t) headers["Authorization"] = `Bearer ${t}`;
           }
@@ -1311,77 +1308,32 @@ article.className = "card card--gradient offer-card";
 
       (async function rpcLoadAndRenderCatalog() {
         try {
-          const all = await rpcFetchCatalog(authUser);
-          const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
+          let visible = [];
+          let selectedCollection = "";
+
+          for (const collectionName of RPC_COLLECTIONS) {
+            try {
+              const all = await rpcFetchCatalog(authUser, collectionName);
+              const filtered = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
+              if (filtered.length) {
+                visible = filtered;
+                selectedCollection = collectionName;
+                break;
+              }
+            } catch (err) {
+              console.warn(`Catalog load failed for ${collectionName}:`, err && err.message ? err.message : err);
+            }
+          }
+
           if (!visible.length) return;
-          // Orden: 1) Promo variable 2) Paquete 3) Normal; dentro de cada grupo: precio (menor -> mayor)
-    const rpcGroupRank = (p) => {
-      const internalId = String((p && p.internalProductId) || "").trim().toLowerCase();
-      const docId = String((p && p.__docId) || "").trim().toLowerCase();
-      const typeTxt = String((p && (p.productType || p.type)) || "").trim().toLowerCase();
-
-      const isBundle = (typeTxt === "bundle") || internalId.includes("bundle") || docId.includes("bundle");
-
-      const cardBadgeRaw = String((p && p.cardBadge) || "").trim().toLowerCase();
-      const legacyBadge = isBundle
-        ? "paquete"
-        : (!!(p && p.isPromo) ? "promo_activa" : "recarga_normal");
-
-      const cardBadge = cardBadgeRaw || legacyBadge;
-
-      if (cardBadge === "promo_activa") return 0;
-      if (cardBadge === "paquete") return 1;
-      return 2;
-    };
-
-    const rpcSortEur = (p) => {
-      const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
-      const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
-      return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
-    };
-
-    visible.sort((a, b) => {
-      const ga = rpcGroupRank(a);
-      const gb = rpcGroupRank(b);
-      if (ga !== gb) return ga - gb;
-
-      const pa = rpcSortEur(a);
-      const pb = rpcSortEur(b);
-      if (pa !== pb) return pa - pb;
-
-      const ka = String((a && (a.__docId || a.internalProductId)) || "");
-      const kb = String((b && (b.__docId || b.internalProductId)) || "");
-      return ka.localeCompare(kb, "es");
-    });
 
           rpcCatalogIndex = {};
           visible.forEach(p => {
             const k = String(p.__docId || "").trim() || String(p.internalProductId || "").trim();
             if (k) rpcCatalogIndex[k] = p;
           });
-          window.__rpcCatalogIndex = rpcCatalogIndex; // debug rápido
-
-          // ✅ Guard anti-colisión: en Innoverit hay internalProductId duplicados (ej. nauta-internet).
-          // La clave del índice DEBE ser única (preferimos __docId).
-          try {
-            const keys = Object.keys(rpcCatalogIndex || {});
-            if (keys.length && keys.some(k => !k || String(k).trim() === "")) {
-              console.warn("rpcCatalogIndex: found empty key");
-            }
-            const byInternal = {};
-            keys.forEach(k => {
-              const p = rpcCatalogIndex[k];
-              const id = String(p && p.internalProductId || "").trim();
-              if (!id) return;
-              byInternal[id] = (byInternal[id] || 0) + 1;
-            });
-            const dup = Object.entries(byInternal).filter(([,n]) => n > 1);
-            if (dup.length) {
-              // expected for Innoverit NAUTA; just log top few
-              dup.sort((a,b)=>b[1]-a[1]);
-              console.log("rpcCatalogIndex dup internalProductId (expected):", dup.slice(0,5));
-            }
-          } catch (_) {}
+          window.__rpcCatalogIndex = rpcCatalogIndex;
+          window.__rpcCatalogCollection = selectedCollection;
 
           rpcRenderCatalog(visible);
         } catch (e) {
@@ -1476,25 +1428,7 @@ article.className = "card card--gradient offer-card";
 
         return false;
       }
-
-      function abrirModalRecarga() {
-        if (!modalBg) return;
-        lastFocusedElement = document.activeElement;
-        modalBg.style.display = "flex";
-        setTimeout(() => {
-          if (modalDlg && typeof modalDlg.focus === "function") {
-            modalDlg.focus();
-          }
-        }, 0);
-      }
-
-      function cerrarModalRecarga() {
-        if (modalBg) modalBg.style.display = "none";
-        if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
-          lastFocusedElement.focus();
-        }
-      }
-
+ 
       function abrirModalBizum() {
         if (!modalBizumBg) return;
 

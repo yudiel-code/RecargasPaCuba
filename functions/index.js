@@ -249,11 +249,15 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
 
-  // Resolver producto: preferente catalog_products_innoverit, fallback catalog_products
+  // Resolver producto:
+  // - emulador/local: probar Ding primero
+  // - producción: mantener Innoverit por ahora
   let product = null;
 
   try {
-    const collections = ["catalog_products_innoverit", "catalog_products"];
+    const collections = isRunningInEmulator()
+      ? ["catalog_products_ding", "catalog_products_innoverit", "catalog_products"]
+      : ["catalog_products_innoverit", "catalog_products"];
     let snap = null;
 
     for (const c of collections) {
@@ -284,8 +288,11 @@ exports.createOrder = onRequest(async (req, res) => {
 
       // Currency: al usar importes en EUR, la moneda es EUR
       const cur = "EUR";
+      const provider = String(
+        p.provider || (snap.ref.parent.id === "catalog_products_ding" ? "ding" : "innoverit")
+      ).trim().toLowerCase();
 
-      product = { id: productId, kind, amount: amt, currency: cur };
+      product = { id: productId, kind, amount: amt, currency: cur, provider };
     }
   } catch (e) {
     logger.warn("catalog_products lookup failed", { productId, message: e && e.message ? e.message : String(e) });
@@ -334,7 +341,9 @@ exports.createOrder = onRequest(async (req, res) => {
     let commissionPct = null;
 
     try {
-      const privCols = ["catalog_private_innoverit", "catalog_private"];
+      const privCols = isRunningInEmulator()
+        ? ["catalog_private_ding", "catalog_private_innoverit", "catalog_private"]
+        : ["catalog_private_innoverit", "catalog_private"];
       for (const c of privCols) {
         const s = await db.collection(c).doc(product.id).get();
         if (!s.exists) continue;
@@ -388,6 +397,7 @@ batch.set(ref, {
   uid,
   orderId,
   productId: product.id,
+  provider: String(product.provider || "innoverit"),
   destination: destinoNormalized,
   status: "PENDING",
   amount,
@@ -406,6 +416,7 @@ batch.set(refPriv, {
   uid,
   orderId,
   productId: product.id,
+  provider: String(product.provider || "innoverit"),
   destination: destinoNormalized,
   amount,
   currency,
@@ -1065,6 +1076,9 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
   // Solo sandbox (tu modo de pruebas)
   const channel = String(after.channel || "");
   if (channel !== "sandbox") return;
+
+  const provider = String(after.provider || "innoverit").trim().toLowerCase();
+  if (provider !== "innoverit") return;
 
   const orderId = (event.params && event.params.orderId) ? String(event.params.orderId) : "";
   if (!orderId) return;
