@@ -1,0 +1,93 @@
+[
+  {
+    "id": "cubacel-cup-250",
+    "internalProductId": "cubacel-cup-250",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 250,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 10.45,
+    "sendAmountRaw": "EUR 10.45",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 8.57,
+    "legacyInnoveritSendAmountRaw": "USD 9.96"
+  },
+  {
+    "id": "cubacel-cup-400",
+    "internalProductId": "cubacel-cup-400",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 400,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 16.72,
+    "sendAmountRaw": "EUR 16.72",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 13.72,
+    "legacyInnoveritSendAmountRaw": "USD 15.94"
+  },
+  {
+    "id": "cubacel-cup-500",
+    "internalProductId": "cubacel-cup-500",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 500,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 20.9,
+    "sendAmountRaw": "EUR 20.90",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 17.15,
+    "legacyInnoveritSendAmountRaw": "USD 19.92"
+  },
+  {
+    "id": "cubacel-cup-599",
+    "internalProductId": "cubacel-cup-599",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 599,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 25.07,
+    "sendAmountRaw": "EUR 25.07",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 20.58,
+    "legacyInnoveritSendAmountRaw": "USD 23.91"
+  },
+  {
+    "id": "cubacel-cup-699",
+    "internalProductId": "cubacel-cup-699",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 699,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 29.25,
+    "sendAmountRaw": "EUR 29.25",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 24.01,
+    "legacyInnoveritSendAmountRaw": "USD 27.89"
+  },
+  {
+    "id": "cubacel-cup-750",
+    "internalProductId": "cubacel-cup-750",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 750,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 31.34,
+    "sendAmountRaw": "EUR 31.34",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 25.72,
+    "legacyInnoveritSendAmountRaw": "USD 29.88"
+  },
+  {
+    "id": "cubacel-cup-1000",
+    "internalProductId": "cubacel-cup-1000",
+    "provider": "ding",
+    "dingSkuCode": "CU_CU_TopUp",
+    "dingReceiveAmount": 1000,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 41.79,
+    "sendAmountRaw": "EUR 41.79",
+    "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
+    "legacyInnoveritSendAmountEur": 34.3,
+    "legacyInnoveritSendAmountRaw": "USD 39.85"
+  }
+]
