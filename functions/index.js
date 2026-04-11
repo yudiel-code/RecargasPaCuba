@@ -117,6 +117,27 @@ function getBearerToken(req) {
   return m ? m[1] : "";
 }
 
+function pickDingApiKey() {
+  return String(process.env.DING_API_KEY || process.env.DING_APIKEY || "").trim();
+}
+
+function isDingSendEnabled() {
+  const v = String(process.env.DING_SEND_ENABLED || "").trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes" || v === "on";
+}
+
+async function postJson(url, payload, headers = {}) {
+  const resp = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  const text = await resp.text();
+  let json = null;
+  try { json = JSON.parse(text); } catch (_) {}
+  return { httpStatus: resp.status, text, json };
+}
+
 /**
  * Resuelve el uid de forma segura:
  * - En producción (no emulador): requiere Authorization: Bearer <ID_TOKEN>
@@ -292,7 +313,23 @@ exports.createOrder = onRequest(async (req, res) => {
         p.provider || (snap.ref.parent.id === "catalog_products_ding" ? "ding" : "innoverit")
       ).trim().toLowerCase();
 
-      product = { id: productId, kind, amount: amt, currency: cur, provider };
+      const dingSkuCode = (provider === "ding")
+        ? String(p.dingSkuCode || "").trim()
+        : "";
+
+      const dingReceiveAmount = (provider === "ding" && Number.isFinite(Number(p.dingReceiveAmount)))
+        ? Number(p.dingReceiveAmount)
+        : null;
+
+      product = {
+        id: productId,
+        kind,
+        amount: amt,
+        currency: cur,
+        provider,
+        dingSkuCode,
+        dingReceiveAmount,
+      };
     }
   } catch (e) {
     logger.warn("catalog_products lookup failed", { productId, message: e && e.message ? e.message : String(e) });
@@ -398,6 +435,8 @@ batch.set(ref, {
   orderId,
   productId: product.id,
   provider: String(product.provider || "innoverit"),
+  ...(product.provider === "ding" && product.dingSkuCode ? { dingSkuCode: product.dingSkuCode } : {}),
+  ...(product.provider === "ding" && Number.isFinite(product.dingReceiveAmount) ? { dingReceiveAmount: product.dingReceiveAmount } : {}),
   destination: destinoNormalized,
   status: "PENDING",
   amount,
@@ -417,6 +456,8 @@ batch.set(refPriv, {
   orderId,
   productId: product.id,
   provider: String(product.provider || "innoverit"),
+  ...(product.provider === "ding" && product.dingSkuCode ? { dingSkuCode: product.dingSkuCode } : {}),
+  ...(product.provider === "ding" && Number.isFinite(product.dingReceiveAmount) ? { dingReceiveAmount: product.dingReceiveAmount } : {}),
   destination: destinoNormalized,
   amount,
   currency,
@@ -1078,7 +1119,7 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
   if (channel !== "sandbox") return;
 
   const provider = String(after.provider || "innoverit").trim().toLowerCase();
-  if (provider !== "innoverit") return;
+  if (provider !== "innoverit" && provider !== "ding") return;
 
   const orderId = (event.params && event.params.orderId) ? String(event.params.orderId) : "";
   if (!orderId) return;
@@ -1122,6 +1163,136 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
     // Idempotencia: si ya guardamos resultado proveedor, salir
     const sentMs = Number(order.providerSentAtMs);
     if (Number.isFinite(sentMs) && sentMs > 0) return;
+
+    if (provider === "ding") {
+      const dingEnabled = isDingSendEnabled();
+
+      if (!dingEnabled) {
+        const eventRef = orderRef.collection("events").doc();
+        await eventRef.set({
+          type: "DING_COMPLETED_STUB",
+          statusFrom,
+          statusTo,
+          createdAt: FieldValue.serverTimestamp(),
+          createdAtMs: nowMs,
+        });
+
+        await orderRef.update({
+          providerResult: "PENDING_DING_INTEGRATION",
+          completedProcessedAt: FieldValue.serverTimestamp(),
+          completedProcessedAtMs: nowMs,
+          completedResult: "DING_STUB",
+        });
+
+        return;
+      }
+
+      const dingApiKey = pickDingApiKey();
+      const dingSkuCode = String(order.dingSkuCode || "").trim();
+      const dingAccountNumber = String(order.destination || "").trim();
+      const dingReceiveValue = Number(order.dingReceiveAmount);
+
+      if (!dingApiKey) {
+        await orderRef.update({
+          provider: "ding",
+          providerResult: "ERROR",
+          providerError: "DING_APIKEY_MISSING",
+          providerErrorAt: FieldValue.serverTimestamp(),
+          providerErrorAtMs: nowMs,
+          completedProcessedAt: FieldValue.serverTimestamp(),
+          completedProcessedAtMs: nowMs,
+          completedResult: "PROVIDER_ERROR",
+        });
+        return;
+      }
+
+      if (!dingSkuCode || !dingAccountNumber || !Number.isFinite(dingReceiveValue) || dingReceiveValue <= 0) {
+        await orderRef.update({
+          provider: "ding",
+          providerResult: "ERROR",
+          providerError: "DING_ORDER_DATA_MISSING",
+          providerErrorAt: FieldValue.serverTimestamp(),
+          providerErrorAtMs: nowMs,
+          completedProcessedAt: FieldValue.serverTimestamp(),
+          completedProcessedAtMs: nowMs,
+          completedResult: "PROVIDER_ERROR",
+        });
+        return;
+      }
+
+      const send = await postJson(
+        "https://api.dingconnect.com/api/V1/SendTransfer",
+        {
+          SkuCode: dingSkuCode,
+          ReceiveValue: dingReceiveValue,
+          AccountNumber: dingAccountNumber,
+          DistributorRef: orderId,
+          ValidateOnly: false,
+        },
+        {
+          "Content-Type": "application/json",
+          "api_key": dingApiKey,
+        }
+      );
+
+      const j = send.json || {};
+      const resultCode = Number(j.ResultCode);
+      const ok = Number.isFinite(resultCode) && resultCode === 1;
+
+      const transferRecord = (j && typeof j.TransferRecord === "object" && j.TransferRecord) ? j.TransferRecord : {};
+      const transferId = (transferRecord && typeof transferRecord.TransferId === "object" && transferRecord.TransferId) ? transferRecord.TransferId : {};
+      const processingState = String(transferRecord.ProcessingState || "");
+      const transferRef = String(transferId.TransferRef || "");
+      const distributorRef = String(transferId.DistributorRef || orderId);
+
+      const errorCodes = Array.isArray(j.ErrorCodes) ? j.ErrorCodes : [];
+      const providerMessage = errorCodes
+        .map((e) => {
+          const code = String(e && e.Code || "").trim();
+          const context = String(e && e.Context || "").trim();
+          return context ? `${code}:${context}` : code;
+        })
+        .filter(Boolean)
+        .join(" | ");
+
+      const eventRef = orderRef.collection("events").doc();
+      await eventRef.set({
+        type: ok ? "DING_SEND_OK" : "DING_SEND_ERROR",
+        statusFrom,
+        statusTo,
+        createdAt: FieldValue.serverTimestamp(),
+        createdAtMs: nowMs,
+        providerHttpStatus: send.httpStatus,
+        providerResultCode: Number.isFinite(resultCode) ? resultCode : null,
+        providerStatus: processingState,
+        providerMessage,
+        providerTransferRef: transferRef || null,
+        providerDistributorRef: distributorRef || null,
+        dingSkuCode,
+        dingReceiveAmount: dingReceiveValue,
+        destination: dingAccountNumber,
+      });
+
+      await orderRef.update({
+        provider: "ding",
+        providerKey: distributorRef || orderId,
+        providerHttpStatus: send.httpStatus,
+        providerResultCode: Number.isFinite(resultCode) ? resultCode : null,
+        providerStatus: processingState,
+        providerMessage,
+        providerTransferRef: transferRef || null,
+        providerDistributorRef: distributorRef || null,
+        providerRaw: String(send.text || "").slice(0, 10000),
+        providerSentAt: FieldValue.serverTimestamp(),
+        providerSentAtMs: nowMs,
+        providerResult: ok ? "SENT" : "ERROR",
+        completedProcessedAt: FieldValue.serverTimestamp(),
+        completedProcessedAtMs: nowMs,
+        completedResult: ok ? "PROVIDER_SENT" : "PROVIDER_ERROR",
+      });
+
+      return;
+    }
 
     const apiKey = pickInnoveritApiKey();
     if (!apiKey) {
