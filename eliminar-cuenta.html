@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Solicitar borrado de cuenta | RecargasPaCuba</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#28c6db">
+  <link rel="stylesheet" href="styles/base.css?v=r1">
+  <link rel="stylesheet" href="styles/app.css?v=r1">
+  <script src="js/ui.js?v=r1"></script>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #0f172a;
+    }
+
+    .page-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 18px 14px 34px;
+    }
+
+    .top-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #0f172a;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 14px;
+    }
+
+    .card-delete {
+      border-radius: 28px;
+      padding: 18px 18px 20px;
+      background:
+        linear-gradient(180deg, rgba(226,234,246,0.96), rgba(218,228,242,0.92)),
+        linear-gradient(135deg, rgba(15, 91, 215, 0.08), rgba(15, 118, 110, 0.06));
+      border: 1px solid rgba(15, 91, 215, 0.10);
+      box-shadow: 0 0 0 1px rgba(15,23,42,0.08), 0 16px 34px rgba(15,23,42,0.05);
+    }
+
+    .card-delete h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .card-delete p {
+      margin: 0 0 12px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(15, 23, 42, 0.75);
+    }
+
+    .delete-note {
+      margin: 12px 0 14px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.60);
+      border: 1px solid rgba(15,23,42,0.08);
+      font-size: 12px;
+      color: rgba(15, 23, 42, 0.78);
+    }
+
+    .delete-note strong {
+      color: #991b1b;
+    }
+
+    .campo {
+      margin-bottom: 10px;
+    }
+
+    .campo-label {
+      opacity: 1;
+      font-size: 12px;
+      color: rgba(15, 23, 42, 0.62);
+      letter-spacing: 0.04em;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .campo input,
+    .campo textarea {
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.34);
+      background: rgba(255,255,255,0.52);
+      color: #0f172a;
+      padding: 10px 12px;
+      outline: none;
+      font-size: 13px;
+      box-sizing: border-box;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.72),
+        0 8px 18px rgba(15,23,42,0.03);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .campo textarea {
+      min-height: 96px;
+      resize: vertical;
+      border-radius: 18px;
+    }
+
+    .campo input::placeholder,
+    .campo textarea::placeholder {
+      color: rgba(71, 84, 103, 0.72);
+    }
+
+    .campo input:focus,
+    .campo textarea:focus {
+      border-color: rgba(15,91,215,0.28);
+      background: rgba(255,255,255,0.68);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.82),
+        0 0 0 4px rgba(15,91,215,0.10),
+        0 8px 20px rgba(15,91,215,0.08);
+    }
+
+    .delete-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .btn-secondary {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,0.10);
+      background: rgba(255,255,255,0.56);
+      color: #0f172a;
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 10px rgba(15,23,42,0.03);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .btn-danger {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, #ef4444, #f97316);
+      color: #fff7ed;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .helper {
+      margin-top: 12px;
+      font-size: 12px;
+      color: rgba(15, 23, 42, 0.72);
+    }
+  </style>
+</head>
+<body>
+  <main class="page-wrap">
+    <a class="top-link" href="cuenta.html">← Volver a tu cuenta</a>
+
+    <section class="card-delete">
+      <h1>Solicitar borrado de cuenta</h1>
+      <p>
+        Desde aquí puedes pedir la eliminación de tu cuenta de RecargasPaCuba y de los datos asociados a ella.
+      </p>
+
+      <div class="delete-note">
+        <strong>Importante:</strong> esta acción debe revisarse antes de ejecutarse. Si envías la solicitud, el equipo confirmará el proceso usando tu correo registrado.
+      </div>
+
+      <div class="campo">
+        <div class="campo-label">Nombre</div>
+        <input id="deleteNombre" type="text" placeholder="Tu nombre">
+      </div>
+
+      <div class="campo">
+        <div class="campo-label">Correo de la cuenta</div>
+        <input id="deleteCorreo" type="email" placeholder="correo@ejemplo.com">
+      </div>
+
+      <div class="campo">
+        <div class="campo-label">UID de Firebase (opcional)</div>
+        <input id="deleteUid" type="text" placeholder="UID de tu cuenta">
+      </div>
+
+      <div class="campo">
+        <div class="campo-label">Comentario (opcional)</div>
+        <textarea id="deleteMotivo" placeholder="Puedes dejar una nota breve si quieres."></textarea>
+      </div>
+
+      <div class="delete-actions">
+        <a class="btn-secondary" href="cuenta.html">Cancelar</a>
+        <button id="enviarSolicitudBorradoBtn" class="btn-danger" type="button">Enviar solicitud</button>
+      </div>
+
+      <div class="helper">
+        Esta página será el enlace web público que pide Google Play para solicitar el borrado de cuenta.
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { auth, onAuthStateChanged, functions, httpsCallable } from "./js/firebase.js?v=r1";
+
+    const enviarSolicitudBorradoBtn = document.getElementById("enviarSolicitudBorradoBtn");
+
+    onAuthStateChanged(auth, (user) => {
+      try {
+        const raw = localStorage.getItem("usuarioRegistrado") || "{}";
+        const datos = JSON.parse(raw);
+
+        const nombre = (datos && datos.nombre) || (user && user.displayName) || "";
+        const correo = (datos && datos.email) || (user && (user.email || user.phoneNumber)) || "";
+        const uid = (user && user.uid) || "";
+
+        const nombreEl = document.getElementById("deleteNombre");
+        const correoEl = document.getElementById("deleteCorreo");
+        const uidEl = document.getElementById("deleteUid");
+
+        if (nombreEl && !nombreEl.value) nombreEl.value = nombre;
+        if (correoEl && !correoEl.value) correoEl.value = correo;
+        if (uidEl && !uidEl.value) uidEl.value = uid;
+      } catch (_) {}
+    });
+
+    if (enviarSolicitudBorradoBtn) {
+      enviarSolicitudBorradoBtn.addEventListener("click", async () => {
+        const nombre = (document.getElementById("deleteNombre")?.value || "").trim();
+        const correo = (document.getElementById("deleteCorreo")?.value || "").trim().toLowerCase();
+        const uid = (document.getElementById("deleteUid")?.value || "").trim();
+        const motivo = (document.getElementById("deleteMotivo")?.value || "").trim();
+
+        if (!nombre) {
+          showToastError("Escribe tu nombre.");
+          return;
+        }
+
+        if (!correo) {
+          showToastError("Escribe el correo de la cuenta.");
+          return;
+        }
+
+        try {
+          enviarSolicitudBorradoBtn.disabled = true;
+
+          const callRequestAccountDeletion = httpsCallable(functions, "requestAccountDeletion");
+          await callRequestAccountDeletion({
+            nombre,
+            correo,
+            uid,
+            motivo
+          });
+
+          showToastSuccess("Solicitud enviada correctamente.");
+          setTimeout(() => {
+            window.location.href = "cuenta.html";
+          }, 900);
+        } catch (error) {
+          console.error("Error enviando solicitud de borrado:", error);
+          showToastError("No se pudo enviar la solicitud. Inténtalo de nuevo.");
+          enviarSolicitudBorradoBtn.disabled = false;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

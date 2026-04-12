@@ -776,6 +776,9 @@
         <span class="alerta">
           Estos cambios solo afectan a tu acceso y comunicación con RecargasPaCuba.
         </span>
+        <button id="solicitarBorradoBtn" class="btn-secondary" type="button" style="border-color:rgba(239,68,68,0.35); color:#991b1b;">
+          Solicitar borrado
+        </button>
         <button class="btn-secondary" data-close="cuenta">Cancelar</button>
         <button id="guardarCuentaBtn" class="btn-primary">Guardar cambios</button>
       </div>
@@ -1010,6 +1013,13 @@ if (correoUsuarioEl) correoUsuarioEl.textContent = correoMostrar;
 
         showToastSuccess("Datos de cuenta actualizados (a nivel interno de la app).");
         cerrarModalCuenta();
+      });
+    }
+
+    const solicitarBorradoBtn = document.getElementById("solicitarBorradoBtn");
+    if (solicitarBorradoBtn) {
+      solicitarBorradoBtn.addEventListener("click", function() {
+        window.location.href = "eliminar-cuenta.html";
       });
     }
 

@@ -1189,8 +1189,13 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
 
       const dingApiKey = pickDingApiKey();
       const dingSkuCode = String(order.dingSkuCode || "").trim();
-      const dingAccountNumber = String(order.destination || "").trim();
-      const dingReceiveValue = Number(order.dingReceiveAmount);
+      const dingDestinationRaw = String(order.destination || "").trim();
+      const dingDigits = dingDestinationRaw.replace(/[^\d]/g, "");
+      const dingAccountNumber = /^53\d{8}$/.test(dingDigits)
+        ? dingDigits
+        : (/^5\d{7}$/.test(dingDigits) ? `53${dingDigits}` : dingDigits);
+      const dingSendValue = Number(order.amount);
+      const dingReceiveAmount = Number(order.dingReceiveAmount);
 
       if (!dingApiKey) {
         await orderRef.update({
@@ -1206,7 +1211,7 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
         return;
       }
 
-      if (!dingSkuCode || !dingAccountNumber || !Number.isFinite(dingReceiveValue) || dingReceiveValue <= 0) {
+      if (!dingSkuCode || !dingAccountNumber || !Number.isFinite(dingSendValue) || dingSendValue <= 0 || !Number.isFinite(dingReceiveAmount) || dingReceiveAmount <= 0) {
         await orderRef.update({
           provider: "ding",
           providerResult: "ERROR",
@@ -1224,7 +1229,7 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
         "https://api.dingconnect.com/api/V1/SendTransfer",
         {
           SkuCode: dingSkuCode,
-          ReceiveValue: dingReceiveValue,
+          SendValue: dingSendValue,
           AccountNumber: dingAccountNumber,
           DistributorRef: orderId,
           ValidateOnly: false,
@@ -1269,7 +1274,7 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
         providerTransferRef: transferRef || null,
         providerDistributorRef: distributorRef || null,
         dingSkuCode,
-        dingReceiveAmount: dingReceiveValue,
+        dingReceiveAmount,
         destination: dingAccountNumber,
       });
 
@@ -2379,6 +2384,57 @@ exports.getAdminStats = onCall(async (request) => {
       missingPriv,
       missingCost,
     },
+  };
+});
+
+exports.requestAccountDeletion = onCall(async (request) => {
+  const nombre = String(request.data?.nombre || "").trim();
+  const correo = String(request.data?.correo || "").trim().toLowerCase();
+  const uidInput = String(request.data?.uid || "").trim();
+  const motivo = String(request.data?.motivo || "").trim();
+
+  if (!nombre || nombre.length > 120) {
+    throw new HttpsError("invalid-argument", "INVALID_NAME");
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo) || correo.length > 160) {
+    throw new HttpsError("invalid-argument", "INVALID_EMAIL");
+  }
+
+  if (uidInput && uidInput.length > 128) {
+    throw new HttpsError("invalid-argument", "INVALID_UID");
+  }
+
+  if (motivo.length > 1000) {
+    throw new HttpsError("invalid-argument", "COMMENT_TOO_LONG");
+  }
+
+  const authUid = String(request.auth?.uid || "").trim();
+  const authEmail = String(request.auth?.token?.email || "").trim().toLowerCase();
+  const authPhone = String(request.auth?.token?.phone_number || "").trim();
+
+  const ref = db.collection("account_deletion_requests").doc();
+  const nowMs = Date.now();
+
+  await ref.set({
+    requestId: ref.id,
+    status: "PENDING",
+    source: "web",
+    nombre,
+    correo,
+    uid: uidInput || authUid || "",
+    motivo,
+    authUid: authUid || "",
+    authEmail: authEmail || "",
+    authPhone: authPhone || "",
+    createdAt: FieldValue.serverTimestamp(),
+    createdAtMs: nowMs,
+  });
+
+  return {
+    ok: true,
+    requestId: ref.id,
+    status: "PENDING",
   };
 });
 
