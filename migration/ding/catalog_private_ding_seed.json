@@ -13,6 +13,28 @@
     "legacyInnoveritSendAmountRaw": "USD 9.96"
   },
   {
+    "id": "nauta-internet__300",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 300,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 12.54,
+    "sendAmountRaw": "EUR 12.54",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "nauta-internet__350",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 350,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 14.63,
+    "sendAmountRaw": "EUR 14.63",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
     "id": "cubacel-cup-400",
     "internalProductId": "cubacel-cup-400",
     "provider": "ding",
@@ -24,6 +46,50 @@
     "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
     "legacyInnoveritSendAmountEur": 13.72,
     "legacyInnoveritSendAmountRaw": "USD 15.94"
+  },
+  {
+    "id": "nauta-internet__400",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 400,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 16.72,
+    "sendAmountRaw": "EUR 16.72",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "nauta-internet__450",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 450,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 18.81,
+    "sendAmountRaw": "EUR 18.81",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "cubacel-bundle-500cup-330d",
+    "internalProductId": "cubacel-bundle-500cup-330d",
+    "provider": "ding",
+    "dingSkuCode": "DFCU33687",
+    "dingReceiveAmount": 500,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 20.9,
+    "sendAmountRaw": "EUR 20.90",
+    "costStatus": "CONFIRMED_BY_GETPRODUCTS"
+  },
+  {
+    "id": "cubacel-bundle-9gb-35d",
+    "internalProductId": "cubacel-bundle-9gb-35d",
+    "provider": "ding",
+    "dingSkuCode": "DFCUCU53685",
+    "dingReceiveAmount": 500,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 20.9,
+    "sendAmountRaw": "EUR 20.90",
+    "costStatus": "CONFIRMED_BY_GETPRODUCTS"
   },
   {
     "id": "cubacel-cup-500",
@@ -39,6 +105,17 @@
     "legacyInnoveritSendAmountRaw": "USD 19.92"
   },
   {
+    "id": "nauta-internet__500",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 500,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 20.9,
+    "sendAmountRaw": "EUR 20.90",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
     "id": "cubacel-cup-599",
     "internalProductId": "cubacel-cup-599",
     "provider": "ding",
@@ -50,6 +127,17 @@
     "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
     "legacyInnoveritSendAmountEur": 20.58,
     "legacyInnoveritSendAmountRaw": "USD 23.91"
+  },
+  {
+    "id": "nauta-internet__625",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 625,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 26.12,
+    "sendAmountRaw": "EUR 26.12",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
   },
   {
     "id": "cubacel-cup-699",
@@ -65,6 +153,28 @@
     "legacyInnoveritSendAmountRaw": "USD 27.89"
   },
   {
+    "id": "cubacel-bundle-700cup-330d",
+    "internalProductId": "cubacel-bundle-700cup-330d",
+    "provider": "ding",
+    "dingSkuCode": "DFCU33496",
+    "dingReceiveAmount": 700,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 29.26,
+    "sendAmountRaw": "EUR 29.26",
+    "costStatus": "CONFIRMED_BY_GETPRODUCTS"
+  },
+  {
+    "id": "cubacel-bundle-14gb-30d",
+    "internalProductId": "cubacel-bundle-14gb-30d",
+    "provider": "ding",
+    "dingSkuCode": "DFCUCU80840",
+    "dingReceiveAmount": 750,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 31.35,
+    "sendAmountRaw": "EUR 31.35",
+    "costStatus": "CONFIRMED_BY_GETPRODUCTS"
+  },
+  {
     "id": "cubacel-cup-750",
     "internalProductId": "cubacel-cup-750",
     "provider": "ding",
@@ -78,6 +188,39 @@
     "legacyInnoveritSendAmountRaw": "USD 29.88"
   },
   {
+    "id": "nauta-internet__750",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 750,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 31.35,
+    "sendAmountRaw": "EUR 31.35",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "nauta-internet__875",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 875,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 36.57,
+    "sendAmountRaw": "EUR 36.57",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "cubacel-bundle-20gb-30d",
+    "internalProductId": "cubacel-bundle-20gb-30d",
+    "provider": "ding",
+    "dingSkuCode": "DFCUCU63436",
+    "dingReceiveAmount": 1000,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 41.79,
+    "sendAmountRaw": "EUR 41.79",
+    "costStatus": "CONFIRMED_BY_GETPRODUCTS"
+  },
+  {
     "id": "cubacel-cup-1000",
     "internalProductId": "cubacel-cup-1000",
     "provider": "ding",
@@ -89,5 +232,38 @@
     "costStatus": "CONFIRMED_BY_ESTIMATEPRICES",
     "legacyInnoveritSendAmountEur": 34.3,
     "legacyInnoveritSendAmountRaw": "USD 39.85"
+  },
+  {
+    "id": "nauta-internet__1000",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 1000,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 41.79,
+    "sendAmountRaw": "EUR 41.79",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "nauta-internet__1125",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 1125,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 47.02,
+    "sendAmountRaw": "EUR 47.02",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
+  },
+  {
+    "id": "nauta-internet__1175",
+    "internalProductId": "nauta-internet",
+    "provider": "ding",
+    "dingSkuCode": "CU_NU_TopUp",
+    "dingReceiveAmount": 1175,
+    "dingCommissionPctFromCsv": 7,
+    "sendAmountEur": 49.11,
+    "sendAmountRaw": "EUR 49.11",
+    "costStatus": "ESTIMATED_FROM_VARIABLE_RANGE"
   }
 ]

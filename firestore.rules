@@ -9,11 +9,7 @@ service cloud.firestore {
     match /catalog_private/{docId} {
       allow read, write: if isAdmin();
     }
-
-    match /catalog_private_innoverit/{docId} {
-      allow read, write: if isAdmin();
-    }
-
+ 
     match /orders_private/{orderId} {
       allow read, write: if isAdmin();
     }
@@ -58,12 +54,7 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
-
-    match /catalog_products_innoverit/{productId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
+ 
     match /catalog_products_ding/{productId} {
       allow read: if true;
       allow write: if false;

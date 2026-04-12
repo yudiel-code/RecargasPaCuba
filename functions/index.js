@@ -62,6 +62,7 @@ function setCors(req, res) {
     "https://www.recargaspacuba.net",
     "https://recargaspacuba.eu",
     "https://www.recargaspacuba.eu",
+    "https://recargaspacuba-7aaa8--mantenimiento-ox2lbyd9.web.app",
   ]);
 
   // Evita cachés cruzados entre orígenes
@@ -270,23 +271,13 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
 
-  // Resolver producto:
-  // - emulador/local: probar Ding primero
-  // - producción: mantener Innoverit por ahora
+  // Resolver producto: solo Ding, sin fallbacks silenciosos
   let product = null;
 
   try {
-    const collections = isRunningInEmulator()
-      ? ["catalog_products_ding", "catalog_products_innoverit", "catalog_products"]
-      : ["catalog_products_innoverit", "catalog_products"];
-    let snap = null;
+    const snap = await db.collection("catalog_products_ding").doc(productId).get();
 
-    for (const c of collections) {
-      const s = await db.collection(c).doc(productId).get();
-      if (s.exists) { snap = s; break; }
-    }
-
-    if (snap && snap.exists) {
+    if (snap.exists) {
       const p = snap.data() || {};
 
       // Switch ON/OFF desde Firestore
@@ -309,15 +300,11 @@ exports.createOrder = onRequest(async (req, res) => {
 
       // Currency: al usar importes en EUR, la moneda es EUR
       const cur = "EUR";
-      const provider = String(
-        p.provider || (snap.ref.parent.id === "catalog_products_ding" ? "ding" : "innoverit")
-      ).trim().toLowerCase();
+      const provider = "ding";
 
-      const dingSkuCode = (provider === "ding")
-        ? String(p.dingSkuCode || "").trim()
-        : "";
+      const dingSkuCode = String(p.dingSkuCode || "").trim();
 
-      const dingReceiveAmount = (provider === "ding" && Number.isFinite(Number(p.dingReceiveAmount)))
+      const dingReceiveAmount = Number.isFinite(Number(p.dingReceiveAmount))
         ? Number(p.dingReceiveAmount)
         : null;
 
@@ -332,7 +319,7 @@ exports.createOrder = onRequest(async (req, res) => {
       };
     }
   } catch (e) {
-    logger.warn("catalog_products lookup failed", { productId, message: e && e.message ? e.message : String(e) });
+    logger.warn("catalog_products_ding lookup failed", { productId, message: e && e.message ? e.message : String(e) });
   }
 
   if (!product) {
@@ -378,13 +365,8 @@ exports.createOrder = onRequest(async (req, res) => {
     let commissionPct = null;
 
     try {
-      const privCols = isRunningInEmulator()
-        ? ["catalog_private_ding", "catalog_private_innoverit", "catalog_private"]
-        : ["catalog_private_innoverit", "catalog_private"];
-      for (const c of privCols) {
-        const s = await db.collection(c).doc(product.id).get();
-        if (!s.exists) continue;
-
+      const s = await db.collection("catalog_private_ding").doc(product.id).get();
+      if (s.exists) {
         const d = s.data() || {};
         const v = Number(d.sendAmountEur);
         costEur = Number.isFinite(v) ? Math.round((v + Number.EPSILON) * 100) / 100 : null;
@@ -393,8 +375,6 @@ exports.createOrder = onRequest(async (req, res) => {
 
         const cp = Number(d.commissionPct);
         commissionPct = Number.isFinite(cp) ? cp : null;
-
-        break;
       }
     } catch (_) {}
 
@@ -434,7 +414,7 @@ batch.set(ref, {
   uid,
   orderId,
   productId: product.id,
-  provider: String(product.provider || "innoverit"),
+  provider: String(product.provider || "ding"),
   ...(product.provider === "ding" && product.dingSkuCode ? { dingSkuCode: product.dingSkuCode } : {}),
   ...(product.provider === "ding" && Number.isFinite(product.dingReceiveAmount) ? { dingReceiveAmount: product.dingReceiveAmount } : {}),
   destination: destinoNormalized,
@@ -455,7 +435,7 @@ batch.set(refPriv, {
   uid,
   orderId,
   productId: product.id,
-  provider: String(product.provider || "innoverit"),
+  provider: String(product.provider || "ding"),
   ...(product.provider === "ding" && product.dingSkuCode ? { dingSkuCode: product.dingSkuCode } : {}),
   ...(product.provider === "ding" && Number.isFinite(product.dingReceiveAmount) ? { dingReceiveAmount: product.dingReceiveAmount } : {}),
   destination: destinoNormalized,
@@ -489,276 +469,9 @@ batch.set(refPriv, {
     return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
   }
 });
-
-exports.migrateCatalogCostsToPrivate = onRequest(async (req, res) => {
-  setCors(req, res);
-
-  if (req.method === "OPTIONS") return res.status(204).send("");
-  if (req.method !== "POST") return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
-
-  // Solo admin (por ID token)
-  const token = getBearerToken(req);
-  if (!token) return sendJson(res, 401, { ok: false, error: "MISSING_AUTH" });
-
-  let decoded;
-  try {
-    decoded = await admin.auth().verifyIdToken(token);
-  } catch (e) {
-    return sendJson(res, 401, { ok: false, error: "INVALID_ID_TOKEN" });
-  }
-
-  const email = String(decoded?.email || "").toLowerCase();
-  const verified = !!decoded?.email_verified;
-  if (!verified || email !== "recargaspacubaapp@gmail.com") {
-    return sendJson(res, 403, { ok: false, error: "NOT_ADMIN" });
-  }
-
-  try {
-    const snap = await db.collection("catalog_products_innoverit").get();
-
-    let moved = 0;
-    let skipped = 0;
-
-    let batch = db.batch();
-    let ops = 0;
-    let commits = 0;
-
-    for (const d of snap.docs) {
-      const p = d.data() || {};
-      const hasAny =
-        p.sendAmountEur != null ||
-        p.sendAmountRaw != null ||
-        p.commissionPct != null;
-
-      if (!hasAny) { skipped++; continue; }
-
-      const privRef = db.collection("catalog_private_innoverit").doc(d.id);
-      const privPatch = {
-        ...(p.sendAmountEur != null ? { sendAmountEur: p.sendAmountEur } : {}),
-        ...(p.sendAmountRaw != null ? { sendAmountRaw: p.sendAmountRaw } : {}),
-        ...(p.commissionPct != null ? { commissionPct: p.commissionPct } : {}),
-        updatedAt: FieldValue.serverTimestamp(),
-      };
-
-      batch.set(privRef, privPatch, { merge: true }); ops++;
-
-      batch.update(d.ref, {
-        sendAmountEur: FieldValue.delete(),
-        sendAmountRaw: FieldValue.delete(),
-        commissionPct: FieldValue.delete(),
-        updatedAt: FieldValue.serverTimestamp(),
-      }); ops++;
-
-      moved++;
-
-      // 500 ops máx por batch; dejamos margen
-      if (ops >= 450) {
-        await batch.commit();
-        commits++;
-        batch = db.batch();
-        ops = 0;
-      }
-    }
-
-    if (ops > 0) {
-      await batch.commit();
-      commits++;
-    }
-
-    return sendJson(res, 200, { ok: true, moved, skipped, commits, total: snap.size });
-  } catch (e) {
-    logger.error("migrateCatalogCostsToPrivate error", e);
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
-});
-
-exports.migrateCatalogProviderToPrivate = onRequest(async (req, res) => {
-  setCors(req, res);
-
-  if (req.method === "OPTIONS") return res.status(204).send("");
-  if (req.method !== "POST") return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
-
-  // Solo admin (por ID token)
-  const token = getBearerToken(req);
-  if (!token) return sendJson(res, 401, { ok: false, error: "MISSING_AUTH" });
-
-  let decoded;
-  try {
-    decoded = await admin.auth().verifyIdToken(token);
-  } catch (e) {
-    return sendJson(res, 401, { ok: false, error: "INVALID_ID_TOKEN" });
-  }
-
-  const email = String(decoded?.email || "").toLowerCase();
-  const verified = !!decoded?.email_verified;
-  if (!verified || email !== "recargaspacubaapp@gmail.com") {
-    return sendJson(res, 403, { ok: false, error: "NOT_ADMIN" });
-  }
-
-  try {
-    const snap = await db.collection("catalog_products_innoverit").get();
-
-    let moved = 0;
-    let skipped = 0;
-
-    let batch = db.batch();
-    let ops = 0;
-    let commits = 0;
-
-    for (const d of snap.docs) {
-      const p = d.data() || {};
-      const provider = (typeof p.provider === "string") ? p.provider.trim() : "";
-
-      if (!provider) { skipped++; continue; }
-
-      const privRef = db.collection("catalog_private_innoverit").doc(d.id);
-
-      batch.set(privRef, {
-        provider,
-        updatedAt: FieldValue.serverTimestamp(),
-      }, { merge: true });
-      ops++;
-
-      batch.update(d.ref, {
-        provider: FieldValue.delete(),
-        updatedAt: FieldValue.serverTimestamp(),
-      });
-      ops++;
-
-      moved++;
-
-      if (ops >= 450) {
-        await batch.commit();
-        commits++;
-        batch = db.batch();
-        ops = 0;
-      }
-    }
-
-    if (ops > 0) {
-      await batch.commit();
-      commits++;
-    }
-
-    return sendJson(res, 200, { ok: true, moved, skipped, commits, total: snap.size });
-  } catch (e) {
-    logger.error("migrateCatalogProviderToPrivate error", e);
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
-});
+ 
 
 
-// onCall ya está importado arriba (evitar redeclare)
-
-/**
- * Admin Dashboard Metrics (callable)
- * - No abre lecturas globales en cliente (agrega en backend)
- * - Requiere sesión Firebase (request.auth)
- * - Solo recargaspacubaapp@gmail.com
- */
-exports.getAdminDashboardMetrics = onCall(async (request) => {
-  const t0 = Date.now();
-
-  try {
-    if (!request.auth) {
-      logger.warn("admin_metrics_missing_auth");
-      return { ok: false, error: "MISSING_AUTH" };
-    }
-
-    const email = String(request.auth?.token?.email || "").toLowerCase();
-    if (email !== "recargaspacubaapp@gmail.com") {
-      logger.warn("admin_metrics_not_admin", { email });
-      return { ok: false, error: "NOT_ADMIN" };
-    }
-
-    logger.info("admin_metrics_start", { email });
-
-    const nowMs = Date.now();
-    const cutoffMs = nowMs - 24 * 60 * 60 * 1000;
-
-    let recargasHoy = 0;
-    let ventasHoyEur = 0;
-    let ordersScanned = 0;
-
-    try {
-      const snap = await db
-        .collection("orders")
-        .where("createdAtMs", ">=", cutoffMs)
-        .select("status", "amount", "currency", "createdAtMs")
-        .get();
-
-      ordersScanned = snap.size;
-
-      for (const d of snap.docs) {
-        const o = d.data() || {};
-        if (String(o.status || "") !== "COMPLETED") continue;
-
-        recargasHoy++;
-
-        const cur = String(o.currency || "EUR").toUpperCase();
-        const amt = Number(o.amount);
-        if (cur === "EUR" && Number.isFinite(amt)) ventasHoyEur += amt;
-      }
-    } catch (e) {
-      logger.error("admin_metrics_orders_query_error", {
-        message: String(e?.message || e),
-        stack: String(e?.stack || ""),
-      });
-    }
-
-    ventasHoyEur = Math.round((ventasHoyEur + Number.EPSILON) * 100) / 100;
-
-    let usuariosTotal = 0;
-
-    try {
-      let nextPageToken = undefined;
-      let scanned = 0;
-      const MAX_USERS_SCAN = 5000;
-
-      do {
-        const r = await admin.auth().listUsers(1000, nextPageToken);
-        const n = Array.isArray(r.users) ? r.users.length : 0;
-        usuariosTotal += n;
-        scanned += n;
-        nextPageToken = r.pageToken;
-
-        if (scanned >= MAX_USERS_SCAN) {
-          logger.warn("admin_metrics_users_cap_reached", { MAX_USERS_SCAN });
-          break;
-        }
-      } while (nextPageToken);
-    } catch (e) {
-      logger.error("admin_metrics_listUsers_error", {
-        message: String(e?.message || e),
-        stack: String(e?.stack || ""),
-      });
-      usuariosTotal = 0; // fail-open
-    }
-
-    logger.info("admin_metrics_ok", {
-      recargasHoy,
-      ventasHoyEur,
-      usuariosTotal,
-      ordersScanned,
-      ms: Date.now() - t0,
-    });
-
-    return {
-      ok: true,
-      windowHours: 24,
-      cutoffMs,
-      recargasHoy,
-      ventasHoyEur,
-      usuariosTotal,
-    };
-  } catch (e) {
-    logger.error("admin_metrics_fatal", {
-      message: String(e?.message || e),
-      stack: String(e?.stack || ""),
-    });
-    return { ok: false, error: "INTERNAL_ERROR" };
-  }
-});
 
 
 /**
@@ -791,7 +504,7 @@ exports.markOrderPaid = onRequest(async (req, res) => {
  * - valida ownership (uid debe coincidir con la orden)
  * - idempotente: si ya está FAILED devuelve ok:true; si está PAID/COMPLETED devuelve ok:true con terminalState:true
  */
-// BLOQUE BUENO
+
 exports.markOrderFailed = onRequest(async (req, res) => {
   setCors(req, res);
 
@@ -861,171 +574,7 @@ exports.markOrderRefunded = onRequest(async (req, res) => {
   return sendJson(res, 403, { ok: false, error: "MANUAL_ONLY_MODE" });
 });
 
-/**
- * STATUS_REFRESH (Innoverit): refresca el estado del envío y lo guarda en /orders + /events
- * - Requiere App Check
- * - Requiere auth en prod (token Bearer) y valida ownership (uid de la orden)
- * - NO cambia status de la orden, solo actualiza provider*
- */
-exports.refreshInnoveritStatus = onRequest(async (req, res) => {
-  setCors(req, res);
 
-  if (req.method === "OPTIONS") {
-    return res.status(204).send("");
-  }
-
-  if (!(await requireAppCheck(req, res))) return;
-
-  if (req.method !== "POST") {
-    return sendJson(res, 405, { ok: false, error: "METHOD_NOT_ALLOWED" });
-  }
-
-  const body = safeParseBody(req);
-  if (!body) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_JSON_BODY" });
-  }
-
-  const payload = (body && typeof body === "object" && body.data && typeof body.data === "object")
-    ? body.data
-    : body;
-
-  let { uid, orderId } = payload;
-
-  const uidBody = typeof uid === "string" ? uid.trim() : "";
-  orderId = typeof orderId === "string" ? orderId.trim() : "";
-
-  if (!orderId || orderId.length > 128) {
-    return sendJson(res, 400, { ok: false, error: "INVALID_ORDER_ID" });
-  }
-
-  // UID: token-first (prod), body fallback (emulador)
-  const uidRes = await resolveUid(req, uidBody);
-  if (!uidRes.ok) {
-    return sendJson(res, 401, { ok: false, error: uidRes.error });
-  }
-  uid = uidRes.uid;
-
-  function pickInnoveritApiKey() {
-    let k = String(process.env.INNOVERIT_APIKEY || process.env.INNOVERIT_API_KEY || "").trim();
-    if (k) return k;
-    try {
-      const cfg = require("firebase-functions").config();
-      k = String((cfg && cfg.innoverit && cfg.innoverit.apikey) ? cfg.innoverit.apikey : "").trim();
-      return k;
-    } catch (_) {
-      return "";
-    }
-  }
-
-  async function postForm(url, paramsObj) {
-    const body = new URLSearchParams();
-    for (const [k, v] of Object.entries(paramsObj || {})) body.set(k, String(v));
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
-    const text = await resp.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch (_) {}
-    return { httpStatus: resp.status, text, json };
-  }
-
-  const nowMs = Date.now();
-  const orderRef = db.collection("orders").doc(orderId);
-
-  try {
-    const snap = await orderRef.get();
-    if (!snap.exists) {
-      return sendJson(res, 404, { ok: false, error: "ORDER_NOT_FOUND", orderId });
-    }
-
-    const order = snap.data() || {};
-
-    // ownership
-    const ownerUid = String(order.uid || "");
-    if (!ownerUid || ownerUid !== uid) {
-      return sendJson(res, 403, { ok: false, error: "FORBIDDEN", orderId });
-    }
-
-    // solo innoverit + sandbox (para no tocar prod sin querer)
-    if (String(order.provider || "innoverit").toLowerCase() !== "innoverit") {
-      return sendJson(res, 400, { ok: false, error: "NOT_INNOVERIT_ORDER", orderId });
-    }
-    if (String(order.channel || "") !== "sandbox") {
-      return sendJson(res, 400, { ok: false, error: "NOT_SANDBOX_ORDER", orderId });
-    }
-
-    const apiKey = pickInnoveritApiKey();
-    if (!apiKey) {
-      await orderRef.update({
-        provider: "innoverit",
-        providerLastCheckAt: FieldValue.serverTimestamp(),
-        providerLastCheckAtMs: nowMs,
-        providerCheckResult: "ERROR",
-        providerCheckError: "INNOVERIT_APIKEY_MISSING",
-      });
-      return sendJson(res, 500, { ok: false, error: "INNOVERIT_APIKEY_MISSING" });
-    }
-
-    const key = String(order.providerKey || orderId).trim();
-
-    const details = await postForm("https://www.innoverit.com/api/v2/product/get/details", {
-      apikey: apiKey,
-      key,
-    });
-
-    const j = details.json || {};
-    const errCode = (j && j.error_code != null) ? Number(j.error_code) : null;
-    const ok = (errCode === 0);
-
-    // event
-    const evRef = orderRef.collection("events").doc();
-    await evRef.set({
-      type: ok ? "INNOVERIT_STATUS_REFRESH_OK" : "INNOVERIT_STATUS_REFRESH_ERROR",
-      createdAt: FieldValue.serverTimestamp(),
-      createdAtMs: nowMs,
-      providerHttpStatus: details.httpStatus,
-      providerErrorCode: errCode,
-      providerStatus: String(j.status || ""),
-      providerMessage: String(j.message || ""),
-      providerRechargeId: j.recharge_id ?? null,
-      providerReferenceCode: j.reference_code ?? null,
-      destination: String(j.destination || order.destination || ""),
-    });
-
-    // update order (sin tocar status)
-    await orderRef.update({
-      provider: "innoverit",
-      providerKey: key,
-      providerHttpStatus: details.httpStatus,
-      providerErrorCode: errCode,
-      providerStatus: String(j.status || ""),
-      providerMessage: String(j.message || ""),
-      providerRechargeId: j.recharge_id ?? (order.providerRechargeId ?? null),
-      providerReferenceCode: j.reference_code ?? (order.providerReferenceCode ?? null),
-      providerBalance: (j.balance != null ? j.balance : (order.providerBalance ?? null)),
-      providerRaw: String(details.text || "").slice(0, 10000),
-      providerLastCheckAt: FieldValue.serverTimestamp(),
-      providerLastCheckAtMs: nowMs,
-      providerCheckResult: ok ? "OK" : "ERROR",
-    });
-
-    return sendJson(res, 200, {
-      ok: true,
-      orderId,
-      providerHttpStatus: details.httpStatus,
-      providerErrorCode: errCode,
-      providerStatus: String(j.status || ""),
-      providerMessage: String(j.message || ""),
-      providerRechargeId: j.recharge_id ?? null,
-      providerReferenceCode: j.reference_code ?? null,
-    });
-  } catch (e) {
-    logger.error("refreshInnoveritStatus ERROR", { orderId, message: String(e && e.message ? e.message : e) });
-    return sendJson(res, 500, { ok: false, error: "INTERNAL_ERROR" });
-  }
-});
 
 /**
  * Sandbox Fulfillment: cuando una order pasa a PAID, la completamos automáticamente.
@@ -1096,11 +645,10 @@ exports.onOrderPaid = onDocumentUpdated("orders/{orderId}", async (event) => {
 });
 
 /**
- * Manual Completion Stub: cuando una order pasa a COMPLETED, registramos evento controlado.
- * - Solo transición EXACTA PAID -> COMPLETED
- * - NO llama a proveedor
- * - Audit event: type "COMPLETED_MANUAL"
- * - Idempotencia: completedProcessedAtMs
+ * Ding fulfillment: cuando una order pasa a COMPLETED, envía a Ding si está habilitado.
+ * - Solo sandbox
+ * - Solo provider ding
+ * - Idempotencia: providerSentAtMs
  */
 exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) => {
   const before = (event.data && event.data.before && event.data.before.data) ? (event.data.before.data() || {}) : {};
@@ -1118,40 +666,14 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
   const channel = String(after.channel || "");
   if (channel !== "sandbox") return;
 
-  const provider = String(after.provider || "innoverit").trim().toLowerCase();
-  if (provider !== "innoverit" && provider !== "ding") return;
+  const provider = String(after.provider || "ding").trim().toLowerCase();
+  if (provider !== "ding") return;
 
   const orderId = (event.params && event.params.orderId) ? String(event.params.orderId) : "";
   if (!orderId) return;
 
   const orderRef = db.collection("orders").doc(orderId);
   const nowMs = Date.now();
-
-  function pickInnoveritApiKey() {
-    let k = String(process.env.INNOVERIT_APIKEY || process.env.INNOVERIT_API_KEY || "").trim();
-    if (k) return k;
-    try {
-      const cfg = require("firebase-functions").config();
-      k = String((cfg && cfg.innoverit && cfg.innoverit.apikey) ? cfg.innoverit.apikey : "").trim();
-      return k;
-    } catch (_) {
-      return "";
-    }
-  }
-
-  async function postForm(url, paramsObj) {
-    const body = new URLSearchParams();
-    for (const [k, v] of Object.entries(paramsObj || {})) body.set(k, String(v));
-    const resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
-    const text = await resp.text();
-    let json = null;
-    try { json = JSON.parse(text); } catch (_) {}
-    return { httpStatus: resp.status, text, json };
-  }
 
   try {
     const snap = await orderRef.get();
@@ -1164,147 +686,52 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
     const sentMs = Number(order.providerSentAtMs);
     if (Number.isFinite(sentMs) && sentMs > 0) return;
 
-    if (provider === "ding") {
-      const dingEnabled = isDingSendEnabled();
+    const dingEnabled = isDingSendEnabled();
 
-      if (!dingEnabled) {
-        const eventRef = orderRef.collection("events").doc();
-        await eventRef.set({
-          type: "DING_COMPLETED_STUB",
-          statusFrom,
-          statusTo,
-          createdAt: FieldValue.serverTimestamp(),
-          createdAtMs: nowMs,
-        });
-
-        await orderRef.update({
-          providerResult: "PENDING_DING_INTEGRATION",
-          completedProcessedAt: FieldValue.serverTimestamp(),
-          completedProcessedAtMs: nowMs,
-          completedResult: "DING_STUB",
-        });
-
-        return;
-      }
-
-      const dingApiKey = pickDingApiKey();
-      const dingSkuCode = String(order.dingSkuCode || "").trim();
-      const dingDestinationRaw = String(order.destination || "").trim();
-      const dingDigits = dingDestinationRaw.replace(/[^\d]/g, "");
-      const dingAccountNumber = /^53\d{8}$/.test(dingDigits)
-        ? dingDigits
-        : (/^5\d{7}$/.test(dingDigits) ? `53${dingDigits}` : dingDigits);
-      const dingSendValue = Number(order.amount);
-      const dingReceiveAmount = Number(order.dingReceiveAmount);
-
-      if (!dingApiKey) {
-        await orderRef.update({
-          provider: "ding",
-          providerResult: "ERROR",
-          providerError: "DING_APIKEY_MISSING",
-          providerErrorAt: FieldValue.serverTimestamp(),
-          providerErrorAtMs: nowMs,
-          completedProcessedAt: FieldValue.serverTimestamp(),
-          completedProcessedAtMs: nowMs,
-          completedResult: "PROVIDER_ERROR",
-        });
-        return;
-      }
-
-      if (!dingSkuCode || !dingAccountNumber || !Number.isFinite(dingSendValue) || dingSendValue <= 0 || !Number.isFinite(dingReceiveAmount) || dingReceiveAmount <= 0) {
-        await orderRef.update({
-          provider: "ding",
-          providerResult: "ERROR",
-          providerError: "DING_ORDER_DATA_MISSING",
-          providerErrorAt: FieldValue.serverTimestamp(),
-          providerErrorAtMs: nowMs,
-          completedProcessedAt: FieldValue.serverTimestamp(),
-          completedProcessedAtMs: nowMs,
-          completedResult: "PROVIDER_ERROR",
-        });
-        return;
-      }
-
-      const send = await postJson(
-        "https://api.dingconnect.com/api/V1/SendTransfer",
-        {
-          SkuCode: dingSkuCode,
-          SendValue: dingSendValue,
-          AccountNumber: dingAccountNumber,
-          DistributorRef: orderId,
-          ValidateOnly: false,
-        },
-        {
-          "Content-Type": "application/json",
-          "api_key": dingApiKey,
-        }
-      );
-
-      const j = send.json || {};
-      const resultCode = Number(j.ResultCode);
-      const ok = Number.isFinite(resultCode) && resultCode === 1;
-
-      const transferRecord = (j && typeof j.TransferRecord === "object" && j.TransferRecord) ? j.TransferRecord : {};
-      const transferId = (transferRecord && typeof transferRecord.TransferId === "object" && transferRecord.TransferId) ? transferRecord.TransferId : {};
-      const processingState = String(transferRecord.ProcessingState || "");
-      const transferRef = String(transferId.TransferRef || "");
-      const distributorRef = String(transferId.DistributorRef || orderId);
-
-      const errorCodes = Array.isArray(j.ErrorCodes) ? j.ErrorCodes : [];
-      const providerMessage = errorCodes
-        .map((e) => {
-          const code = String(e && e.Code || "").trim();
-          const context = String(e && e.Context || "").trim();
-          return context ? `${code}:${context}` : code;
-        })
-        .filter(Boolean)
-        .join(" | ");
-
+    if (!dingEnabled) {
       const eventRef = orderRef.collection("events").doc();
       await eventRef.set({
-        type: ok ? "DING_SEND_OK" : "DING_SEND_ERROR",
+        type: "DING_COMPLETED_STUB",
         statusFrom,
         statusTo,
         createdAt: FieldValue.serverTimestamp(),
         createdAtMs: nowMs,
-        providerHttpStatus: send.httpStatus,
-        providerResultCode: Number.isFinite(resultCode) ? resultCode : null,
-        providerStatus: processingState,
-        providerMessage,
-        providerTransferRef: transferRef || null,
-        providerDistributorRef: distributorRef || null,
-        dingSkuCode,
-        dingReceiveAmount,
-        destination: dingAccountNumber,
       });
 
       await orderRef.update({
         provider: "ding",
-        providerKey: distributorRef || orderId,
-        providerHttpStatus: send.httpStatus,
-        providerResultCode: Number.isFinite(resultCode) ? resultCode : null,
-        providerStatus: processingState,
-        providerMessage,
-        providerTransferRef: transferRef || null,
-        providerDistributorRef: distributorRef || null,
-        providerRaw: String(send.text || "").slice(0, 10000),
-        providerSentAt: FieldValue.serverTimestamp(),
-        providerSentAtMs: nowMs,
-        providerResult: ok ? "SENT" : "ERROR",
+        providerResult: "PENDING_DING_INTEGRATION",
         completedProcessedAt: FieldValue.serverTimestamp(),
         completedProcessedAtMs: nowMs,
-        completedResult: ok ? "PROVIDER_SENT" : "PROVIDER_ERROR",
+        completedResult: "DING_STUB",
       });
 
       return;
     }
 
-    const apiKey = pickInnoveritApiKey();
-    if (!apiKey) {
+    const dingApiKey = pickDingApiKey();
+    const dingSkuCode = String(order.dingSkuCode || "").trim();
+    const dingDestinationRaw = String(order.destination || "").trim().toLowerCase();
+    const isNautaDing = isValidNautaEmail(dingDestinationRaw);
+
+    const dingDigits = dingDestinationRaw.replace(/[^\d]/g, "");
+    const dingAccountNumber = isNautaDing
+      ? dingDestinationRaw
+      : (
+          /^53\d{8}$/.test(dingDigits)
+            ? dingDigits
+            : (/^5\d{7}$/.test(dingDigits) ? `53${dingDigits}` : dingDigits)
+        );
+
+    const dingSendValue = Number(order.amount);
+    const dingReceiveAmount = Number(order.dingReceiveAmount);
+    const hasDingReceiveAmount = Number.isFinite(dingReceiveAmount) && dingReceiveAmount > 0;
+
+    if (!dingApiKey) {
       await orderRef.update({
-        provider: "innoverit",
+        provider: "ding",
         providerResult: "ERROR",
-        providerError: "INNOVERIT_APIKEY_MISSING",
+        providerError: "DING_APIKEY_MISSING",
         providerErrorAt: FieldValue.serverTimestamp(),
         providerErrorAtMs: nowMs,
         completedProcessedAt: FieldValue.serverTimestamp(),
@@ -1314,13 +741,11 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
       return;
     }
 
-    const productId = String(order.productId || "").trim().toLowerCase();
-    const destination = String(order.destination || "").trim();
-    if (!productId || !destination) {
+    if (!dingSkuCode || !dingAccountNumber || !Number.isFinite(dingSendValue) || dingSendValue <= 0) {
       await orderRef.update({
-        provider: "innoverit",
+        provider: "ding",
         providerResult: "ERROR",
-        providerError: "MISSING_PRODUCT_OR_DESTINATION",
+        providerError: "DING_ORDER_DATA_MISSING",
         providerErrorAt: FieldValue.serverTimestamp(),
         providerErrorAtMs: nowMs,
         completedProcessedAt: FieldValue.serverTimestamp(),
@@ -1330,136 +755,68 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
       return;
     }
 
-    // Resolver producto (docId = productId interno) para obtener id_product real de Innoverit
-    let prodSnap = await db.collection("catalog_products_innoverit").doc(productId).get();
-    if (!prodSnap.exists) prodSnap = await db.collection("catalog_products").doc(productId).get();
-
-    if (!prodSnap.exists) {
-      await orderRef.update({
-        provider: "innoverit",
-        providerResult: "ERROR",
-        providerError: "CATALOG_PRODUCT_NOT_FOUND",
-        providerErrorAt: FieldValue.serverTimestamp(),
-        providerErrorAtMs: nowMs,
-        completedProcessedAt: FieldValue.serverTimestamp(),
-        completedProcessedAtMs: nowMs,
-        completedResult: "PROVIDER_ERROR",
-      });
-      return;
-    }
-
-    const p = prodSnap.data() || {};
-    const providerName = String(p.provider || "innoverit").trim().toLowerCase();
-    if (providerName !== "innoverit") {
-      await orderRef.update({
-        provider: "innoverit",
-        providerResult: "SKIPPED",
-        providerError: "NOT_INNOVERIT_PRODUCT",
-        completedProcessedAt: FieldValue.serverTimestamp(),
-        completedProcessedAtMs: nowMs,
-        completedResult: "SKIPPED",
-      });
-      return;
-    }
-
-    const idProduct = String(p.providerProductId || p.providerSku || "").trim();
-    if (!idProduct) {
-      await orderRef.update({
-        provider: "innoverit",
-        providerResult: "ERROR",
-        providerError: "MISSING_PROVIDER_PRODUCT_ID",
-        providerErrorAt: FieldValue.serverTimestamp(),
-        providerErrorAtMs: nowMs,
-        completedProcessedAt: FieldValue.serverTimestamp(),
-        completedProcessedAtMs: nowMs,
-        completedResult: "PROVIDER_ERROR",
-      });
-      return;
-    }
-
-    // 1) (Opcional) intentar ver si ya existe por key (evita dobles envíos si hubo retry)
-    const details = await postForm("https://www.innoverit.com/api/v2/product/get/details", {
-      apikey: apiKey,
-      key: orderId,
-    });
-
-    if (details.json && Number(details.json.error_code) === 0) {
-      const evRef = orderRef.collection("events").doc();
-      await evRef.set({
-        type: "INNOVERIT_ALREADY_EXISTS",
-        statusFrom,
-        statusTo,
-        createdAt: FieldValue.serverTimestamp(),
-        createdAtMs: nowMs,
-        providerHttpStatus: details.httpStatus,
-        providerErrorCode: Number(details.json.error_code),
-        providerStatus: String(details.json.status || ""),
-        providerMessage: String(details.json.message || ""),
-        providerRechargeId: details.json.recharge_id ?? null,
-        providerReferenceCode: details.json.reference_code ?? null,
-      });
-
-      await orderRef.update({
-        provider: "innoverit",
-        providerKey: orderId,
-        providerHttpStatus: details.httpStatus,
-        providerErrorCode: Number(details.json.error_code),
-        providerStatus: String(details.json.status || ""),
-        providerMessage: String(details.json.message || ""),
-        providerRechargeId: details.json.recharge_id ?? null,
-        providerReferenceCode: details.json.reference_code ?? null,
-        providerBalance: details.json.balance ?? null,
-        providerRaw: String(details.text || "").slice(0, 10000),
-        providerSentAt: FieldValue.serverTimestamp(),
-        providerSentAtMs: nowMs,
-        providerResult: "EXISTS",
-        completedProcessedAt: FieldValue.serverTimestamp(),
-        completedProcessedAtMs: nowMs,
-        completedResult: "PROVIDER_EXISTS",
-      });
-
-      return;
-    }
-
-    // 2) Enviar recarga
-    const send = await postForm("https://www.innoverit.com/api/v2/product/send", {
-      apikey: apiKey,
-      id_product: idProduct,
-      destination,
-      key: orderId,
-      note: `RPC order ${orderId}`,
-    });
+    const send = await postJson(
+      "https://api.dingconnect.com/api/V1/SendTransfer",
+      {
+        SkuCode: dingSkuCode,
+        SendValue: dingSendValue,
+        AccountNumber: dingAccountNumber,
+        DistributorRef: orderId,
+        ValidateOnly: false,
+      },
+      {
+        "Content-Type": "application/json",
+        "api_key": dingApiKey,
+      }
+    );
 
     const j = send.json || {};
-    const errCode = (j && j.error_code != null) ? Number(j.error_code) : null;
-    const ok = (errCode === 0);
+    const resultCode = Number(j.ResultCode);
+    const ok = Number.isFinite(resultCode) && resultCode === 1;
+
+    const transferRecord = (j && typeof j.TransferRecord === "object" && j.TransferRecord) ? j.TransferRecord : {};
+    const transferId = (transferRecord && typeof transferRecord.TransferId === "object" && transferRecord.TransferId) ? transferRecord.TransferId : {};
+    const processingState = String(transferRecord.ProcessingState || "");
+    const transferRef = String(transferId.TransferRef || "");
+    const distributorRef = String(transferId.DistributorRef || orderId);
+
+    const errorCodes = Array.isArray(j.ErrorCodes) ? j.ErrorCodes : [];
+    const providerMessage = errorCodes
+      .map((e) => {
+        const code = String(e && e.Code || "").trim();
+        const context = String(e && e.Context || "").trim();
+        return context ? `${code}:${context}` : code;
+      })
+      .filter(Boolean)
+      .join(" | ");
 
     const eventRef = orderRef.collection("events").doc();
     await eventRef.set({
-      type: ok ? "INNOVERIT_SEND_OK" : "INNOVERIT_SEND_ERROR",
+      type: ok ? "DING_SEND_OK" : "DING_SEND_ERROR",
       statusFrom,
       statusTo,
       createdAt: FieldValue.serverTimestamp(),
       createdAtMs: nowMs,
       providerHttpStatus: send.httpStatus,
-      providerErrorCode: errCode,
-      providerStatus: String(j.status || ""),
-      providerMessage: String(j.message || ""),
-      providerRechargeId: j.recharge_id ?? null,
-      providerReferenceCode: j.reference_code ?? null,
-      destination: String(j.destination || destination),
+      providerResultCode: Number.isFinite(resultCode) ? resultCode : null,
+      providerStatus: processingState,
+      providerMessage,
+      providerTransferRef: transferRef || null,
+      providerDistributorRef: distributorRef || null,
+      dingSkuCode,
+      ...(hasDingReceiveAmount ? { dingReceiveAmount } : {}),
+      destination: dingAccountNumber,
     });
 
     await orderRef.update({
-      provider: "innoverit",
-      providerKey: orderId,
+      provider: "ding",
+      providerKey: distributorRef || orderId,
       providerHttpStatus: send.httpStatus,
-      providerErrorCode: errCode,
-      providerStatus: String(j.status || ""),
-      providerMessage: String(j.message || ""),
-      providerRechargeId: j.recharge_id ?? null,
-      providerReferenceCode: j.reference_code ?? null,
-      providerBalance: j.balance ?? null,
+      providerResultCode: Number.isFinite(resultCode) ? resultCode : null,
+      providerStatus: processingState,
+      providerMessage,
+      providerTransferRef: transferRef || null,
+      providerDistributorRef: distributorRef || null,
       providerRaw: String(send.text || "").slice(0, 10000),
       providerSentAt: FieldValue.serverTimestamp(),
       providerSentAtMs: nowMs,
@@ -1469,9 +826,9 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
       completedResult: ok ? "PROVIDER_SENT" : "PROVIDER_ERROR",
     });
 
-    logger.info("onOrderCompleted Innoverit send DONE", { orderId, ok, httpStatus: send.httpStatus, errCode });
+    logger.info("onOrderCompleted Ding send DONE", { orderId, ok, httpStatus: send.httpStatus, resultCode });
   } catch (e) {
-    logger.error("onOrderCompleted Innoverit send ERROR", { orderId, message: String(e && e.message ? e.message : e) });
+    logger.error("onOrderCompleted Ding send ERROR", { orderId, message: String(e && e.message ? e.message : e) });
   }
 });
 
@@ -1584,41 +941,7 @@ exports.onOrderCreatedTelegram = onDocumentCreated({ document: "orders/{orderId}
   }
 });
 
-// Auto-marca FAILED cuando Innoverit reporte error (providerErrorCode/providerStatus/providerHttpStatus)
-exports.onOrderInnoveritAutoFail = onDocumentUpdated(
-  { document: "orders/{orderId}" },
-  async (event) => {
-    const before = event.data?.before?.data?.() || {};
-    const after  = event.data?.after?.data?.()  || {};
 
-    if (String(after.provider || "") !== "innoverit") return;
-
-    const statusNow = String(after.status || "");
-    if (statusNow === "FAILED") return;
-
-    const errCode = Number(after.providerErrorCode || 0);
-    const httpStatus = Number(after.providerHttpStatus || 0);
-    const provStatus = String(after.providerStatus || "").trim().toLowerCase();
-
-    const shouldFail =
-      (Number.isFinite(errCode) && errCode !== 0) ||
-      (provStatus === "error") ||
-      (Number.isFinite(httpStatus) && httpStatus >= 400);
-
-    if (!shouldFail) return;
-
-    const orderId = String(event.params?.orderId || "");
-    if (!orderId) return;
-
-    // Evita bucles: solo cambia si sigue sin FAILED
-    const orderRef = db.collection("orders").doc(orderId);
-    await orderRef.update({
-      status: "FAILED",
-      failedAt: FieldValue.serverTimestamp(),
-      failedAtMs: Date.now(),
-    });
-  }
-);
 
 // Notifica cambios de estado relevantes al chat principal (RPC_TELEGRAM_CHAT_ID / TELEGRAM_CHAT_ID)
 // Dedupe por /orders/{orderId}/events/TELEGRAM_STATUS_<STATUS>

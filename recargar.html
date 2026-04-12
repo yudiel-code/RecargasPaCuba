@@ -884,12 +884,8 @@ const resp = await fetch(url, {
       // Master ID: internalProductId (tu ID). providerProductId queda “en sombra”.
       let rpcCatalogIndex = null; // { [internalProductId]: product }
       const RPC_PROJECT_ID = "recargaspacuba-7aaa8";
-      // Catálogo:
-      // - localhost/emulador: probar Ding primero y, si no hay visibles, caer a Innoverit
-      // - producción: mantener Innoverit hasta migrar backend
-      const RPC_COLLECTIONS = rpcIsLocalhost()
-        ? ["catalog_products_ding", "catalog_products_innoverit"]
-        : ["catalog_products_innoverit"];
+      // Catálogo: solo Ding, sin fallback silencioso
+      const RPC_COLLECTION = "catalog_products_ding";
 
       function rpcIsLocalhost() {
         return location.hostname === "localhost" || location.hostname === "127.0.0.1";
@@ -1308,22 +1304,8 @@ article.className = "card card--gradient offer-card";
 
       (async function rpcLoadAndRenderCatalog() {
         try {
-          let visible = [];
-          let selectedCollection = "";
-
-          for (const collectionName of RPC_COLLECTIONS) {
-            try {
-              const all = await rpcFetchCatalog(authUser, collectionName);
-              const filtered = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
-              if (filtered.length) {
-                visible = filtered;
-                selectedCollection = collectionName;
-                break;
-              }
-            } catch (err) {
-              console.warn(`Catalog load failed for ${collectionName}:`, err && err.message ? err.message : err);
-            }
-          }
+          const all = await rpcFetchCatalog(authUser, RPC_COLLECTION);
+          const visible = all.filter(p => (p.enabled !== false) && (p.publish !== false) && p.internalProductId);
 
           if (!visible.length) return;
 
@@ -1333,12 +1315,12 @@ article.className = "card card--gradient offer-card";
             if (k) rpcCatalogIndex[k] = p;
           });
           window.__rpcCatalogIndex = rpcCatalogIndex;
-          window.__rpcCatalogCollection = selectedCollection;
+          window.__rpcCatalogCollection = RPC_COLLECTION;
 
           rpcRenderCatalog(visible);
         } catch (e) {
           console.warn("Catalog dynamic render skipped:", e && e.message ? e.message : e);
-          // Fallback: se quedan tus cards hardcodeadas.
+          // Sin fallback silencioso: si falla Ding, no se mezcla proveedor.
         } finally {
           document.body.classList.add("catalog-ready");
         }
@@ -1784,7 +1766,7 @@ article.className = "card card--gradient offer-card";
           }
 
           if (pm === "PAYPAL" || pm === "REVOLUT") {
-            // ✅ Migrado a catálogo (Innoverit): el link se lee del producto (Firestore) para que lo rellenes manualmente.
+            // ✅ El link se lee del producto en Firestore para que lo rellenes manualmente.
             // Acepta varios nombres de campo para no depender de un único esquema.
             function rpcResolvePayUrl(product, method) {
               const p = (product && typeof product === "object") ? product : {};
