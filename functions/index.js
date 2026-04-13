@@ -1777,14 +1777,73 @@ exports.requestAccountDeletion = onCall(async (request) => {
   await ref.set({
     requestId: ref.id,
     status: "PENDING",
-    source: "web",
+    source: "public",
     nombre,
     correo,
     uid: uidInput || authUid || "",
+    submittedUid: uidInput || "",
     motivo,
     authUid: authUid || "",
     authEmail: authEmail || "",
     authPhone: authPhone || "",
+    createdAt: FieldValue.serverTimestamp(),
+    createdAtMs: nowMs,
+  });
+
+  return {
+    ok: true,
+    requestId: ref.id,
+    status: "PENDING",
+  };
+});
+
+exports.requestAccountDeletionAuth = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError("unauthenticated", "AUTH_REQUIRED");
+  }
+
+  const nombre = String(request.data?.nombre || "").trim();
+  const motivo = String(request.data?.motivo || "").trim();
+
+  if (!nombre || nombre.length > 120) {
+    throw new HttpsError("invalid-argument", "INVALID_NAME");
+  }
+
+  if (motivo.length > 1000) {
+    throw new HttpsError("invalid-argument", "COMMENT_TOO_LONG");
+  }
+
+  const authUid = String(request.auth.uid || "").trim();
+  const authEmail = String(request.auth.token?.email || "").trim().toLowerCase();
+  const authPhone = String(request.auth.token?.phone_number || "").trim();
+  const contacto = authEmail || authPhone;
+
+  if (!authUid || authUid.length > 128) {
+    throw new HttpsError("failed-precondition", "AUTH_UID_MISSING");
+  }
+
+  if (!contacto || contacto.length > 160) {
+    throw new HttpsError("failed-precondition", "AUTH_CONTACT_MISSING");
+  }
+
+  if (authEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(authEmail)) {
+    throw new HttpsError("failed-precondition", "AUTH_EMAIL_INVALID");
+  }
+
+  const ref = db.collection("account_deletion_requests").doc();
+  const nowMs = Date.now();
+
+  await ref.set({
+    requestId: ref.id,
+    status: "PENDING",
+    source: "authenticated",
+    nombre,
+    correo: contacto,
+    uid: authUid,
+    motivo,
+    authUid,
+    authEmail,
+    authPhone,
     createdAt: FieldValue.serverTimestamp(),
     createdAtMs: nowMs,
   });
