@@ -25,19 +25,48 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
+function isTrustedAppOrigin(originRaw) {
+  const origin = String(originRaw || "").trim().toLowerCase();
+  return (
+    origin === "http://localhost" ||
+    origin === "https://localhost" ||
+    origin === "http://localhost:5173" ||
+    origin === "https://localhost:5173" ||
+    origin === "capacitor://localhost" ||
+    origin === "ionic://localhost"
+  );
+}
+
 async function requireAppCheck(req, res) {
   // En emulador, NO exigimos App Check para poder probar por cURL/PowerShell sin tocar prod.
   if (isRunningInEmulator()) return true;
 
+  const origin = req.get("origin") || "";
   const token = req.get("X-Firebase-AppCheck") || req.get("x-firebase-appcheck") || "";
+
+  // En la app Capacitor permitimos continuar sin App Check web.
+  if (!token && isTrustedAppOrigin(origin)) {
+    logger.info("appcheck_bypassed_for_trusted_app_origin", { origin });
+    return true;
+  }
+
   if (!token) {
     sendJson(res, 401, { ok: false, error: "APPCHECK_MISSING" });
     return false;
   }
+
   try {
     await admin.appCheck().verifyToken(token);
     return true;
   } catch (e) {
+    if (isTrustedAppOrigin(origin)) {
+      logger.warn("appcheck_verify_failed_but_bypassed_for_trusted_app_origin", {
+        origin,
+        message: String(e && e.message ? e.message : e),
+      });
+      return true;
+    }
+
     logger.warn("appcheck_verify_failed", { message: String(e && e.message ? e.message : e) });
     sendJson(res, 401, { ok: false, error: "APPCHECK_INVALID" });
     return false;
@@ -63,6 +92,12 @@ function setCors(req, res) {
     "https://recargaspacuba.eu",
     "https://www.recargaspacuba.eu",
     "https://recargaspacuba-7aaa8--mantenimiento-ox2lbyd9.web.app",
+    "http://localhost",
+    "https://localhost",
+    "http://localhost:5173",
+    "https://localhost:5173",
+    "capacitor://localhost",
+    "ionic://localhost",
   ]);
 
   // Evita cachés cruzados entre orígenes
