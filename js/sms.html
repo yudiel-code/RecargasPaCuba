@@ -148,8 +148,16 @@
           let q = "";
           if (nextQuery) {
             const qs = new URLSearchParams(nextQuery);
-            const v = qs.get("v");
-            if (v) q = "?v=" + encodeURIComponent(v);
+            const out = new URLSearchParams();
+
+            const product = String(qs.get("product") || "").trim();
+            const v = String(qs.get("v") || "").trim();
+
+            if (product) out.set("product", product);
+            if (v) out.set("v", v);
+
+            const outTxt = out.toString();
+            if (outTxt) q = "?" + outTxt;
           }
 
           setStatus("login-ok uid=" + cred.user.uid + " -> /" + nextPath, "ok");

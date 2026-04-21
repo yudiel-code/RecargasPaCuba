@@ -585,18 +585,41 @@ body.catalog-ready .cards { visibility: visible; }
       } catch (_) {}
     })();
 
+    function rpcBuildRecargarNextPath(productOverride) {
+      const qp = new URLSearchParams(location.search || "");
+      const productRaw = (productOverride != null) ? String(productOverride) : String(qp.get("product") || "");
+      const product = productRaw.trim();
+      const v = String(qp.get("v") || sessionStorage.getItem("rpc_v") || "").trim();
+
+      const nextQs = new URLSearchParams();
+      if (product) nextQs.set("product", product);
+      if (v) nextQs.set("v", v);
+
+      const nextTxt = nextQs.toString();
+      return nextTxt ? `recargar.html?${nextTxt}` : "recargar.html";
+    }
+
+    function rpcBuildRecargarLoginUrl(productOverride) {
+      const qp = new URLSearchParams(location.search || "");
+      const v = String(qp.get("v") || sessionStorage.getItem("rpc_v") || "").trim();
+
+      const loginQs = new URLSearchParams();
+      loginQs.set("next", rpcBuildRecargarNextPath(productOverride));
+      if (v) loginQs.set("v", v);
+
+      return `index.html?${loginQs.toString()}`;
+    }
+
     // ✅ Seguridad inmediata: si no hay sesión real, salir antes de cualquier render
     try {
       const auth = window.firebaseAuth;
       const user = auth && auth.currentUser;
       if (!user) {
-        const v = new URLSearchParams(location.search).get("v") || sessionStorage.getItem("rpc_v") || "";
-        const redir = v ? `index.html?next=recargar.html&v=${encodeURIComponent(v)}` : "index.html?next=recargar.html";
-        window.location.replace(redir);
+        window.location.replace(rpcBuildRecargarLoginUrl());
         return;
       }
     } catch(_) {
-      window.location.replace("index.html?next=recargar.html");
+      window.location.replace(rpcBuildRecargarLoginUrl());
       return;
     }
 
@@ -859,23 +882,31 @@ const resp = await fetch(url, {
       const tabs = document.querySelectorAll(".tabs .tab");
       const cubacel = document.querySelector(".cards-cubacel");
       const nauta = document.querySelector(".cards-nauta");
+      let tabCubacel = null;
+      let tabNauta = null;
+
+      function rpcSetActiveCatalog(tipo) {
+        if (!cubacel || !nauta || !tabCubacel || !tabNauta) return;
+
+        const target = String(tipo || "").toLowerCase();
+        const showNauta = (target === "nauta");
+
+        tabCubacel.classList.toggle("active", !showNauta);
+        tabNauta.classList.toggle("active", showNauta);
+        cubacel.style.display = showNauta ? "none" : "grid";
+        nauta.style.display = showNauta ? "grid" : "none";
+      }
 
       if (tabs.length === 2 && cubacel && nauta) {
-        const tabCubacel = tabs[0];
-        const tabNauta = tabs[1];
+        tabCubacel = tabs[0];
+        tabNauta = tabs[1];
 
         tabCubacel.addEventListener("click", () => {
-          tabCubacel.classList.add("active");
-          tabNauta.classList.remove("active");
-          cubacel.style.display = "grid";
-          nauta.style.display = "none";
+          rpcSetActiveCatalog("cubacel");
         });
 
         tabNauta.addEventListener("click", () => {
-          tabNauta.classList.add("active");
-          tabCubacel.classList.remove("active");
-          cubacel.style.display = "none";
-          nauta.style.display = "grid";
+          rpcSetActiveCatalog("nauta");
         });
       }
 
@@ -1312,12 +1343,21 @@ article.className = "card card--gradient offer-card";
           rpcCatalogIndex = {};
           visible.forEach(p => {
             const k = String(p.__docId || "").trim() || String(p.internalProductId || "").trim();
+            const internalKey = String(p.internalProductId || "").trim();
             if (k) rpcCatalogIndex[k] = p;
+            if (internalKey) rpcCatalogIndex[internalKey] = p;
           });
           window.__rpcCatalogIndex = rpcCatalogIndex;
           window.__rpcCatalogCollection = RPC_COLLECTION;
 
           rpcRenderCatalog(visible);
+
+          const requestedProductId = String(new URLSearchParams(location.search || "").get("product") || "").trim();
+          if (requestedProductId) {
+            setTimeout(() => {
+              rpcOpenCatalogProduct(requestedProductId, "", { silent: true });
+            }, 0);
+          }
         } catch (e) {
           console.warn("Catalog dynamic render skipped:", e && e.message ? e.message : e);
           // Sin fallback silencioso: si falla Ding, no se mezcla proveedor.
@@ -1532,6 +1572,95 @@ article.className = "card card--gradient offer-card";
       let operadorActual = "";
       let productoActual = null;
 
+      function rpcResolveCatalogProduct(productRef) {
+        const ref = String(productRef || "").trim();
+        if (!ref || !window.__rpcCatalogIndex) return null;
+
+        const direct = window.__rpcCatalogIndex[ref];
+        if (direct) return direct;
+
+        const all = Object.values(window.__rpcCatalogIndex);
+        for (const p of all) {
+          if (String((p && p.internalProductId) || "").trim() === ref) {
+            return p;
+          }
+        }
+
+        return null;
+      }
+
+      function rpcOpenCatalogProduct(productRef, categoryHint, options) {
+        if (!modalBg || !modalCobro || !modalRecibe || !inputNum1 || !inputNum2 || !btnRealizar) {
+          return false;
+        }
+
+        const opts = (options && typeof options === "object") ? options : {};
+        const silent = !!opts.silent;
+
+        const catProd = rpcResolveCatalogProduct(productRef);
+        if (!catProd) {
+          if (!silent && typeof showToastError === "function") {
+            showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
+          }
+          return false;
+        }
+
+        productoActual = null;
+        precioActual = 0;
+        beneficioActual = "";
+        operadorActual = "";
+
+        const internalPid = String(catProd.internalProductId || "").trim();
+        const providerPid = String(catProd.providerProductId || catProd.productId || "").trim();
+        const docPid = String(catProd.__docId || "").trim();
+
+        const categoryBtn = String(categoryHint || "").toUpperCase();
+        const isNauta = (String(catProd.category || "").toUpperCase() === "NAUTA") || (categoryBtn === "NAUTA");
+        const backendPid = isNauta
+          ? (docPid || providerPid || internalPid)
+          : internalPid;
+
+        productoActual = { id: backendPid, ...catProd };
+
+        const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
+        const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
+
+        if (!(Number.isFinite(sellNum) && sellNum > 0)) {
+          if (!silent && typeof showToastError === "function") {
+            showToastError("Oferta no disponible: precio no configurado.");
+          }
+          return false;
+        }
+
+        precioActual = Math.round(sellNum * 100) / 100;
+        beneficioActual = String(catProd.receiveText || "").trim();
+        operadorActual = String(catProd.category || "").toUpperCase();
+        tipoDestinoActual = isNauta ? "nauta" : "msisdn";
+
+        rpcSetActiveCatalog(tipoDestinoActual === "nauta" ? "nauta" : "cubacel");
+
+        modalCobro.textContent = `Le cobraremos: ${rpcFormatEur(precioActual)}`;
+        modalRecibe.textContent = (tipoDestinoActual === "nauta")
+          ? `La cuenta NAUTA recibe: ${beneficioActual}`
+          : `El móvil recibe: ${beneficioActual}`;
+
+        inputNum1.value = "";
+        inputNum2.value = "";
+        if (inputNauta1) inputNauta1.value = "";
+        if (inputNauta2) inputNauta2.value = "";
+
+        if (modalDestinoMsisdn) modalDestinoMsisdn.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+        if (modalDestinoNauta) modalDestinoNauta.style.display = (tipoDestinoActual === "nauta") ? "block" : "none";
+
+        if (modalRecientes) modalRecientes.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
+        if (tipoDestinoActual === "msisdn") {
+          renderNumerosRecientes();
+        }
+
+        abrirModalRecarga();
+        return true;
+      }
+
       if (modalBg && modalCobro && modalRecibe && inputNum1 && inputNum2 && btnRealizar) {
         // Click handler único (sirve para cards hardcodeadas y dinámicas)
         document.addEventListener("click", (e) => {
@@ -1541,83 +1670,15 @@ article.className = "card card--gradient offer-card";
           // ✅ Seguridad: aborta si no hay sesión
           const auth = window.firebaseAuth;
           if (!auth || !auth.currentUser) {
-            const v = new URLSearchParams(location.search).get("v") || sessionStorage.getItem("rpc_v") || "";
-            const redir = v ? `index.html?next=recargar.html&v=${encodeURIComponent(v)}` : "index.html?next=recargar.html";
-            window.location.replace(redir);
+            const productId = btn.getAttribute("data-product-id");
+            window.location.replace(rpcBuildRecargarLoginUrl(productId));
             return;
           }
 
-          const productId = btn.getAttribute("data-product-id"); // internalProductId (tu ID)
+          const productId = btn.getAttribute("data-product-id");
           const categoryBtn = String(btn.getAttribute("data-category") || "").toUpperCase();
 
-          productoActual = null;
-          precioActual = 0;
-          beneficioActual = "";
-          operadorActual = "";
-
-          let precioTxt = "";
-          let recibeTxt = "";
-
-          // 1) Preferimos catálogo dinámico (Firestore)
-          const catProd = (productId && window.__rpcCatalogIndex) ? window.__rpcCatalogIndex[String(productId).trim()] : null;
-
-          if (catProd) {
-          const internalPid = String(catProd.internalProductId || "").trim();
-          const providerPid = String(catProd.providerProductId || catProd.productId || "").trim();
-          const docPid = String(catProd.__docId || "").trim();
-
-          const isNauta = (String(catProd.category || "").toUpperCase() === "NAUTA") || (typeof categoryBtn !== "undefined" && categoryBtn === "NAUTA");
-          const backendPid = isNauta
-          ? (docPid || providerPid || internalPid)
-          : internalPid;
-
-            productoActual = { id: backendPid, ...catProd };
-
-            const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
-            const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
-
-            // ✅ Regla: SOLO sellAmountEur; si falta o es inválido -> no permitir compra
-            if (!(Number.isFinite(sellNum) && sellNum > 0)) {
-              showToastError("Oferta no disponible: precio no configurado.");
-              return;
-            }
-
-            precioActual = Math.round(sellNum * 100) / 100;
-            beneficioActual = String(catProd.receiveText || "").trim();
-            operadorActual = String(catProd.category || "").toUpperCase();
-
-            precioTxt = rpcFormatEur(precioActual);
-            recibeTxt = beneficioActual;
-
-            // Tipo destino por categoría (NAUTA = email)
-            tipoDestinoActual = (operadorActual === "NAUTA" || categoryBtn === "NAUTA") ? "nauta" : "msisdn";
-          } else {
-            showToastError("No se encontró el producto seleccionado. Inténtalo de nuevo.");
-            return;
-          }
-
-          modalCobro.textContent = `Le cobraremos: ${precioTxt}`;
-          modalRecibe.textContent = (tipoDestinoActual === "nauta")
-            ? `La cuenta NAUTA recibe: ${recibeTxt}`
-            : `El móvil recibe: ${recibeTxt}`;
-
-          // Reset inputs
-          inputNum1.value = "";
-          inputNum2.value = "";
-          if (inputNauta1) inputNauta1.value = "";
-          if (inputNauta2) inputNauta2.value = "";
-
-          // Toggle UI del modal según tipo
-          if (modalDestinoMsisdn) modalDestinoMsisdn.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
-          if (modalDestinoNauta) modalDestinoNauta.style.display = (tipoDestinoActual === "nauta") ? "block" : "none";
-
-          // Recientes solo aplica a teléfono
-          if (modalRecientes) modalRecientes.style.display = (tipoDestinoActual === "msisdn") ? "block" : "none";
-          if (tipoDestinoActual === "msisdn") {
-            renderNumerosRecientes();
-          }
-
-          abrirModalRecarga();
+          rpcOpenCatalogProduct(productId, categoryBtn);
         });
 
         // Cerrar modal al tocar fuera
@@ -1853,16 +1914,25 @@ article.className = "card card--gradient offer-card";
     // y ya NO hay sesión, redirigimos inmediatamente al login con next=recargar.
     function buildLoginNextUrl() {
       const sp = new URLSearchParams(window.location.search || "");
-      const vInUrl = sp.get("v");
-      let v = vInUrl;
+      const product = String(sp.get("product") || "").trim();
+      let v = String(sp.get("v") || "").trim();
 
       if (!v) {
-        try { v = sessionStorage.getItem("rpc_v"); } catch (_) {}
+        try { v = sessionStorage.getItem("rpc_v") || ""; } catch (_) {}
       }
 
-      let url = "index.html?next=recargar.html";
-      if (v) url += `&v=${encodeURIComponent(v)}`;
-      return url;
+      const nextQs = new URLSearchParams();
+      if (product) nextQs.set("product", product);
+      if (v) nextQs.set("v", v);
+
+      const nextTxt = nextQs.toString();
+      const nextPath = nextTxt ? `recargar.html?${nextTxt}` : "recargar.html";
+
+      const loginQs = new URLSearchParams();
+      loginQs.set("next", nextPath);
+      if (v) loginQs.set("v", v);
+
+      return `index.html?${loginQs.toString()}`;
     }
 
     window.addEventListener("pageshow", (e) => {
@@ -1875,14 +1945,7 @@ article.className = "card card--gradient offer-card";
     guardProtectedPage({
       auth,
       onAuthStateChanged,
-      redirectTo: (() => {
-        const vInUrl = new URLSearchParams(window.location.search || "").get("v");
-        if (vInUrl) return "index.html";
-        let vStored = null;
-        try { vStored = sessionStorage.getItem("rpc_v"); } catch (_) {}
-        if (vStored) return `index.html?v=${encodeURIComponent(vStored)}`;
-        return "index.html";
-      })(),
+      redirectTo: buildLoginNextUrl(),
       timeoutMs: 20000,
       onReady: (user) => {
         try {
