@@ -610,6 +610,18 @@ body.catalog-ready .cards { visibility: visible; }
       return `index.html?${loginQs.toString()}`;
     }
 
+    function rpcSyncRecargarUrl(productOverride) {
+      try {
+        const target = rpcBuildRecargarNextPath(productOverride);
+        const currentPath = String(location.pathname || "").split("/").pop() || "recargar.html";
+        const currentSearch = String(location.search || "");
+        const current = currentSearch ? `${currentPath}${currentSearch}` : currentPath;
+
+        if (target === current) return;
+        history.replaceState(null, "", target);
+      } catch (_) {}
+    }
+
     // ✅ Seguridad inmediata: si no hay sesión real, salir antes de cualquier render
     try {
       const auth = window.firebaseAuth;
@@ -1555,6 +1567,7 @@ article.className = "card card--gradient offer-card";
       }
 
       function cerrarModalRecarga() {
+        rpcSyncRecargarUrl("");
         if (modalBg) modalBg.style.display = "none";
         if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
           lastFocusedElement.focus();
@@ -1638,6 +1651,7 @@ article.className = "card card--gradient offer-card";
         tipoDestinoActual = isNauta ? "nauta" : "msisdn";
 
         rpcSetActiveCatalog(tipoDestinoActual === "nauta" ? "nauta" : "cubacel");
+        rpcSyncRecargarUrl(internalPid);
 
         modalCobro.textContent = `Le cobraremos: ${rpcFormatEur(precioActual)}`;
         modalRecibe.textContent = (tipoDestinoActual === "nauta")
