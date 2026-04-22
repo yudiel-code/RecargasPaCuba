@@ -306,14 +306,14 @@ exports.createOrder = onRequest(async (req, res) => {
     return sendJson(res, 400, { ok: false, error: "INVALID_PRODUCT_ID" });
   }
 
-  // Resolver producto: solo Ding, sin fallbacks silenciosos
+  // Resolver producto: público para venta/UI, privado para datos reales de Ding
   let product = null;
 
   try {
-    const snap = await db.collection("catalog_products_ding").doc(productId).get();
+    const pubSnap = await db.collection("catalog_products_ding").doc(productId).get();
 
-    if (snap.exists) {
-      const p = snap.data() || {};
+    if (pubSnap.exists) {
+      const p = pubSnap.data() || {};
 
       // Switch ON/OFF desde Firestore
       if (p.publish === false) {
@@ -324,8 +324,8 @@ exports.createOrder = onRequest(async (req, res) => {
       const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
       const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
 
-      // Importe desde catálogo (EUR): SOLO sellAmountEur (sin fallback, sin +1)
-      const sellEur = Number((p.sellAmountEur != null && p.sellAmountEur !== "") ? p.sellAmountEur : p.sendAmountEur);
+      // Precio de venta desde catálogo público
+      const sellEur = Number(p.sellAmountEur);
 
       if (!Number.isFinite(sellEur) || sellEur <= 0) {
         return sendJson(res, 500, { ok: false, error: "INVALID_SELL_AMOUNT", productId });
@@ -337,11 +337,19 @@ exports.createOrder = onRequest(async (req, res) => {
       const cur = "EUR";
       const provider = "ding";
 
-      const dingSkuCode = String(p.dingSkuCode || "").trim();
+      // Datos reales de Ding desde catálogo privado
+      const privSnap = await db.collection("catalog_private_ding").doc(productId).get();
+      const priv = privSnap.exists ? (privSnap.data() || {}) : {};
 
-      const dingReceiveAmount = Number.isFinite(Number(p.dingReceiveAmount))
-        ? Number(p.dingReceiveAmount)
+      const dingSkuCode = String(priv.dingSkuCode || "").trim();
+
+      const dingReceiveAmount = Number.isFinite(Number(priv.dingReceiveAmount))
+        ? Number(priv.dingReceiveAmount)
         : null;
+
+      if (!dingSkuCode || !Number.isFinite(dingReceiveAmount) || dingReceiveAmount <= 0) {
+        return sendJson(res, 500, { ok: false, error: "INVALID_PRIVATE_PRODUCT_DATA", productId });
+      }
 
       product = {
         id: productId,
@@ -354,7 +362,7 @@ exports.createOrder = onRequest(async (req, res) => {
       };
     }
   } catch (e) {
-    logger.warn("catalog_products_ding lookup failed", { productId, message: e && e.message ? e.message : String(e) });
+    logger.warn("catalog_products_ding/catalog_private_ding lookup failed", { productId, message: e && e.message ? e.message : String(e) });
   }
 
   if (!product) {
