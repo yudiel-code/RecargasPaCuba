@@ -1206,13 +1206,13 @@ const resp = await fetch(url, {
         const category = String(p.category || "").toUpperCase();
         const isPromo = !!p.isPromo;
         const variablePromo = !!p.variablePromo;
-        const sellRaw = (p.sellAmountEur != null) ? p.sellAmountEur : null;
-        const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
-        const hasValidSell = (Number.isFinite(sellNum) && sellNum > 0);
-        const sellEur = hasValidSell ? sellNum : NaN;
-        const priceTxt = hasValidSell ? rpcFormatEur(Math.round(sellEur * 100) / 100) : "—";
-        const ctaTxt = hasValidSell ? "Comprar" : "No disponible";
-        const ctaAttr = hasValidSell ? "" : ' disabled aria-disabled="true"';
+        const finalPriceRaw = (p.finalPriceEur != null && p.finalPriceEur !== "") ? p.finalPriceEur : p.sellAmountEur;
+        const finalPriceNum = (typeof finalPriceRaw === "number") ? finalPriceRaw : Number(String(finalPriceRaw).replace(",", "."));
+        const hasValidFinalPrice = (Number.isFinite(finalPriceNum) && finalPriceNum > 0);
+        const finalPriceEur = hasValidFinalPrice ? finalPriceNum : NaN;
+        const priceTxt = hasValidFinalPrice ? rpcFormatEur(Math.round(finalPriceEur * 100) / 100) : "—";
+        const ctaTxt = hasValidFinalPrice ? "Comprar" : "No disponible";
+        const ctaAttr = hasValidFinalPrice ? "" : ' disabled aria-disabled="true"';
         const receiveTxt = rpcResolveReceiveText(p);
         const promoNoteRaw = String(p.promoNote || "").trim();
         const promoNoteTxt = promoNoteRaw
@@ -1308,9 +1308,9 @@ article.className = "card card--gradient offer-card";
         };
 
         const rpcSortEur = (p) => {
-          const vSell = (p && p.sellAmountEur != null) ? p.sellAmountEur : null;
-          const nSell = (typeof vSell === "number") ? vSell : Number(String(vSell).replace(",", "."));
-          return (Number.isFinite(nSell) && nSell > 0) ? nSell : 999999;
+          const vPrice = (p && p.finalPriceEur != null && p.finalPriceEur !== "") ? p.finalPriceEur : p.sellAmountEur;
+          const nPrice = (typeof vPrice === "number") ? vPrice : Number(String(vPrice).replace(",", "."));
+          return (Number.isFinite(nPrice) && nPrice > 0) ? nPrice : 999999;
         };
 
         const rpcSortInPlace = (arr) => {
@@ -1635,17 +1635,17 @@ article.className = "card card--gradient offer-card";
 
         productoActual = { id: backendPid, ...catProd };
 
-        const sellRaw = (catProd.sellAmountEur != null) ? catProd.sellAmountEur : null;
-        const sellNum = (typeof sellRaw === "number") ? sellRaw : Number(String(sellRaw).replace(",", "."));
+        const finalPriceRaw = (catProd.finalPriceEur != null && catProd.finalPriceEur !== "") ? catProd.finalPriceEur : catProd.sellAmountEur;
+        const finalPriceNum = (typeof finalPriceRaw === "number") ? finalPriceRaw : Number(String(finalPriceRaw).replace(",", "."));
 
-        if (!(Number.isFinite(sellNum) && sellNum > 0)) {
+        if (!(Number.isFinite(finalPriceNum) && finalPriceNum > 0)) {
           if (!silent && typeof showToastError === "function") {
             showToastError("Oferta no disponible: precio no configurado.");
           }
           return false;
         }
 
-        precioActual = Math.round(sellNum * 100) / 100;
+        precioActual = Math.round(finalPriceNum * 100) / 100;
         beneficioActual = String(catProd.receiveText || "").trim();
         operadorActual = String(catProd.category || "").toUpperCase();
         tipoDestinoActual = isNauta ? "nauta" : "msisdn";
@@ -1813,8 +1813,8 @@ article.className = "card card--gradient offer-card";
               beneficio: String(beneficioActual || ""),
               // Precio final (cliente)
               importe: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : 0,
-              // Precio (catálogo) explícito
-              sellAmountEur: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : null,   
+              // Precio final visible del cliente
+              finalPriceEur: Number.isFinite(amount) ? Math.round(amount * 100) / 100 : null,
               metodoPago: String(selectedPayMethod || "PAYPAL"),
               destino: destinoNormalized,
               createdAt: new Date().toISOString()

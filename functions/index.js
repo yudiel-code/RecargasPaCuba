@@ -324,14 +324,15 @@ exports.createOrder = onRequest(async (req, res) => {
       const cat = (typeof p.category === "string") ? p.category.trim().toLowerCase() : "";
       const kind = (cat === "nauta" || productId.startsWith("nauta-")) ? "nauta" : "cubacel";
 
-      // Precio de venta desde catálogo público
-      const sellEur = Number(p.sellAmountEur);
+      // Precio final del cliente desde catálogo público
+      const finalPriceRaw = (p.finalPriceEur != null && p.finalPriceEur !== "") ? p.finalPriceEur : p.sellAmountEur;
+      const finalPriceNum = Number(finalPriceRaw);
 
-      if (!Number.isFinite(sellEur) || sellEur <= 0) {
-        return sendJson(res, 500, { ok: false, error: "INVALID_SELL_AMOUNT", productId });
+      if (!Number.isFinite(finalPriceNum) || finalPriceNum <= 0) {
+        return sendJson(res, 500, { ok: false, error: "INVALID_FINAL_PRICE", productId });
       }
 
-      const amt = Math.round((sellEur + Number.EPSILON) * 100) / 100;
+      const finalPriceEur = Math.round((finalPriceNum + Number.EPSILON) * 100) / 100;
 
       // Currency: al usar importes en EUR, la moneda es EUR
       const cur = "EUR";
@@ -347,14 +348,21 @@ exports.createOrder = onRequest(async (req, res) => {
         ? Number(priv.dingReceiveAmount)
         : null;
 
-      if (!dingSkuCode || !Number.isFinite(dingReceiveAmount) || dingReceiveAmount <= 0) {
+      const providerSendAmountNum = Number(priv.sendAmountEur);
+      const providerSendAmountEur = Number.isFinite(providerSendAmountNum)
+        ? Math.round((providerSendAmountNum + Number.EPSILON) * 100) / 100
+        : null;
+
+      if (!dingSkuCode || !Number.isFinite(dingReceiveAmount) || dingReceiveAmount <= 0 || !Number.isFinite(providerSendAmountEur) || providerSendAmountEur <= 0) {
         return sendJson(res, 500, { ok: false, error: "INVALID_PRIVATE_PRODUCT_DATA", productId });
       }
 
       product = {
         id: productId,
         kind,
-        amount: amt,
+        amount: finalPriceEur,
+        finalPriceEur,
+        providerSendAmountEur,
         currency: cur,
         provider,
         dingSkuCode,
@@ -463,6 +471,8 @@ batch.set(ref, {
   destination: destinoNormalized,
   status: "PENDING",
   amount,
+  ...(Number.isFinite(product.finalPriceEur) ? { finalPriceEur: product.finalPriceEur } : {}),
+  ...(Number.isFinite(product.providerSendAmountEur) ? { providerSendAmountEur: product.providerSendAmountEur } : {}),
   currency,
   paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
   channel: "sandbox",
@@ -483,6 +493,8 @@ batch.set(refPriv, {
   ...(product.provider === "ding" && Number.isFinite(product.dingReceiveAmount) ? { dingReceiveAmount: product.dingReceiveAmount } : {}),
   destination: destinoNormalized,
   amount,
+  ...(Number.isFinite(product.finalPriceEur) ? { finalPriceEur: product.finalPriceEur } : {}),
+  ...(Number.isFinite(product.providerSendAmountEur) ? { providerSendAmountEur: product.providerSendAmountEur } : {}),
   currency,
   paymentMethod: (typeof paymentMethod === "string" ? paymentMethod.trim().toUpperCase() : ""),
   channel: "sandbox",
@@ -766,7 +778,11 @@ exports.onOrderCompleted = onDocumentUpdated("orders/{orderId}", async (event) =
             : (/^5\d{7}$/.test(dingDigits) ? `53${dingDigits}` : dingDigits)
         );
 
-    const dingSendValue = Number(order.amount);
+    const dingSendValue = Number(
+      (order.providerSendAmountEur != null && order.providerSendAmountEur !== "")
+        ? order.providerSendAmountEur
+        : order.amount
+    );
     const dingReceiveAmount = Number(order.dingReceiveAmount);
     const hasDingReceiveAmount = Number.isFinite(dingReceiveAmount) && dingReceiveAmount > 0;
 
